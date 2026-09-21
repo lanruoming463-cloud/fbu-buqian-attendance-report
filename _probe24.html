@@ -1,0 +1,13 @@
+<!DOCTYPE html><html><body><pre id="out">PENDING</pre>
+<iframe id="f" src="/%E8%A1%A5%E7%AD%BE%E6%B5%81%E7%A8%8B_%E8%A1%A5%E7%AD%BE%E7%BB%9F%E8%AE%A1.html" style="width:1400px;height:900px"></iframe>
+<script>
+function ev(code){ return document.getElementById('f').contentWindow.eval(code); }
+function step1(){
+  var s;
+  try {
+    s = ev('renderGen.toString()');
+  } catch(e) { s = 'EXC ' + e; }
+  document.getElementById('out').textContent = '@@P24@@' + s + '@@P24END@@';
+}
+setTimeout(step1, 9000);
+</script></body></html>

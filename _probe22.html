@@ -1,0 +1,18 @@
+<!DOCTYPE html><html><body><pre id="out">PENDING</pre>
+<iframe id="f" src="/%E8%A1%A5%E7%AD%BE%E6%B5%81%E7%A8%8B_%E8%A1%A5%E7%AD%BE%E7%BB%9F%E8%AE%A1.html" style="width:1400px;height:900px"></iframe>
+<script>
+function ev(code){ return document.getElementById('f').contentWindow.eval(code); }
+function step1(){
+  var out = {};
+  try {
+    out.before = ev('(function(){var n=0;document.querySelectorAll("#genGrpBody tr.att-grp").forEach(function(r){var b=r.querySelector(".emp-count"); if(b&&/未及时确认 [1-9]/.test(b.textContent)) n++;}); return n;})()');
+    out.genIdxBefore = ev('Object.keys(genEmpIdx).length');
+    ev('renderGen(genPayload)');
+    out.genIdxAfter = ev('Object.keys(genEmpIdx).length');
+    out.after = ev('(function(){var n=0;document.querySelectorAll("#genGrpBody tr.att-grp").forEach(function(r){var b=r.querySelector(".emp-count"); if(b&&/未及时确认 [1-9]/.test(b.textContent)) n++;}); return n;})()');
+    out.srcSlice = ev('(function(){var s=renderGen.toString(); var i=s.indexOf("buildGenEmpIndex"); var j=s.indexOf("gBadge"); return {len:s.length, iBuild:i, iBadge:j};})()');
+  } catch(e) { out = {EXC: String(e && e.stack || e)}; }
+  document.getElementById('out').textContent = '@@P22@@' + JSON.stringify(out) + '@@P22END@@';
+}
+setTimeout(step1, 9000);
+</script></body></html>

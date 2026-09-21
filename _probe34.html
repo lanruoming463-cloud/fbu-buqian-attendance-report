@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"></head><body>
+<pre id="out">PENDING</pre>
+<iframe id="f" src="/%E8%A1%A5%E7%AD%BE%E6%B5%81%E7%A8%8B_%E8%A1%A5%E7%AD%BE%E7%BB%9F%E8%AE%A1.html" style="width:1400px;height:900px"></iframe>
+<script>
+function ev(code){ return document.getElementById('f').contentWindow.eval(code); }
+function grab(){
+  return '(function(){' +
+    'var ths = Array.from(document.querySelectorAll("#tableTop thead th"));' +
+    'var tds = Array.from(document.querySelectorAll("#tableTop tr.top-emp-row td")).slice(0,9);' +
+    'var grpTd = document.querySelector("#tableTop tr.major-row-t td, #tableTop tr.region-row-t td");' +
+    'var numTd = document.querySelector("#tableTop tr.top-emp-row td.num");' +
+    'var c8 = document.querySelector("#tableTop tr.top-emp-row td:nth-child(8)");' +
+    'return {heads: ths.map(function(h){ return h.textContent; }),' +
+    ' th: ths.map(function(h){ return getComputedStyle(h).textAlign; }),' +
+    ' td: tds.map(function(c){ return getComputedStyle(c).textAlign; }),' +
+    ' widths: ths.map(function(h){ return Math.round(h.getBoundingClientRect().width); }),' +
+    ' grpAlign: grpTd ? getComputedStyle(grpTd).textAlign : "N/A",' +
+    ' numColor: numTd ? getComputedStyle(numTd).color + "/" + getComputedStyle(numTd).fontWeight : "N/A",' +
+    ' c8Color: c8 ? getComputedStyle(c8).color : "N/A"};' +
+    '})()';
+}
+function step1(){
+  var out = {};
+  try {
+    ev('showCell("formal","sign")');
+    out.formal = ev(grab());
+    ev('showCell("labor","sign")');
+    out.labor = ev(grab());
+  } catch(e) { out = {EXC: String(e && e.stack || e)}; }
+  document.getElementById('out').textContent = '@@P34@@' + JSON.stringify(out) + '@@P34END@@';
+}
+setTimeout(step1, 9000);
+</script></body></html>

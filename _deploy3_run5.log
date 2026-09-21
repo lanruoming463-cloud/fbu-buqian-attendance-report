@@ -1,0 +1,43 @@
+cred ok, user= 73070727 ...
+sprint/default tip = 2fde0ba35
+reset ok at 2fde0ba35
+commit ok: ae16ea147
+push rc=0
+To https://miaoda-git.feishu.cn/apaas4.0/-/t_vkCL6f1I/code_p6iBZnfLI6KD.git
+   2fde0ba..ae16ea1  HEAD -> sprint/default
+
+release-create rc=0
+stdout: {
+  "ok": true,
+  "identity": "user",
+  "data": {
+    "release_id": "7686415315316493512",
+    "status": "publishing",
+    "sync": false
+  }
+}
+
+stderr: 
+release_id = 7686415315316493512
+poll#1 status=publishing
+poll#2 status=finished
+{
+  "ok": true,
+  "identity": "user",
+  "data": {
+    "commit_id": "ae16ea147bf5c9a75d68a1b7b727cf673092bf7e",
+    "created_at": "1789633078000",
+    "creator": {
+      "email": "lanruoming@ztn.com",
+      "username": "蓝若铭"
+    },
+    "error_logs": [],
+    "online_url": "https://ztn.larkenterprise.com/page/RgGYm9pJkdaDGKafK8lc5pS1ntf",
+    "release_id": "7686415315316493512",
+    "status": "finished",
+    "updated_at": "1789633098000"
+  }
+}
+
+DONE
+DEPLOY_DONE rc=0

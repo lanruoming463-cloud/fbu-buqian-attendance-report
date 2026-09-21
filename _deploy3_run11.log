@@ -1,0 +1,3 @@
+cred ok, user= 73070727 ...
+FAIL shallow fetch: fatal: unable to find remote helper for 'https'
+

@@ -1,0 +1,22 @@
+<!DOCTYPE html><html><body><pre id="out">PENDING</pre>
+<iframe id="f" src="/%E8%A1%A5%E7%AD%BE%E6%B5%81%E7%A8%8B_%E8%A1%A5%E7%AD%BE%E7%BB%9F%E8%AE%A1.html" style="width:1400px;height:900px"></iframe>
+<script>
+function ev(code){ return document.getElementById('f').contentWindow.eval(code); }
+function step1(){
+  var out = {};
+  try {
+    out = ev('(function(){' +
+      'var r = {};' +
+      'r.empIdxKeyCount = Object.keys(formalAttPayload.empIndex).length;' +
+      'r.bmKeys = Object.keys(formalAttPayload.empIndex).filter(function(k){return k.indexOf("伯明翰2") >= 0 && k.indexOf("拾货组") >= 0;});' +
+      'var kk = r.bmKeys[0];' +
+      'if (kk) { r.kkLen = formalAttPayload.empIndex[kk].length; r.kkCodes = []; for (var i=0;i<kk.length;i++) r.kkCodes.push(kk.charCodeAt(i)); }' +
+      'var kbig = "欧洲区|英国区|伯明翰2号仓|拾货组";' +
+      'r.kbigCodes = []; for (var j=0;j<kbig.length;j++) r.kbigCodes.push(kbig.charCodeAt(j));' +
+      'return r;' +
+      '})()');
+  } catch(e) { out = {EXC: String(e && e.stack || e)}; }
+  document.getElementById('out').textContent = '@@P26@@' + JSON.stringify(out) + '@@P26END@@';
+}
+setTimeout(step1, 9000);
+</script></body></html>

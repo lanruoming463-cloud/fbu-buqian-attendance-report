@@ -1,0 +1,78 @@
+# -*- coding: utf-8 -*-
+"""Probe: verify attend (labor) view group badge + untimely detail expansion."""
+import http.server, socketserver, threading, subprocess, os, re
+
+WS = r'C:\Users\zt25337\WorkBuddy\2026-08-20-09-25-58'
+CHROME = r'C:\Program Files\Google\Chrome\Application\chrome.exe'
+PORT = 8961
+os.chdir(WS)
+
+class H(http.server.SimpleHTTPRequestHandler):
+    def log_message(self, *a): pass
+
+httpd = socketserver.TCPServer(('127.0.0.1', PORT), H)
+threading.Thread(target=httpd.serve_forever, daemon=True).start()
+
+PROBE = """<!DOCTYPE html>
+<html><head><meta charset="utf-8"></head><body>
+<pre id="out">PENDING</pre>
+<iframe id="f" src="/%E8%A1%A5%E7%AD%BE%E6%B5%81%E7%A8%8B_%E8%A1%A5%E7%AD%BE%E7%BB%9F%E8%AE%A1.html" style="width:1400px;height:900px"></iframe>
+<script>
+function ev(code){ return document.getElementById('f').contentWindow.eval(code); }
+function step1(){
+  var out = {};
+  try {
+    ev('showCell("labor","att")');
+    // badges
+    out.badgeInfo = ev('(function(){' +
+      'var rows = Array.from(document.querySelectorAll("#attGrpBody tr.att-grp"));' +
+      'var withBadge = 0, maxCnt = 0, maxRow = null;' +
+      'rows.forEach(function(r){' +
+      '  var b = r.querySelector(".emp-count");' +
+      '  if (b) { withBadge++; var m = b.textContent.match(/(\\\\d+)/); var n = m ? +m[1] : 0;' +
+      '    if (n > maxCnt) { maxCnt = n; maxRow = r; } }' +
+      '});' +
+      'return {rows: rows.length, withBadge: withBadge, maxCnt: maxCnt};' +
+      '})()');
+    // click the max-badge group row to expand
+    out.expanded = ev('(function(){' +
+      'var rows = Array.from(document.querySelectorAll("#attGrpBody tr.att-grp"));' +
+      'var best = null, bestN = 0;' +
+      'rows.forEach(function(r){ var b = r.querySelector(".emp-count"); if (b) { var m = b.textContent.match(/(\\\\d+)/); var n = m ? +m[1] : 0; if (n > bestN) { bestN = n; best = r; } } });' +
+      'if (!best) return "NOBADGE";' +
+      'best.click();' +
+      'var sub = best.nextElementSibling;' +
+      'if (!sub || !sub.classList.contains("emp-subrow")) return "NOSUBROW";' +
+      'var tbl = sub.querySelector("table.emp-table");' +
+      'var heads = Array.from(tbl.querySelectorAll("th")).map(function(h){ return h.textContent.trim(); });' +
+      'var firstRow = Array.from(tbl.querySelectorAll("tbody tr")).slice(0, 2).map(function(tr){ return Array.from(tr.cells).map(function(c){ return c.textContent.trim(); }); });' +
+      'var bodyRows = tbl.querySelectorAll("tbody tr").length;' +
+      'var badge = best.querySelector(".emp-count").textContent;' +
+      'best.click();' +
+      'var collapsed = !best.nextElementSibling || !best.nextElementSibling.classList.contains("emp-subrow");' +
+      'return {heads: heads, bodyRows: bodyRows, firstRows: firstRow, badgeAfterExpand: badge, collapsedOk: collapsed};' +
+      '})()');
+    // month switch: badges change
+    out.afterMonthSwitch = ev('(function(){' +
+      'attendSel = attendPayload.months[0]; renderAttend();' +
+      'var rows = Array.from(document.querySelectorAll("#attGrpBody tr.att-grp"));' +
+      'var withBadge = 0;' +
+      'rows.forEach(function(r){ var b = r.querySelector(".emp-count"); if (b) withBadge++; });' +
+      'return {month: attendSel, withBadge: withBadge};' +
+      '})()');
+  } catch(e) { out = {EXC: String(e && e.stack || e)}; }
+  document.getElementById('out').textContent = '@@P31@@' + JSON.stringify(out) + '@@P31END@@';
+}
+setTimeout(step1, 9000);
+</script></body></html>"""
+
+with open(os.path.join(WS, '_probe31.html'), 'w', encoding='utf-8') as f:
+    f.write(PROBE)
+
+cmd = [CHROME, '--headless=new', '--disable-gpu', '--dump-dom', '--virtual-time-budget=25000',
+       'http://127.0.0.1:%d/_probe31.html' % PORT]
+p = subprocess.run(cmd, capture_output=True, text=True, encoding='utf-8', errors='replace', timeout=180)
+dom = p.stdout
+m = re.search(r'@@P31@@(.*?)@@P31END@@', dom, re.S)
+print(m.group(1) if m else ('NO MARKER dom=%d' % len(dom)))
+httpd.shutdown()

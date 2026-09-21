@@ -1,0 +1,504 @@
+{
+ "maj_order": [
+  "欧洲区",
+  "美洲区",
+  "亚太区"
+ ],
+ "months": {
+  "2026-06": {
+   "maj_rows": [
+    {
+     "maj": "欧洲区",
+     "den": 910,
+     "num": 0,
+     "rate": 0.0,
+     "noreport": 100.0
+    },
+    {
+     "maj": "美洲区",
+     "den": 819,
+     "num": 10,
+     "rate": 1.22,
+     "noreport": 98.78
+    },
+    {
+     "maj": "亚太区",
+     "den": 53,
+     "num": 0,
+     "rate": 0.0,
+     "noreport": 100.0
+    },
+    {
+     "maj": "未归区(职能/其他)",
+     "den": 12,
+     "num": 0,
+     "rate": 0.0,
+     "noreport": 100.0
+    }
+   ],
+   "area_rows": [
+    {
+     "area": "",
+     "maj": "未归区(职能/其他)",
+     "den": 8,
+     "num": 0,
+     "rate": 0.0,
+     "noreport": 100.0
+    },
+    {
+     "area": "亚特兰大区",
+     "maj": "美洲区",
+     "den": 56,
+     "num": 2,
+     "rate": 3.57,
+     "noreport": 96.43
+    },
+    {
+     "area": "休斯顿区",
+     "maj": "美洲区",
+     "den": 24,
+     "num": 1,
+     "rate": 4.17,
+     "noreport": 95.83
+    },
+    {
+     "area": "其他",
+     "maj": "未归区(职能/其他)",
+     "den": 4,
+     "num": 0,
+     "rate": 0.0,
+     "noreport": 100.0
+    },
+    {
+     "area": "加州区",
+     "maj": "美洲区",
+     "den": 243,
+     "num": 0,
+     "rate": 0.0,
+     "noreport": 100.0
+    },
+    {
+     "area": "加拿大卡尔加里区",
+     "maj": "美洲区",
+     "den": 3,
+     "num": 0,
+     "rate": 0.0,
+     "noreport": 100.0
+    },
+    {
+     "area": "加拿大多伦多",
+     "maj": "美洲区",
+     "den": 32,
+     "num": 0,
+     "rate": 0.0,
+     "noreport": 100.0
+    },
+    {
+     "area": "加拿大温哥华",
+     "maj": "美洲区",
+     "den": 8,
+     "num": 0,
+     "rate": 0.0,
+     "noreport": 100.0
+    },
+    {
+     "area": "墨西哥区",
+     "maj": "美洲区",
+     "den": 35,
+     "num": 6,
+     "rate": 17.14,
+     "noreport": 82.86
+    },
+    {
+     "area": "德国区",
+     "maj": "欧洲区",
+     "den": 189,
+     "num": 0,
+     "rate": 0.0,
+     "noreport": 100.0
+    },
+    {
+     "area": "意大利区",
+     "maj": "欧洲区",
+     "den": 40,
+     "num": 0,
+     "rate": 0.0,
+     "noreport": 100.0
+    },
+    {
+     "area": "捷克区",
+     "maj": "欧洲区",
+     "den": 86,
+     "num": 0,
+     "rate": 0.0,
+     "noreport": 100.0
+    },
+    {
+     "area": "新泽西区",
+     "maj": "美洲区",
+     "den": 325,
+     "num": 0,
+     "rate": 0.0,
+     "noreport": 100.0
+    },
+    {
+     "area": "日本区",
+     "maj": "亚太区",
+     "den": 13,
+     "num": 0,
+     "rate": 0.0,
+     "noreport": 100.0
+    },
+    {
+     "area": "法国区",
+     "maj": "欧洲区",
+     "den": 53,
+     "num": 0,
+     "rate": 0.0,
+     "noreport": 100.0
+    },
+    {
+     "area": "波兰区",
+     "maj": "欧洲区",
+     "den": 95,
+     "num": 0,
+     "rate": 0.0,
+     "noreport": 100.0
+    },
+    {
+     "area": "澳洲区",
+     "maj": "亚太区",
+     "den": 34,
+     "num": 0,
+     "rate": 0.0,
+     "noreport": 100.0
+    },
+    {
+     "area": "芝加哥区",
+     "maj": "美洲区",
+     "den": 34,
+     "num": 0,
+     "rate": 0.0,
+     "noreport": 100.0
+    },
+    {
+     "area": "英国区",
+     "maj": "欧洲区",
+     "den": 407,
+     "num": 0,
+     "rate": 0.0,
+     "noreport": 100.0
+    },
+    {
+     "area": "萨凡纳区",
+     "maj": "美洲区",
+     "den": 40,
+     "num": 0,
+     "rate": 0.0,
+     "noreport": 100.0
+    },
+    {
+     "area": "西班牙区",
+     "maj": "欧洲区",
+     "den": 40,
+     "num": 0,
+     "rate": 0.0,
+     "noreport": 100.0
+    },
+    {
+     "area": "西雅图区",
+     "maj": "美洲区",
+     "den": 8,
+     "num": 0,
+     "rate": 0.0,
+     "noreport": 100.0
+    },
+    {
+     "area": "诺福克区",
+     "maj": "美洲区",
+     "den": 1,
+     "num": 0,
+     "rate": 0.0,
+     "noreport": 100.0
+    },
+    {
+     "area": "达拉斯区",
+     "maj": "美洲区",
+     "den": 8,
+     "num": 1,
+     "rate": 12.5,
+     "noreport": 87.5
+    },
+    {
+     "area": "迈阿密区",
+     "maj": "美洲区",
+     "den": 2,
+     "num": 0,
+     "rate": 0.0,
+     "noreport": 100.0
+    },
+    {
+     "area": "韩国区",
+     "maj": "亚太区",
+     "den": 6,
+     "num": 0,
+     "rate": 0.0,
+     "noreport": 100.0
+    }
+   ],
+   "total_den": 1794,
+   "total_num": 10,
+   "total_rate": 0.56,
+   "total_noreport": 99.44,
+   "excluded": [
+    "zt0021237",
+    "zt0022134"
+   ]
+  },
+  "2026-07": {
+   "maj_rows": [
+    {
+     "maj": "欧洲区",
+     "den": 947,
+     "num": 1,
+     "rate": 0.11,
+     "noreport": 99.89
+    },
+    {
+     "maj": "美洲区",
+     "den": 785,
+     "num": 11,
+     "rate": 1.4,
+     "noreport": 98.6
+    },
+    {
+     "maj": "亚太区",
+     "den": 54,
+     "num": 0,
+     "rate": 0.0,
+     "noreport": 100.0
+    },
+    {
+     "maj": "未归区(职能/其他)",
+     "den": 5,
+     "num": 0,
+     "rate": 0.0,
+     "noreport": 100.0
+    }
+   ],
+   "area_rows": [
+    {
+     "area": "",
+     "maj": "未归区(职能/其他)",
+     "den": 5,
+     "num": 0,
+     "rate": 0.0,
+     "noreport": 100.0
+    },
+    {
+     "area": "亚特兰大区",
+     "maj": "美洲区",
+     "den": 60,
+     "num": 1,
+     "rate": 1.67,
+     "noreport": 98.33
+    },
+    {
+     "area": "休斯顿区",
+     "maj": "美洲区",
+     "den": 20,
+     "num": 1,
+     "rate": 5.0,
+     "noreport": 95.0
+    },
+    {
+     "area": "加州区",
+     "maj": "美洲区",
+     "den": 234,
+     "num": 0,
+     "rate": 0.0,
+     "noreport": 100.0
+    },
+    {
+     "area": "加拿大卡尔加里区",
+     "maj": "美洲区",
+     "den": 6,
+     "num": 0,
+     "rate": 0.0,
+     "noreport": 100.0
+    },
+    {
+     "area": "加拿大多伦多",
+     "maj": "美洲区",
+     "den": 30,
+     "num": 0,
+     "rate": 0.0,
+     "noreport": 100.0
+    },
+    {
+     "area": "加拿大温哥华",
+     "maj": "美洲区",
+     "den": 8,
+     "num": 0,
+     "rate": 0.0,
+     "noreport": 100.0
+    },
+    {
+     "area": "墨西哥区",
+     "maj": "美洲区",
+     "den": 33,
+     "num": 6,
+     "rate": 18.18,
+     "noreport": 81.82
+    },
+    {
+     "area": "德国区",
+     "maj": "欧洲区",
+     "den": 190,
+     "num": 0,
+     "rate": 0.0,
+     "noreport": 100.0
+    },
+    {
+     "area": "意大利区",
+     "maj": "欧洲区",
+     "den": 44,
+     "num": 0,
+     "rate": 0.0,
+     "noreport": 100.0
+    },
+    {
+     "area": "捷克区",
+     "maj": "欧洲区",
+     "den": 84,
+     "num": 0,
+     "rate": 0.0,
+     "noreport": 100.0
+    },
+    {
+     "area": "新泽西区",
+     "maj": "美洲区",
+     "den": 302,
+     "num": 1,
+     "rate": 0.33,
+     "noreport": 99.67
+    },
+    {
+     "area": "日本区",
+     "maj": "亚太区",
+     "den": 14,
+     "num": 0,
+     "rate": 0.0,
+     "noreport": 100.0
+    },
+    {
+     "area": "法国区",
+     "maj": "欧洲区",
+     "den": 54,
+     "num": 0,
+     "rate": 0.0,
+     "noreport": 100.0
+    },
+    {
+     "area": "波兰区",
+     "maj": "欧洲区",
+     "den": 122,
+     "num": 1,
+     "rate": 0.82,
+     "noreport": 99.18
+    },
+    {
+     "area": "澳洲区",
+     "maj": "亚太区",
+     "den": 34,
+     "num": 0,
+     "rate": 0.0,
+     "noreport": 100.0
+    },
+    {
+     "area": "芝加哥区",
+     "maj": "美洲区",
+     "den": 32,
+     "num": 0,
+     "rate": 0.0,
+     "noreport": 100.0
+    },
+    {
+     "area": "英国区",
+     "maj": "欧洲区",
+     "den": 401,
+     "num": 0,
+     "rate": 0.0,
+     "noreport": 100.0
+    },
+    {
+     "area": "萨凡纳区",
+     "maj": "美洲区",
+     "den": 41,
+     "num": 0,
+     "rate": 0.0,
+     "noreport": 100.0
+    },
+    {
+     "area": "西班牙区",
+     "maj": "欧洲区",
+     "den": 52,
+     "num": 0,
+     "rate": 0.0,
+     "noreport": 100.0
+    },
+    {
+     "area": "西雅图区",
+     "maj": "美洲区",
+     "den": 8,
+     "num": 0,
+     "rate": 0.0,
+     "noreport": 100.0
+    },
+    {
+     "area": "诺福克区",
+     "maj": "美洲区",
+     "den": 1,
+     "num": 0,
+     "rate": 0.0,
+     "noreport": 100.0
+    },
+    {
+     "area": "达拉斯区",
+     "maj": "美洲区",
+     "den": 8,
+     "num": 2,
+     "rate": 25.0,
+     "noreport": 75.0
+    },
+    {
+     "area": "迈阿密区",
+     "maj": "美洲区",
+     "den": 2,
+     "num": 0,
+     "rate": 0.0,
+     "noreport": 100.0
+    },
+    {
+     "area": "韩国区",
+     "maj": "亚太区",
+     "den": 6,
+     "num": 0,
+     "rate": 0.0,
+     "noreport": 100.0
+    }
+   ],
+   "total_den": 1791,
+   "total_num": 12,
+   "total_rate": 0.67,
+   "total_noreport": 99.33,
+   "excluded": [
+    "zt0019443",
+    "zt0022041",
+    "zt0022103",
+    "zt0022335",
+    "zt0022411"
+   ]
+  }
+ }
+}

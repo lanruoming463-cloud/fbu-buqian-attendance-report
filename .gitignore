@@ -1,0 +1,17 @@
+# 本地运行产物/临时文件（不入库）
+__pycache__/
+*.pyc
+.github_token
+_env_check.txt
+_inv.txt
+_inv2.txt
+_cred_check.txt
+chk_*.js
+orig_chk_*.js
+_temp_check.js
+_inspect_labor.log
+_rendergen_live.txt
+repo_*/
+_md_repo_deploy*/
+tmp_git_home/
+_html_out/

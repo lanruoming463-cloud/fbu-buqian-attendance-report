@@ -1,0 +1,27 @@
+C:\Users\zt25337\.workbuddy\binaries\python\envs\default\Lib\site-packages\openpyxl\styles\stylesheet.py:237: UserWarning: Workbook contains no default style, apply openpyxl's default
+  warn("Workbook contains no default style, apply openpyxl's default")
+C:\Users\zt25337\.workbuddy\binaries\python\envs\default\Lib\site-packages\openpyxl\styles\stylesheet.py:237: UserWarning: Workbook contains no default style, apply openpyxl's default
+  warn("Workbook contains no default style, apply openpyxl's default")
+C:\Users\zt25337\.workbuddy\binaries\python\envs\default\Lib\site-packages\openpyxl\styles\stylesheet.py:237: UserWarning: Workbook contains no default style, apply openpyxl's default
+  warn("Workbook contains no default style, apply openpyxl's default")
+C:\Users\zt25337\.workbuddy\binaries\python\envs\default\Lib\site-packages\openpyxl\worksheet\_reader.py:329: UserWarning: Unknown extension is not supported and will be removed
+  warn(msg)
+C:\Users\zt25337\.workbuddy\binaries\python\envs\default\Lib\site-packages\openpyxl\worksheet\_reader.py:329: UserWarning: Conditional Formatting extension is not supported and will be removed
+  warn(msg)
+C:\Users\zt25337\.workbuddy\binaries\python\envs\default\Lib\site-packages\openpyxl\styles\stylesheet.py:237: UserWarning: Workbook contains no default style, apply openpyxl's default
+  warn("Workbook contains no default style, apply openpyxl's default")
+C:\Users\zt25337\.workbuddy\binaries\python\envs\default\Lib\site-packages\openpyxl\styles\stylesheet.py:237: UserWarning: Workbook contains no default style, apply openpyxl's default
+  warn("Workbook contains no default style, apply openpyxl's default")
+C:\Users\zt25337\.workbuddy\binaries\python\envs\default\Lib\site-packages\openpyxl\styles\stylesheet.py:237: UserWarning: Workbook contains no default style, apply openpyxl's default
+  warn("Workbook contains no default style, apply openpyxl's default")
+[Top10剔除] 标记为剔除的记录数: 1744 / 7276
+Excel 已生成: C:/Users/zt25337/WorkBuddy/2026-08-20-09-25-58/补签流程_补签统计.xlsx
+[警告] 以下区域未命中 REGION_TO_MAJOR，已被归入「其他」，请补映射：
+    '区域'  2 行
+Excel 已追加考勤确认及时性 sheet（大区/区域/仓）
+[劳务工] 2026-06 账单人数=13540 不准确=157 考勤准确率=98.84%
+[劳务工] 2026-07 账单人数=13311 不准确=127 考勤准确率=99.05%
+[正式工] 考勤总数=98055 正常=84132 异常=13923 未及时确认=1845 准确率=85.8% 及时确认率=98.1%
+HTML 已生成: C:/Users/zt25337/WorkBuddy/2026-08-20-09-25-58/补签流程_补签统计.html
+月份: ['2026-05', '2026-06', '2026-07']
+日期数: 62

@@ -1,0 +1,5 @@
+cred ok, user= 73070727 ...
+sprint/default tip = db19ec2b2
+reset ok at db19ec2b2
+nothing to commit（内容与线上一致）
+DEPLOY_DONE rc=0

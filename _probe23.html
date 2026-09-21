@@ -1,0 +1,23 @@
+<!DOCTYPE html><html><body><pre id="out">PENDING</pre>
+<iframe id="f" src="/%E8%A1%A5%E7%AD%BE%E6%B5%81%E7%A8%8B_%E8%A1%A5%E7%AD%BE%E7%BB%9F%E8%AE%A1.html" style="width:1400px;height:900px"></iframe>
+<script>
+function ev(code){ return document.getElementById('f').contentWindow.eval(code); }
+function step1(){
+  var out = {};
+  try {
+    out = ev('(function(){' +
+      'var orig = genEmpIdx; var gets = [];' +
+      'genEmpIdx = new Proxy(orig, { get: function(t,k){ gets.push(String(k)); return t[k]; } });' +
+      'renderGen(genPayload);' +
+      'genEmpIdx = orig;' +
+      'var badge = "";' +
+      'document.querySelectorAll("#genGrpBody tr.att-grp").forEach(function(r){' +
+      '  if (r.getAttribute("data-group") === "拾货组" && r.getAttribute("data-wh") === "伯明翰2号仓") badge = r.querySelector(".emp-count") ? r.querySelector(".emp-count").textContent : "NOBADGE";' +
+      '});' +
+      'return {ngets: gets.length, firstGets: gets.slice(0,5), badge: badge};' +
+      '})()');
+  } catch(e) { out = {EXC: String(e && e.stack || e)}; }
+  document.getElementById('out').textContent = '@@P23@@' + JSON.stringify(out) + '@@P23END@@';
+}
+setTimeout(step1, 9000);
+</script></body></html>

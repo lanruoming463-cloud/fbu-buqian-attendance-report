@@ -1,0 +1,19 @@
+<!DOCTYPE html><html><body><pre id="out">PENDING</pre>
+<iframe id="f" src="/%E8%A1%A5%E7%AD%BE%E6%B5%81%E7%A8%8B_%E8%A1%A5%E7%AD%BE%E7%BB%9F%E8%AE%A1.html" style="width:1400px;height:900px"></iframe>
+<script>
+function ev(code){ return document.getElementById('f').contentWindow.eval(code); }
+function step1(){
+  var out = {};
+  try {
+    out.genMode = ev('genMode');
+    out.genSel = ev('genSel');
+    out.genIdxKeys = ev('Object.keys(genEmpIdx||{}).length');
+    out.idxTotal = ev('Object.values(genEmpIdx||{}).reduce(function(a,b){return a+b.length;},0)');
+    var sample = ev('(function(){ var k=Object.keys(formalAttPayload.empIndex)[0]; var e=formalAttPayload.empIndex[k][0]; return {k:k, ym:e[e.length-2], ymd:e[e.length-1], len:e.length}; })()');
+    out.sample = sample;
+    out.funcSrc = ev('typeof buildGenEmpIndex === "function" ? buildGenEmpIndex.toString().slice(0,120) : "MISSING"');
+  } catch(e) { out.EXC = String(e && e.stack || e); }
+  document.getElementById('out').textContent = '@@P20@@' + JSON.stringify(out) + '@@P20END@@';
+}
+setTimeout(step1, 9000);
+</script></body></html>

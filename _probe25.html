@@ -1,0 +1,33 @@
+<!DOCTYPE html><html><body><pre id="out">PENDING</pre>
+<iframe id="f" src="/%E8%A1%A5%E7%AD%BE%E6%B5%81%E7%A8%8B_%E8%A1%A5%E7%AD%BE%E7%BB%9F%E8%AE%A1.html" style="width:1400px;height:900px"></iframe>
+<script>
+function ev(code){ return document.getElementById('f').contentWindow.eval(code); }
+function step1(){
+  var out = {};
+  try {
+    out = ev('(function(){' +
+      'var r = {};' +
+      'r.dupGenGrpBody = document.querySelectorAll("[id=genGrpBody]").length;' +
+      'r.genMode = genMode; r.genSel = String(genSel);' +
+      'r.months = formalAttPayload.months.join(",");' +
+      'buildGenEmpIndex();' +
+      'r.idxKeys = Object.keys(genEmpIdx).length;' +
+      'var kbig = "欧洲区|英国区|伯明翰2号仓|拾货组";' +
+      'r.bigCnt = (genEmpIdx[kbig]||[]).length;' +
+      'r.bigTotal = formalAttPayload.empCount[kbig];' +
+      'r.bigInIdx = kbig in formalAttPayload.empIndex;' +
+      'var rows = document.querySelectorAll("#genGrpBody tr.att-grp");' +
+      'r.rows = rows.length;' +
+      'var badgeTxt = "ROWNOTFOUND";' +
+      'rows.forEach(function(rr){' +
+      '  var k = ["major","region","wh","group"].map(function(a){return rr.getAttribute("data-"+a);}).join("|");' +
+      '  if (k === kbig) { var b = rr.querySelector(".emp-count"); badgeTxt = b ? b.textContent : "NOBADGE"; }' +
+      '});' +
+      'r.kbigBadge = badgeTxt;' +
+      'return r;' +
+      '})()');
+  } catch(e) { out = {EXC: String(e && e.stack || e)}; }
+  document.getElementById('out').textContent = '@@P25@@' + JSON.stringify(out) + '@@P25END@@';
+}
+setTimeout(step1, 9000);
+</script></body></html>
