@@ -207,7 +207,8 @@ def main():
     url = 'https://%s:x-oauth-basic@github.com/%s/%s.git' % (token, GH_USER, REPO)
     run([GIT, 'remote', 'remove', 'origin'], cwd=REPO_DIR)
     p = run([GIT, 'remote', 'add', 'origin', 'https://github.com/%s/%s.git' % (GH_USER, REPO)], cwd=REPO_DIR)
-    p = run([GIT, '-c', 'credential.helper=', 'push', '-u', url, '%s:%s' % (BRANCH, BRANCH)],
+    # push 不带 -u，避免 token URL 写入 branch tracking 配置
+    p = run([GIT, '-c', 'credential.helper=', 'push', url, '%s:%s' % (BRANCH, BRANCH)],
             cwd=REPO_DIR, timeout=1800)
     out = (p.stdout or '') + (p.stderr or '')
     log('push rc=%s' % p.returncode)
