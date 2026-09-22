@@ -101,7 +101,7 @@ if p.returncode != 0:
 log('reset ok at', head[:9])
 
 # ---- 5. 覆盖 index.html + commit（commit 信息按需修改） ----
-COMMIT_MSG = 'feat: 新增T+1考勤确认及时率板块(月度6/7/8月+9月T+1日更台账,定稿/动态徽章,T+2工作日10点冻结按各区域法定节假日顺延),9-21前数据定稿'
+COMMIT_MSG = 'diag: 注入JS错误横幅+渲染状态报告条(定位妙搭环境空白问题),内容与上一版功能一致'
 shutil.copyfile(HTML, os.path.join(REPO, 'index.html'))
 run([GIT, 'add', '-A'], cwd=REPO)
 p = run([GIT, 'status', '--porcelain'], cwd=REPO)

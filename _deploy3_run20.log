@@ -39,3 +39,13 @@ poll#2 status=finished
   }
 }
 
+--- github sync ---
+repo exists: fbu-buqian-attendance-report
+commit ok: b6b1bb0c6
+push rc=0
+To https://github.com/lanruoming463-cloud/fbu-buqian-attendance-report.git
+   b3b47a7..b6b1bb0  main -> main
+
+SYNC DONE -> https://github.com/lanruoming463-cloud/fbu-buqian-attendance-report
+
+DONE
