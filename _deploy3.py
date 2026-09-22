@@ -39,8 +39,17 @@ ENV['PATH'] = GIT_BIN + os.pathsep + os.path.join(_base_git, 'usr', 'bin') + os.
 GIT = os.path.join(GIT_BIN, 'git.exe')
 
 # ---- 1. 取凭证 ----
+# lark-cli 在继承 env 含 GCBuddy/工作台上下文变量时会误判 "hermes context detected"
+# → 用最小 env（凭证 2026-09-22 实测正常返回）
+LARK_ENV = {'SYSTEMROOT': os.environ.get('SYSTEMROOT', r'C:\Windows'),
+            'COMSPEC': os.environ.get('COMSPEC', r'C:\Windows\system32\cmd.exe'),
+            'PATH': os.environ.get('PATH', ''),
+            'USERPROFILE': os.environ.get('USERPROFILE', ''),
+            'APPDATA': os.environ.get('APPDATA', ''),
+            'LOCALAPPDATA': os.environ.get('LOCALAPPDATA', ''),
+            'TEMP': os.environ.get('TEMP', ''), 'TMP': os.environ.get('TMP', '')}
 inp = "protocol=https\nhost=%s\npath=%s/\n" % (HOST, OLD_PATH)
-p = run([LARK, 'apps', 'git-credential-helper', '--app-id', APP, 'get'], inp=inp)
+p = run([LARK, 'apps', 'git-credential-helper', '--app-id', APP, 'get'], inp=inp, env=LARK_ENV)
 U = P = None
 for line in p.stdout.splitlines():
     if line.startswith('username='): U = line[9:]
@@ -92,7 +101,7 @@ if p.returncode != 0:
 log('reset ok at', head[:9])
 
 # ---- 5. 覆盖 index.html + commit（commit 信息按需修改） ----
-COMMIT_MSG = 'style: 补签率Top10表格美化(正式工/劳务工共用tableTop)，全列居中对齐+均衡列宽+补签数蓝色高亮，对齐及时率Top10样式'
+COMMIT_MSG = 'feat: 新增T+1考勤确认及时率板块(月度6/7/8月+9月T+1日更台账,定稿/动态徽章,T+2工作日10点冻结按各区域法定节假日顺延),9-21前数据定稿'
 shutil.copyfile(HTML, os.path.join(REPO, 'index.html'))
 run([GIT, 'add', '-A'], cwd=REPO)
 p = run([GIT, 'status', '--porcelain'], cwd=REPO)
@@ -116,7 +125,7 @@ if p.returncode != 0:
 
 # ---- 7. release-create ----
 p = run([LARK, 'apps', '+release-create', '--app-id', APP, '--branch', 'sprint/default'],
-        timeout=300)
+        timeout=300, env=LARK_ENV)
 log('release-create rc=%s' % p.returncode)
 log('stdout:', p.stdout[:1500])
 log('stderr:', p.stderr[:800])
@@ -135,7 +144,7 @@ log('release_id =', rid)
 # ---- 8. 轮询 release-get ----
 for i in range(60):
     time.sleep(10)
-    p = run([LARK, 'apps', '+release-get', '--app-id', APP, '--release-id', rid], timeout=120)
+    p = run([LARK, 'apps', '+release-get', '--app-id', APP, '--release-id', rid], timeout=120, env=LARK_ENV)
     txt = p.stdout
     st = None
     try:

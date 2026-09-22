@@ -1,0 +1,2 @@
+FAIL: no credential. stdout=  stderr= Git credential unavailable: hermes context detected but lark-cli is not bound to it
+

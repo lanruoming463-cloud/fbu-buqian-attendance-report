@@ -203,6 +203,27 @@ caption{caption-side:top;text-align:left;font-weight:700;font-size:15px;padding:
 .emp-table thead th,.emp-table tbody th{background:#eef4fb;font-weight:600;color:#475569;padding:6px 10px;border-bottom:1px solid #e3e8f0;position:static}
 .emp-table td{padding:5px 10px;border-bottom:1px solid #f0f3f8;color:#334155}
 .emp-count{font-size:11px;color:#94a3b8;margin-left:6px}
+
+/* ---------- T+1 确认率板块样式 ---------- */
+.t1-topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.t1-kpis{display:flex;gap:10px;flex-wrap:wrap}
+.t1-kpi{background:#fff;border-radius:12px;padding:12px 18px;box-shadow:0 1px 3px rgba(0,0,0,.08);min-width:170px}
+.t1-kpi-l{font-size:11px;color:#64748b;font-weight:600}
+.t1-kpi-v{font-size:24px;font-weight:800;color:#111827;margin:2px 0}
+.t1-kpi-s{font-size:11px;color:#6b7280}
+.t1-upd{font-size:11px;color:#6b7280;background:#fff;border-radius:10px;padding:8px 12px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.t1-cap{font-size:13px;font-weight:700;color:#334155;margin:18px 0 8px}
+.t1-months-wrap table,.t1-days{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08);font-size:12px}
+.t1-months-wrap table th,.t1-days th{background:#f1f5f9;color:#475569;font-weight:700;padding:9px 10px;text-align:center;white-space:nowrap}
+.t1-months-wrap table td,.t1-days td{padding:8px 10px;text-align:center;border-top:1px solid #f1f5f9;color:#1f2937}
+.t1-rate{font-weight:700;color:#2563eb}
+.t1-src{text-align:left;color:#64748b;font-size:11px}
+.t1-tag{display:inline-block;padding:2px 10px;border-radius:10px;font-size:11px;font-weight:600}
+.t1-ok{background:#dcfce7;color:#15803d}
+.t1-live{background:#fef3c7;color:#b45309}
+.t1-foot{margin-top:14px;font-size:11px;color:#6b7280;line-height:1.8}
+.t1-foot div{background:#fff;border-radius:8px;padding:6px 12px;margin-top:4px}
+.top-nav-tabs #secT1{background:linear-gradient(135deg,#7c3aed,#a78bfa);color:#fff}
 </style></head><body><div class="wrap">
 <div class="top-nav">
   <div class="top-nav-left">
@@ -218,6 +239,8 @@ caption{caption-side:top;text-align:left;font-weight:700;font-size:15px;padding:
     <span class="nav-sep"></span>
     <button id="wtFormal" class="active" onclick="showCell('formal', curSec)">正式工</button>
     <button id="wtLabor" onclick="showCell('labor', curSec)">劳务工</button>
+    <span class="nav-sep"></span>
+    <button id="secT1" onclick="t1Show()">T+1确认率</button>
   </div>
 </div>
 
@@ -351,6 +374,15 @@ caption{caption-side:top;text-align:left;font-weight:700;font-size:15px;padding:
 
 <div class="wrap">
 <div class="view-panel" id="viewGen" style="display:none">
+<div class="view-panel" id="viewT1" style="display:none">
+  <div class="t1-topbar">
+    <div class="t1-kpis" id="t1Kpis"></div>
+    <div class="t1-upd" id="t1UpdLine"></div>
+  </div>
+  <div class="t1-months-wrap" id="t1Months"></div>
+  <div class="t1-days-wrap" id="t1Days"></div>
+  <div class="t1-foot" id="t1Foot"></div>
+</div>
 <div class="header">
 <h1 id="genTitle">考勤确认及时率（正式工）</h1>
 <div class="sub" id="genSub"></div>
@@ -1570,6 +1602,8 @@ function showCell(wt, sec) {
   var vf = document.getElementById('viewFormal');
   var va = document.getElementById('viewAttend');
   var vg = document.getElementById('viewGen');
+  var v1 = document.getElementById('viewT1');
+  if (v1) v1.style.display = 'none';
   var showFormal = (sec === 'sign');
   var showAtt = (wt === 'labor' && sec === 'att');
   var showGen = (wt === 'formal' && sec === 'att');
@@ -1608,6 +1642,53 @@ function showCell(wt, sec) {
   }
 }
 showCell('formal', 'att');
+/* ==================== T+1 确认率板块 ==================== */
+var T1_DATA = {"updated": "2026-09-22 19:30", "cutoff": "09-21", "months": [{"m": "2026-06", "t": 47935, "u": 923, "src": "正式工-6月考勤记录.xlsx（FBU预过滤导出，剔除后47,935）"}, {"m": "2026-07", "t": 49854, "u": 922, "src": "正式工-7月考勤记录.xlsx（导出50,000行截断，剔除后49,854）"}, {"m": "2026-08", "t": 60685, "u": 1741, "src": "MCP ads_fbu_oehr_attendance_record_d（全公司口径）"}], "days": [{"d": "09-13", "st": "published", "gate": "2026-09-15", "ft": 0, "fu": 0, "fr": "", "la": 4527, "lc": 4513, "lr": 99.69, "cb": 99.69, "frozen": true}, {"d": "09-14", "st": "published", "gate": "2026-09-16", "ft": 2017, "fu": 104, "fr": 94.84, "la": 7820, "lc": 7160, "lr": 91.56, "cb": 92.23, "frozen": true}, {"d": "09-15", "st": "published", "gate": "2026-09-17", "ft": 2021, "fu": 114, "fr": 94.36, "la": 7667, "lc": 7068, "lr": 92.19, "cb": 92.64, "frozen": true}, {"d": "09-16", "st": "published", "gate": "2026-09-18", "ft": 2024, "fu": 112, "fr": 94.47, "la": 7629, "lc": 6989, "lr": 91.61, "cb": 92.21, "frozen": true}, {"d": "09-17", "st": "published", "gate": "2026-09-21", "ft": 2026, "fu": 129, "fr": 93.63, "la": 7659, "lc": 6954, "lr": 90.8, "cb": 91.39, "frozen": true}, {"d": "09-18", "st": "preview", "gate": "2026-09-24", "ft": 2027, "fu": 157, "fr": 92.25, "la": 7404, "lc": 6373, "lr": 86.08, "cb": 87.4, "frozen": true}, {"d": "09-19", "st": "preview", "gate": "2026-09-24", "ft": 2022, "fu": 64, "fr": 96.83, "la": 4377, "lc": 3753, "lr": 85.74, "cb": 89.25, "frozen": true}, {"d": "09-20", "st": "preview", "gate": "2026-09-24", "ft": 2022, "fu": 61, "fr": 96.98, "la": 3958, "lc": 2950, "lr": 74.53, "cb": 82.12, "frozen": true}, {"d": "09-21", "st": "preview", "gate": "2026-09-24", "ft": 1992, "fu": 243, "fr": 87.8, "la": 2795, "lc": 138, "lr": 4.94, "cb": 39.42, "frozen": false}]};
+function t1Show() {
+  ['wtFormal','wtLabor','secAtt','secSign'].forEach(function(id){ var e=document.getElementById(id); if(e) e.classList.remove('active'); });
+  ['viewFormal','viewAttend','viewGen','viewT1'].forEach(function(id){ var e=document.getElementById(id); if(e) e.style.display='none'; });
+  document.getElementById('viewT1').style.display='block';
+  document.getElementById('secT1').classList.add('active');
+  t1Render();
+}
+function t1Render() {
+  var D = T1_DATA;
+  var ups = document.getElementById('t1UpdLine');
+  if (ups) ups.innerHTML = '数据更新：<b>' + D.updated + '</b>　·　定稿规则：T+2 工作日 10:00（深圳）冻结，按各区域法定节假日顺延　·　' + D.cutoff + ' 之前已定稿';
+  // KPI：8月月率 + 最新已定稿日
+  var fm = D.months[D.months.length-1];
+  var frv = (100*(fm.t-fm.u)/fm.t).toFixed(2);
+  var fd = null; D.days.forEach(function(x){ if (x.frozen) fd = x; });
+  var k = document.getElementById('t1Kpis');
+  var htm = '';
+  htm += '<div class="t1-kpi"><div class="t1-kpi-l">' + fm.m.slice(0,7) + ' 正式工确认率</div><div class="t1-kpi-v">' + frv + '%</div><div class="t1-kpi-s">已确认 ' + (fm.t-fm.u).toLocaleString() + ' / 应确认 ' + fm.t.toLocaleString() + '</div></div>';
+  if (fd) {
+    htm += '<div class="t1-kpi"><div class="t1-kpi-l">最新已定稿日 ' + fd.d + '</div><div class="t1-kpi-v">' + fd.cb + '%</div><div class="t1-kpi-s">合并确认率（正式工+劳务工）</div></div>';
+    htm += '<div class="t1-kpi"><div class="t1-kpi-l">' + fd.d + ' 正式工</div><div class="t1-kpi-v">' + fd.fr + '%</div><div class="t1-kpi-s">未及时确认 ' + fd.fu.toLocaleString() + ' / ' + fd.ft.toLocaleString() + '</div></div>';
+    htm += '<div class="t1-kpi"><div class="t1-kpi-l">' + fd.d + ' 劳务工</div><div class="t1-kpi-v">' + fd.lr + '%</div><div class="t1-kpi-s">已确认 ' + fd.lc.toLocaleString() + ' / 异常 ' + fd.la.toLocaleString() + '</div></div>';
+  }
+  k.innerHTML = htm;
+  // 月表
+  var mm = '<table class="t1-months"><thead><tr><th>月份</th><th>应确认（条）</th><th>未及时确认</th><th>已确认</th><th>确认率</th><th>数据来源</th></tr></thead><tbody>';
+  D.months.forEach(function(x){
+    var r = (100*(x.t-x.u)/x.t).toFixed(2);
+    mm += '<tr><td><b>' + x.m.slice(0,7) + '</b></td><td>' + x.t.toLocaleString() + '</td><td>' + x.u.toLocaleString() + '</td><td>' + (x.t-x.u).toLocaleString() + '</td><td class="t1-rate">' + r + '%</td><td class="t1-src">' + x.src + '</td></tr>';
+  });
+  mm += '</tbody></table>';
+  document.getElementById('t1Months').innerHTML = '<div class="t1-cap">一、正式工月度确认率（OEHR）</div>' + mm;
+  // 日表（9月 T+1）
+  var dd = '<table class="t1-days"><thead><tr><th>日期</th><th>状态</th><th>冻结门（T+2）</th><th>正式工应确认</th><th>未及时</th><th>正式工率</th><th>劳务工异常</th><th>已确认</th><th>劳务工率</th><th>合并率</th></tr></thead><tbody>';
+  D.days.forEach(function(x){
+    var stTag = x.frozen ? '<span class="t1-tag t1-ok">定稿</span>' : '<span class="t1-tag t1-live">动态</span>';
+    dd += '<tr><td><b>09-' + x.d.slice(3) + '</b></td><td>' + stTag + '</td><td>' + x.gate + ' 10:00</td><td>' + (x.ft ? x.ft.toLocaleString() : '—') + '</td><td>' + (x.ft ? x.fu.toLocaleString() : '—') + '</td><td class="t1-rate">' + (x.fr===''?'—':x.fr+'%') + '</td><td>' + (x.la ? x.la.toLocaleString() : '—') + '</td><td>' + (x.la ? x.lc.toLocaleString() : '—') + '</td><td class="t1-rate">' + (x.lr===''?'—':x.lr+'%') + '</td><td class="t1-rate"><b>' + (x.cb===''?'—':x.cb+'%') + '</b></td></tr>';
+  });
+  dd += '</tbody></table>';
+  document.getElementById('t1Days').innerHTML = dd;
+  // 脚注
+  var f = document.getElementById('t1Foot');
+  f.innerHTML = '<div>口径：正式工「未及时确认」= 考勤状态异常 且 非迟到/早退（《全球T+1考勤确认及时性管理规范》OEHR「已确认」定义）；劳务工「已确认」= 异常记录中确认状态∈{已确认,已复核,待确认判定}。</div><div>数据源：MCP 人力资源数据市场（ads_fbu_oehr_attendance_record_d / ads_fbu_otws_de|us_attendance_record_d）+ 6/7/8 月正式工考勤导出；更新机制：每日 10:05 GCBuddy 定时任务按 T+2 节奏增量出稿，节假日按各区域法定日历顺延。</div>';
+}
+/* T1END */
 function setupStickyHeaders() {
   destroyStickyHeaders();
   ['tableMajor','tableDetail','tableWh','tableGrp','tableTop'].forEach(id => {
