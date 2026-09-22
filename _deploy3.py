@@ -101,7 +101,7 @@ if p.returncode != 0:
 log('reset ok at', head[:9])
 
 # ---- 5. 覆盖 index.html + commit（commit 信息按需修改） ----
-COMMIT_MSG = 'diag: 注入JS错误横幅+渲染状态报告条(定位妙搭环境空白问题),内容与上一版功能一致'
+COMMIT_MSG = 'fix: 修复viewT1面板误嵌套在viewGen内部导致默认视图空白(面板拆分还原,本地file://与http://双重验证通过)'
 shutil.copyfile(HTML, os.path.join(REPO, 'index.html'))
 run([GIT, 'add', '-A'], cwd=REPO)
 p = run([GIT, 'status', '--porcelain'], cwd=REPO)
