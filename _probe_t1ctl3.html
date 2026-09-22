@@ -1,0 +1,41 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"></head><body>
+<iframe id="f" src="补签流程_补签统计.html" style="width:1280px;height:900px"></iframe>
+<pre id="out">PENDING</pre>
+<script>
+var errs = [];
+window.addEventListener('error', function(ev){ errs.push('TOP:' + ev.message); }, true);
+var done = false;
+function finish(lines){ if (done) return; done = true;
+  document.getElementById('out').textContent = 'RESULT|' + lines.join('|') + '|ENDRESULT';
+  document.title = 'PROBE_DONE';
+  setTimeout(function(){ window.stop(); }, 100); }
+var polls = 0;
+var iv = setInterval(function(){
+  polls++;
+  var w, doc;
+  try { w = document.getElementById('f').contentWindow; doc = w.document; } catch(e) { return; }
+  if (!doc || !doc.getElementById || !doc.getElementById('tableMajor') || !doc.querySelectorAll('#tableMajor tbody tr').length) {
+    if (polls > 4000) finish(['ERR: iframe not ready']);
+    return;
+  }
+  clearInterval(iv);
+  var L = [];
+  function step(name, fn){ try { L.push(name + '=' + fn()); } catch(e) { L.push(name + '=EXC:' + (e && e.message)); } }
+  try {
+    step('S1_defaultDisplay', function(){ return doc.getElementById('viewFormal').style.display; });
+    step('S1_defaultPicker', function(){ return doc.getElementById('btnPicker').textContent; });
+    step('S1_rows', function(){ return doc.querySelectorAll('#tableMajor tbody tr').length; });
+    step('S2_t1Show', function(){ w.t1Show(); return doc.getElementById('viewT1').style.display + ',' + doc.getElementById('btnPicker').textContent; });
+    step('S3_selAug', function(){ w.t1Sel = '2026-08'; w.t1Mode = 'month'; w.t1Render(); var e = doc.querySelector('#t1Days .t1-empty'); return e ? 'empty-ok' : doc.querySelector('#t1Days tbody').textContent.slice(0, 60); });
+    step('S3_selSep', function(){ w.t1Sel = '2026-09'; w.t1Render(); return doc.querySelectorAll('#t1Days tbody tr').length; });
+    step('S4_ddMonth', function(){ w.toggleT1Dropdown(); var dd = doc.getElementById('dropdown'); var n = dd.querySelectorAll('.item').length; var t = dd.textContent.slice(0, 80); dd.classList.add('hidden'); return n + ':' + t; });
+    step('S5_backSign', function(){ w.showCell('formal', 'sign'); return doc.getElementById('btnPicker').textContent + ',' + doc.getElementById('viewFormal').style.display + ',' + doc.getElementById('viewT1').style.display; });
+    step('S6_dispatchDay', function(){ w.dispatchMode('day'); return doc.getElementById('btnPicker').textContent; });
+    step('S7_rowsAfter', function(){ return doc.querySelectorAll('#tableMajor tbody tr').length; });
+    L.push('errs=' + errs.length);
+    if (errs.length) L.push('errDetail=' + errs.join(' ;; ').slice(0, 300));
+  } catch(e) { L.push('FATAL:' + (e && e.message)); }
+  finish(L);
+}, 250);
+setTimeout(function(){ finish(['TIMEOUT']); }, 100000);
+</script></body></html>

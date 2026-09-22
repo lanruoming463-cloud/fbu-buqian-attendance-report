@@ -101,7 +101,7 @@ if p.returncode != 0:
 log('reset ok at', head[:9])
 
 # ---- 5. 覆盖 index.html + commit（commit 信息按需修改） ----
-COMMIT_MSG = 'fix: 修复viewT1面板误嵌套在viewGen内部导致默认视图空白(面板拆分还原,本地file://与http://双重验证通过)'
+COMMIT_MSG = 'feat: T+1视图接入全局时间控件(按天/按周/按月/日期范围/翻页联动T+1数据,区域为全球口径说明)，移除诊断条'
 shutil.copyfile(HTML, os.path.join(REPO, 'index.html'))
 run([GIT, 'add', '-A'], cwd=REPO)
 p = run([GIT, 'status', '--porcelain'], cwd=REPO)

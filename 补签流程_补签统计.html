@@ -224,7 +224,12 @@ caption{caption-side:top;text-align:left;font-weight:700;font-size:15px;padding:
 .t1-foot{margin-top:14px;font-size:11px;color:#6b7280;line-height:1.8}
 .t1-foot div{background:#fff;border-radius:8px;padding:6px 12px;margin-top:4px}
 .top-nav-tabs #secT1{background:linear-gradient(135deg,#7c3aed,#a78bfa);color:#fff}
-</style></head><body><script>window.__errs=[];window.onerror=function(m,s,l){window.__errs.push(m+" @L"+l);var b=document.createElement("div");b.style.cssText="position:fixed;top:0;left:0;right:0;z-index:99999;background:#dc2626;color:#fff;font:12px monospace;padding:8px;white-space:pre-wrap";b.textContent="JSERR: "+m+" @L"+l;document.body.appendChild(b);};window.addEventListener("DOMContentLoaded",function(){setTimeout(function(){try{var d=document.createElement("div");d.style.cssText="position:fixed;bottom:0;left:0;background:#059669;color:#fff;padding:6px;z-index:99999;font:12px monospace";d.id="__okbanner";var v=[];["viewFormal","viewAttend","viewGen","viewT1"].forEach(function(i){var e=document.getElementById(i);v.push(i+"="+(e?e.style.display:"?"))});v.push("errs="+window.__errs.length);d.textContent=v.join(" | ");document.body.appendChild(d);}catch(e){}},3000);});</script><div class="wrap">
+
+.t1-range{font-size:12px;color:#64748b;margin:2px 0 8px;font-weight:400}
+.t1-empty{text-align:center;color:#94a3b8;padding:20px 10px;font-size:13px}
+.t1-hl{background:#f5f3ff !important}
+.t1-info-item{padding:12px 16px;font-size:13px;color:#475569;white-space:nowrap}
+</style></head><body><div class="wrap">
 <div class="top-nav">
   <div class="top-nav-left">
     <div class="top-nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg></div>
@@ -1117,6 +1122,7 @@ window.addEventListener('scroll', updateActiveGenTab, { passive: true });
 
 // ===== 全局控件（顶栏唯一一套）：按当前激活视图分发 =====
 function curViewKey(){
+  if (t1Active) return 't1';
   if (curSec === 'sign') return 'sign';
   return (curWt === 'labor') ? 'attend' : 'gen';
 }
@@ -1128,12 +1134,14 @@ function syncModeBtns(m){
 }
 function dispatchMode(m){
   var v = curViewKey();
+  if (v === 't1') { setModeT1(m); return; }
   if (v === 'sign') setMode(m);
   else if (v === 'gen') setModeGen(m);
   else setModeAttend(m);
 }
 function dispatchStep(dir){
   var v = curViewKey();
+  if (v === 't1') { stepT1(dir); return; }
   if (v === 'sign') step(dir);
   else if (v === 'gen') stepGen(dir);
   else stepAttend(dir);
@@ -1141,6 +1149,7 @@ function dispatchStep(dir){
 function dispatchPicker(e){
   e.stopPropagation(); closeRegionDropdown(); closeGenDropdown();
   var v = curViewKey();
+  if (v === 't1') { toggleT1Dropdown(); return; }
   if (v === 'sign') toggleDropdown();
   else if (v === 'gen') toggleGenDropdownShared();
   else toggleAttendDropdownShared();
@@ -1148,6 +1157,7 @@ function dispatchPicker(e){
 function dispatchRegion(e){
   e.stopPropagation(); closeDropdown(); closeGenDropdown();
   var v = curViewKey();
+  if (v === 't1') { toggleT1RegionInfo(); return; }
   if (v === 'sign') toggleRegionDropdown();
   else if (v === 'gen') toggleGenRegionShared();
   else toggleAttendRegionDropdown();
@@ -1599,6 +1609,7 @@ function toggleGenDropdownShared(){
 let curWt='formal', curSec='att';
 let genMode='month', genSel='', genDayStart='', genDayEnd='', genWeekSel='';
 function showCell(wt, sec) {
+  t1Active = false;
   curWt = wt; curSec = sec;
   var vf = document.getElementById('viewFormal');
   var va = document.getElementById('viewAttend');
@@ -1611,6 +1622,7 @@ function showCell(wt, sec) {
   if (vf) vf.style.display = showFormal ? 'block' : 'none';
   if (va) va.style.display = showAtt ? 'block' : 'none';
   if (vg) vg.style.display = showGen ? 'block' : 'none';
+  if (curViewKey() === 'sign') { syncModeBtns(mode); renderPicker(); }
   ['wtFormal','wtLabor'].forEach(function(id){ var e=document.getElementById(id); if(e) e.classList.toggle('active', id===(wt==='formal'?'wtFormal':'wtLabor')); });
   ['secAtt','secSign'].forEach(function(id){ var e=document.getElementById(id); if(e) e.classList.toggle('active', id===('sec'+sec.charAt(0).toUpperCase()+sec.slice(1))); });
   if (showFormal) {
@@ -1646,14 +1658,17 @@ showCell('formal', 'att');
 /* ==================== T+1 确认率板块 ==================== */
 var T1_DATA = {"updated": "2026-09-22 19:30", "cutoff": "09-21", "months": [{"m": "2026-06", "t": 47935, "u": 923, "src": "正式工-6月考勤记录.xlsx（FBU预过滤导出，剔除后47,935）"}, {"m": "2026-07", "t": 49854, "u": 922, "src": "正式工-7月考勤记录.xlsx（导出50,000行截断，剔除后49,854）"}, {"m": "2026-08", "t": 60685, "u": 1741, "src": "MCP ads_fbu_oehr_attendance_record_d（全公司口径）"}], "days": [{"d": "09-13", "st": "published", "gate": "2026-09-15", "ft": 0, "fu": 0, "fr": "", "la": 4527, "lc": 4513, "lr": 99.69, "cb": 99.69, "frozen": true}, {"d": "09-14", "st": "published", "gate": "2026-09-16", "ft": 2017, "fu": 104, "fr": 94.84, "la": 7820, "lc": 7160, "lr": 91.56, "cb": 92.23, "frozen": true}, {"d": "09-15", "st": "published", "gate": "2026-09-17", "ft": 2021, "fu": 114, "fr": 94.36, "la": 7667, "lc": 7068, "lr": 92.19, "cb": 92.64, "frozen": true}, {"d": "09-16", "st": "published", "gate": "2026-09-18", "ft": 2024, "fu": 112, "fr": 94.47, "la": 7629, "lc": 6989, "lr": 91.61, "cb": 92.21, "frozen": true}, {"d": "09-17", "st": "published", "gate": "2026-09-21", "ft": 2026, "fu": 129, "fr": 93.63, "la": 7659, "lc": 6954, "lr": 90.8, "cb": 91.39, "frozen": true}, {"d": "09-18", "st": "preview", "gate": "2026-09-24", "ft": 2027, "fu": 157, "fr": 92.25, "la": 7404, "lc": 6373, "lr": 86.08, "cb": 87.4, "frozen": true}, {"d": "09-19", "st": "preview", "gate": "2026-09-24", "ft": 2022, "fu": 64, "fr": 96.83, "la": 4377, "lc": 3753, "lr": 85.74, "cb": 89.25, "frozen": true}, {"d": "09-20", "st": "preview", "gate": "2026-09-24", "ft": 2022, "fu": 61, "fr": 96.98, "la": 3958, "lc": 2950, "lr": 74.53, "cb": 82.12, "frozen": true}, {"d": "09-21", "st": "preview", "gate": "2026-09-24", "ft": 1992, "fu": 243, "fr": 87.8, "la": 2795, "lc": 138, "lr": 4.94, "cb": 39.42, "frozen": false}]};
 function t1Show() {
+  t1Active = true;
   ['wtFormal','wtLabor','secAtt','secSign'].forEach(function(id){ var e=document.getElementById(id); if(e) e.classList.remove('active'); });
   ['viewFormal','viewAttend','viewGen','viewT1'].forEach(function(id){ var e=document.getElementById(id); if(e) e.style.display='none'; });
   document.getElementById('viewT1').style.display='block';
   document.getElementById('secT1').classList.add('active');
+  syncModeBtns(t1Mode);
   t1Render();
 }
 function t1Render() {
   var D = T1_DATA;
+  var pb = document.getElementById('btnPicker'); if (pb) pb.textContent = t1PickerText();
   var ups = document.getElementById('t1UpdLine');
   if (ups) ups.innerHTML = '数据更新：<b>' + D.updated + '</b>　·　定稿规则：T+2 工作日 10:00（深圳）冻结，按各区域法定节假日顺延　·　' + D.cutoff + ' 之前已定稿';
   // KPI：8月月率 + 最新已定稿日
@@ -1673,21 +1688,142 @@ function t1Render() {
   var mm = '<table class="t1-months"><thead><tr><th>月份</th><th>应确认（条）</th><th>未及时确认</th><th>已确认</th><th>确认率</th><th>数据来源</th></tr></thead><tbody>';
   D.months.forEach(function(x){
     var r = (100*(x.t-x.u)/x.t).toFixed(2);
-    mm += '<tr><td><b>' + x.m.slice(0,7) + '</b></td><td>' + x.t.toLocaleString() + '</td><td>' + x.u.toLocaleString() + '</td><td>' + (x.t-x.u).toLocaleString() + '</td><td class="t1-rate">' + r + '%</td><td class="t1-src">' + x.src + '</td></tr>';
+    mm += '<tr' + (t1Mode === 'month' && x.m === t1Sel ? ' class="t1-hl"' : '') + '><td><b>' + x.m.slice(0,7) + '</b></td><td>' + x.t.toLocaleString() + '</td><td>' + x.u.toLocaleString() + '</td><td>' + (x.t-x.u).toLocaleString() + '</td><td class="t1-rate">' + r + '%</td><td class="t1-src">' + x.src + '</td></tr>';
   });
   mm += '</tbody></table>';
   document.getElementById('t1Months').innerHTML = '<div class="t1-cap">一、正式工月度确认率（OEHR）</div>' + mm;
   // 日表（9月 T+1）
-  var dd = '<table class="t1-days"><thead><tr><th>日期</th><th>状态</th><th>冻结门（T+2）</th><th>正式工应确认</th><th>未及时</th><th>正式工率</th><th>劳务工异常</th><th>已确认</th><th>劳务工率</th><th>合并率</th></tr></thead><tbody>';
-  D.days.forEach(function(x){
+  var rows = t1RangeDays();
+  var dd = '<div class="t1-range">当前范围：' + t1RangeLabel() + '　·　显示 ' + rows.length + ' / ' + D.days.length + ' 天</div>' + '<table class="t1-days"><thead><tr><th>日期</th><th>状态</th><th>冻结门（T+2）</th><th>正式工应确认</th><th>未及时</th><th>正式工率</th><th>劳务工异常</th><th>已确认</th><th>劳务工率</th><th>合并率</th></tr></thead><tbody>';
+  if (!rows.length) {
+    dd += '<tr><td colspan="10" class="t1-empty">该范围内暂无 T+1 日更明细（该月为月度定稿数据，见上表「月度确认率」）。</td></tr>';
+  } else D.days.forEach(function(x){
     var stTag = x.frozen ? '<span class="t1-tag t1-ok">定稿</span>' : '<span class="t1-tag t1-live">动态</span>';
-    dd += '<tr><td><b>09-' + x.d.slice(3) + '</b></td><td>' + stTag + '</td><td>' + x.gate + ' 10:00</td><td>' + (x.ft ? x.ft.toLocaleString() : '—') + '</td><td>' + (x.ft ? x.fu.toLocaleString() : '—') + '</td><td class="t1-rate">' + (x.fr===''?'—':x.fr+'%') + '</td><td>' + (x.la ? x.la.toLocaleString() : '—') + '</td><td>' + (x.la ? x.lc.toLocaleString() : '—') + '</td><td class="t1-rate">' + (x.lr===''?'—':x.lr+'%') + '</td><td class="t1-rate"><b>' + (x.cb===''?'—':x.cb+'%') + '</b></td></tr>';
+    var f = t1FullDay(x.d);
+    dd += '<tr' + (t1Mode === 'day' && f === t1DaySel ? ' class="t1-hl"' : '') + '><td><b>09-' + x.d.slice(3) + '</b></td><td>' + stTag + '</td><td>' + x.gate + ' 10:00</td><td>' + (x.ft ? x.ft.toLocaleString() : '—') + '</td><td>' + (x.ft ? x.fu.toLocaleString() : '—') + '</td><td class="t1-rate">' + (x.fr===''?'—':x.fr+'%') + '</td><td>' + (x.la ? x.la.toLocaleString() : '—') + '</td><td>' + (x.la ? x.lc.toLocaleString() : '—') + '</td><td class="t1-rate">' + (x.lr===''?'—':x.lr+'%') + '</td><td class="t1-rate"><b>' + (x.cb===''?'—':x.cb+'%') + '</b></td></tr>';
   });
   dd += '</tbody></table>';
   document.getElementById('t1Days').innerHTML = dd;
   // 脚注
   var f = document.getElementById('t1Foot');
   f.innerHTML = '<div>口径：正式工「未及时确认」= 考勤状态异常 且 非迟到/早退（《全球T+1考勤确认及时性管理规范》OEHR「已确认」定义）；劳务工「已确认」= 异常记录中确认状态∈{已确认,已复核,待确认判定}。</div><div>数据源：MCP 人力资源数据市场（ads_fbu_oehr_attendance_record_d / ads_fbu_otws_de|us_attendance_record_d）+ 6/7/8 月正式工考勤导出；更新机制：每日 10:05 GCBuddy 定时任务按 T+2 节奏增量出稿，节假日按各区域法定日历顺延。</div>';
+}
+/* ===== T+1 控件接线：按天/按周/按月 + 日期范围（与三视图同一套控件） ===== */
+var t1Active = false;
+var t1Mode = 'month';
+var t1Sel = '2026-09';
+var t1Months = [];
+var t1DayFulls = [];
+var t1DaySel = '';
+var t1WeekSel = '';
+T1_DATA.months.forEach(function(x){ t1Months.push(x.m); });
+t1Months.push('2026-09');
+T1_DATA.days.forEach(function(x){ t1DayFulls.push(t1FullDay(x.d)); });
+t1DaySel = t1DayFulls.length ? t1DayFulls[t1DayFulls.length - 1] : '';
+t1WeekSel = t1DayFulls.length ? weekStartOf(t1DayFulls[t1DayFulls.length - 1]) : '';
+function t1FullDay(d){ return d.length === 5 ? ('2026-' + d) : d; }
+function t1PickerText(){
+  if (t1Mode === 'day') return dayLabel(t1DaySel, true);
+  if (t1Mode === 'week') return weekLabel(t1WeekSel, addDaysStr(t1WeekSel, 6));
+  return monthLabel(t1Sel);
+}
+function setModeT1(m){
+  t1Mode = m;
+  syncModeBtns(m);
+  if (t1Mode === 'day') {
+    if (t1DayFulls.indexOf(t1DaySel) === -1) t1DaySel = t1DayFulls.length ? t1DayFulls[t1DayFulls.length - 1] : '';
+  } else if (t1Mode === 'week') {
+    var wk = weeksOf(t1DayFulls);
+    if (!wk.some(function(w){ return w[0] === t1WeekSel; })) t1WeekSel = wk.length ? wk[wk.length - 1][0] : '';
+  } else {
+    if (t1Months.indexOf(t1Sel) === -1) t1Sel = t1Months[t1Months.length - 1];
+  }
+  t1Render();
+}
+function stepT1(dir){
+  if (t1Mode === 'month') {
+    var i = t1Months.indexOf(t1Sel);
+    if (i === -1) i = t1Months.length - 1;
+    i = Math.max(0, Math.min(t1Months.length - 1, i + dir));
+    t1Sel = t1Months[i];
+  } else if (t1Mode === 'week') {
+    var wk = weeksOf(t1DayFulls);
+    var j = wk.findIndex(function(w){ return w[0] === t1WeekSel; });
+    if (j === -1) j = wk.length - 1;
+    j = Math.max(0, Math.min(wk.length - 1, j + dir));
+    t1WeekSel = wk.length ? wk[j][0] : '';
+  } else {
+    var k = t1DayFulls.indexOf(t1DaySel);
+    if (k === -1) k = t1DayFulls.length - 1;
+    k = Math.max(0, Math.min(t1DayFulls.length - 1, k + dir));
+    t1DaySel = t1DayFulls.length ? t1DayFulls[k] : '';
+  }
+  t1Render();
+}
+function t1RangeDays(){
+  return T1_DATA.days.filter(function(x){
+    var f = t1FullDay(x.d);
+    if (t1Mode === 'month') return f.slice(0, 7) === t1Sel;
+    if (t1Mode === 'week') return f >= t1WeekSel && f <= addDaysStr(t1WeekSel, 6);
+    return f === t1DaySel;
+  });
+}
+function t1RangeLabel(){
+  if (t1Mode === 'month') return monthLabel(t1Sel);
+  if (t1Mode === 'week') return weekLabel(t1WeekSel, addDaysStr(t1WeekSel, 6));
+  return dayLabel(t1DaySel, true);
+}
+function t1FillDropdown(dd){
+  if (t1Mode === 'month') {
+    t1Months.forEach(function(m){
+      var el = document.createElement('div');
+      el.className = 'item' + (m === t1Sel ? ' active' : '');
+      el.textContent = monthLabel(m) + (m === '2026-09' ? '（日更中）' : '');
+      el.onclick = function(){ t1Sel = m; t1Render(); closeDropdown(); };
+      dd.appendChild(el);
+    });
+  } else if (t1Mode === 'week') {
+    weeksOf(t1DayFulls).forEach(function(w){
+      var el = document.createElement('div');
+      el.className = 'item' + (w[0] === t1WeekSel ? ' active' : '');
+      el.textContent = weekLabel(w[0], w[1]);
+      el.onclick = function(){ t1WeekSel = w[0]; t1Render(); closeDropdown(); };
+      dd.appendChild(el);
+    });
+  } else {
+    var grouped = {};
+    T1_DATA.days.forEach(function(x){
+      var f = t1FullDay(x.d);
+      var mk = f.slice(0, 7);
+      (grouped[mk] = grouped[mk] || []).push(x);
+    });
+    Object.keys(grouped).sort().forEach(function(mk){
+      var g = document.createElement('div'); g.className = 'group'; g.textContent = monthLabel(mk); dd.appendChild(g);
+      grouped[mk].forEach(function(x){
+        var f = t1FullDay(x.d);
+        var el = document.createElement('div');
+        el.className = 'item' + (f === t1DaySel ? ' active' : '');
+        el.textContent = dayLabel(f) + (x.frozen ? '' : '（动态）');
+        el.onclick = function(){ t1DaySel = f; t1Render(); closeDropdown(); };
+        dd.appendChild(el);
+      });
+    });
+  }
+}
+function toggleT1Dropdown(){
+  var dd = document.getElementById('dropdown');
+  if (!dd) return;
+  if (!dd.classList.contains('hidden')) { dd.classList.add('hidden'); return; }
+  dd.innerHTML = '';
+  t1FillDropdown(dd);
+  dd.classList.remove('hidden');
+}
+function toggleT1RegionInfo(){
+  var dd = document.getElementById('regionDropdown');
+  if (!dd) return;
+  if (!dd.classList.contains('hidden')) { dd.classList.add('hidden'); return; }
+  dd.innerHTML = '<div class="t1-info-item">T+1 视图为全球口径（FBU 交付前台），暂未提供大区 / 区域维度筛选。</div>';
+  dd.classList.remove('hidden');
 }
 /* T1END */
 function setupStickyHeaders() {
