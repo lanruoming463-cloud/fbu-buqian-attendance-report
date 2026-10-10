@@ -1,51 +1,41 @@
 cred ok, user= 73070727 ...
-sprint/default tip = f2e9621ec
-reset ok at f2e9621ec
-commit ok: 0b8329781
+sprint/default tip = 7feddab98
+reset ok at 7feddab98
+commit ok: 611ad9526
 push rc=0
 To https://miaoda-git.feishu.cn/apaas4.0/-/t_vkCL6f1I/code_p6iBZnfLI6KD.git
-   f2e9621..0b83297  HEAD -> sprint/default
+   7feddab..611ad95  HEAD -> sprint/default
 
 release-create rc=0
 stdout: {
   "ok": true,
   "identity": "user",
   "data": {
-    "release_id": "7688310485402373379",
+    "release_id": "7694878381082971322",
     "status": "publishing",
     "sync": false
   }
 }
 
 stderr: 
-release_id = 7688310485402373379
+release_id = 7694878381082971322
 poll#1 status=publishing
 poll#2 status=finished
 {
   "ok": true,
   "identity": "user",
   "data": {
-    "commit_id": "0b8329781c4975a8ae6ea539fc951851deea2714",
-    "created_at": "1790074331000",
+    "commit_id": "611ad952626ba13fd4323012c4a69ea098c3ccf3",
+    "created_at": "1791603638000",
     "creator": {
       "email": "lanruoming@ztn.com",
       "username": "蓝若铭"
     },
     "error_logs": [],
     "online_url": "https://ztn.larkenterprise.com/page/RgGYm9pJkdaDGKafK8lc5pS1ntf",
-    "release_id": "7688310485402373379",
+    "release_id": "7694878381082971322",
     "status": "finished",
-    "updated_at": "1790074346000"
+    "updated_at": "1791603654000"
   }
 }
 
---- github sync ---
-repo exists: fbu-buqian-attendance-report
-commit ok: b6b1bb0c6
-push rc=0
-To https://github.com/lanruoming463-cloud/fbu-buqian-attendance-report.git
-   b3b47a7..b6b1bb0  main -> main
-
-SYNC DONE -> https://github.com/lanruoming463-cloud/fbu-buqian-attendance-report
-
-DONE

@@ -101,7 +101,7 @@ if p.returncode != 0:
 log('reset ok at', head[:9])
 
 # ---- 5. 覆盖 index.html + commit（commit 信息按需修改） ----
-COMMIT_MSG = 'feat: T+1视图接入全局时间控件(按天/按周/按月/日期范围/翻页联动T+1数据,区域为全球口径说明)，移除诊断条'
+COMMIT_MSG = 'feat: 考勤确认及时率(正式工/劳务工)数据源新增2026-10(10.1-10.7)考勤记录，数据范围扩为6月/7月/10月'
 shutil.copyfile(HTML, os.path.join(REPO, 'index.html'))
 run([GIT, 'add', '-A'], cwd=REPO)
 p = run([GIT, 'status', '--porcelain'], cwd=REPO)
