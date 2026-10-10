@@ -101,7 +101,7 @@ if p.returncode != 0:
 log('reset ok at', head[:9])
 
 # ---- 5. 覆盖 index.html + commit（commit 信息按需修改） ----
-COMMIT_MSG = 'feat: 各区Top10员工支持按月筛选——考勤确认及时率(正式工/劳务工)与补签率(劳务工)Top10改为按所选月份统计(按月维度非累计)，标题栏显示当前统计月份'
+COMMIT_MSG = 'feat: 正式工考勤确认及时率按天/按周也展示仓/组明细——有未及时确认人员的区域展示可展开明细，无数据区域不展示(此前按天/按周被裁剪掉仓组明细)；Top10按月筛选'
 shutil.copyfile(HTML, os.path.join(REPO, 'index.html'))
 run([GIT, 'add', '-A'], cwd=REPO)
 p = run([GIT, 'status', '--porcelain'], cwd=REPO)
