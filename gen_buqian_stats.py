@@ -1390,12 +1390,18 @@ h1{{font-size:22px;margin:0 0 4px}}
 .day-range .range-sep{{color:#9ca3af}}
 .day-range .range-quick{{color:#2563eb;cursor:pointer;font-size:12px;margin-left:4px;white-space:nowrap}}
 .day-range .range-quick:hover{{text-decoration:underline}}
-.dropdown{{position:absolute;top:calc(100% + 8px);right:0;background:#fff;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.15);max-height:360px;overflow:auto;min-width:160px;z-index:100}}
+.dropdown{{position:absolute;top:calc(100% + 8px);right:0;background:#fff;border-radius:14px;box-shadow:0 12px 32px rgba(0,0,0,.18);max-height:360px;overflow:auto;min-width:172px;z-index:100;padding:6px;border:1px solid #eef0f3;transform-origin:top right;animation:ddPop .16s ease-out}}
 .dropdown.hidden{{display:none}}
-.dropdown .item{{padding:9px 14px;font-size:13px;cursor:pointer;white-space:nowrap}}
+.dropdown .item{{padding:9px 14px;font-size:13px;cursor:pointer;white-space:nowrap;border-radius:8px;margin:2px 0;transition:background .12s,color .12s}}
 .dropdown .item:hover{{background:#eff6ff}}
-.dropdown .item.active{{background:#2563eb;color:#fff}}
-.dropdown .group{{padding:8px 14px 4px;font-size:11px;color:#9ca3af;font-weight:600}}
+.dropdown .item.active{{background:#2563eb;color:#fff;font-weight:600;box-shadow:0 2px 6px rgba(37,99,235,.35)}}
+.dropdown .item.weekend{{color:#f59e0b}}
+.dropdown .item.weekend.active{{color:#fff}}
+.dropdown .group{{padding:10px 12px 5px;font-size:11px;color:#9ca3af;font-weight:700;letter-spacing:.04em}}
+.dropdown::-webkit-scrollbar{{width:8px}}
+.dropdown::-webkit-scrollbar-thumb{{background:#d1d5db;border-radius:8px}}
+.dropdown::-webkit-scrollbar-thumb:hover{{background:#9ca3af}}
+@keyframes ddPop{{from{{opacity:0;transform:translateY(-6px) scale(.97)}}to{{opacity:1;transform:translateY(0) scale(1)}}}}
 .dropdown .item-region{{padding:6px 14px;font-size:12.5px;cursor:pointer}}
 .dropdown .item-region:hover{{background:#eff6ff}}
 #btnRegion,#genBtnRegion,#attBtnRegion{{background:#fff;color:#2563eb;font-weight:600;padding:7px 14px;border-radius:20px;display:flex;align-items:center;gap:6px;border:none;cursor:pointer;box-shadow:0 2px 8px rgba(37,99,235,.15)}}
@@ -2360,6 +2366,7 @@ function collapseEmp(row) {{
 }}
 
 function closeDropdown() {{ document.getElementById('dropdown').classList.add('hidden'); }}
+function scrollDropdownToActive(){{ var dd=document.getElementById('dropdown'); if(!dd) return; var a=dd.querySelector('.item.active'); if(a){{ try{{ a.scrollIntoView({{block:'center'}}); }}catch(e){{ dd.scrollTop=a.offsetTop-dd.offsetTop-8; }} }} }}
 function toggleDropdown() {{ document.getElementById('dropdown').classList.toggle('hidden'); }}
 
 // section tabs navigation
@@ -2897,13 +2904,23 @@ function toggleGenDropdownShared(){{
   if(!dd.classList.contains('hidden')){{ dd.classList.add('hidden'); return; }}
   dd.innerHTML='';
   if(genMode==='day'){{
-    genPayload.days.forEach(function(d){{ dd.appendChild(ddItem(dayLabel(d), function(){{ genDayStart=d; genDayEnd=d; renderGen(genPayload); closeDropdown(); }})); }});
+    var ggen = {{}};
+    genPayload.days.forEach(function(d){{ var m=d.slice(0,7); (ggen[m]=ggen[m]||[]).push(d); }});
+    genPayload.months.forEach(function(m){{
+      if(!ggen[m]) return;
+      var gh=document.createElement('div'); gh.className='group'; gh.textContent=monthLabel(m); dd.appendChild(gh);
+      ggen[m].forEach(function(d){{ dd.appendChild(ddItem(dayLabel(d), function(){{ genDayStart=d; genDayEnd=d; renderGen(genPayload); closeDropdown(); }}, {{active:(d===genDayStart), weekend:isWeekendD(d)}})); }});
+    }});
   }} else if(genMode==='week'){{
-    weeksOf(genPayload.days).forEach(function(w){{ dd.appendChild(ddItem(weekLabel(w[0],w[1]), function(){{ genWeekSel=w[0]; renderGen(genPayload); closeDropdown(); }})); }});
+    var wk=weeksOf(genPayload.days);
+    var wg=document.createElement('div'); wg.className='group'; wg.textContent='按周'; dd.appendChild(wg);
+    wk.forEach(function(w){{ dd.appendChild(ddItem(weekLabel(w[0],w[1]), function(){{ genWeekSel=w[0]; renderGen(genPayload); closeDropdown(); }}, {{active:(w[0]===genWeekSel)}})); }});
   }} else {{
-    genPayload.months.forEach(function(m){{ dd.appendChild(ddItem(monthLabel(m), function(){{ genSel=m; renderGen(genPayload); closeDropdown(); }})); }});
+    var mg=document.createElement('div'); mg.className='group'; mg.textContent='按月'; dd.appendChild(mg);
+    genPayload.months.forEach(function(m){{ dd.appendChild(ddItem(monthLabel(m), function(){{ genSel=m; renderGen(genPayload); closeDropdown(); }}, {{active:(m===genSel)}})); }});
   }}
   dd.classList.remove('hidden');
+  scrollDropdownToActive();
 }}
 
 let curWt='formal', curSec='att';
@@ -3386,13 +3403,16 @@ function updateAttendDateLabel(){
 }
 function ddHide(id){ var e = document.getElementById(id); if (e) e.classList.add('hidden'); }
 // 用 DOM 构建下拉项并绑定事件，避免内联 onclick 的引号转义问题
-function ddItem(label, fn){
+function ddItem(label, fn, opts){
+  opts = opts || {};
   var el = document.createElement('div');
-  el.className = 'dd-item';
+  el.className = 'item' + (opts.active ? ' active' : '') + (opts.weekend ? ' weekend' : '');
   el.textContent = label;
+  if (opts.scroll) el.dataset.scroll = '1';
   el.addEventListener('click', fn);
   return el;
 }
+function isWeekendD(d){ try { var w = parseDate(d).getDay(); return w === 0 || w === 6; } catch(e){ return false; } }
 function toggleAttendDropdownShared(e){
   if (e) e.stopPropagation();
   var dd = document.getElementById('dropdown');
@@ -3401,16 +3421,25 @@ function toggleAttendDropdownShared(e){
   var AD = attendPayload.days;
   dd.innerHTML = '';
   if (attendMode === 'month'){
-    dd.appendChild(ddItem('按月', function(){ attendSel = attendPayload.months[attendPayload.months.length - 1]; setModeAttend('month'); ddHide('dropdown'); }));
-    attendPayload.months.forEach(function(m){ dd.appendChild(ddItem(monthLabel(m), function(){ attendSel = m; setModeAttend('month'); ddHide('dropdown'); })); });
+    var amg = document.createElement('div'); amg.className = 'group'; amg.textContent = '按月'; dd.appendChild(amg);
+    dd.appendChild(ddItem('最新月', function(){ attendSel = attendPayload.months[attendPayload.months.length - 1]; setModeAttend('month'); ddHide('dropdown'); }, {active:(attendSel === attendPayload.months[attendPayload.months.length - 1])}));
+    attendPayload.months.forEach(function(m){ dd.appendChild(ddItem(monthLabel(m), function(){ attendSel = m; setModeAttend('month'); ddHide('dropdown'); }, {active:(m === attendSel)})); });
   } else if (attendMode === 'week'){
     var wk = weeksOf(AD);
+    var awg = document.createElement('div'); awg.className = 'group'; awg.textContent = '按周'; dd.appendChild(awg);
     if (!wk.length) dd.appendChild(ddItem('（无数据）', function(){ ddHide('dropdown'); }));
-    wk.forEach(function(w){ dd.appendChild(ddItem(weekLabel(w[0], w[1]), function(){ attendWeekSel = w[0]; setModeAttend('week'); ddHide('dropdown'); })); });
+    wk.forEach(function(w){ dd.appendChild(ddItem(weekLabel(w[0], w[1]), function(){ attendWeekSel = w[0]; setModeAttend('week'); ddHide('dropdown'); }, {active:(w[0] === attendWeekSel)})); });
   } else {
-    AD.forEach(function(d){ dd.appendChild(ddItem(dayLabel(d, true), function(){ attendDayStart = attendDayEnd = d; setModeAttend('day'); ddHide('dropdown'); })); });
+    var agen = {};
+    AD.forEach(function(d){ var m = d.slice(0,7); (agen[m] = agen[m] || []).push(d); });
+    attendPayload.months.forEach(function(m){
+      if (!agen[m]) return;
+      var adg = document.createElement('div'); adg.className = 'group'; adg.textContent = monthLabel(m); dd.appendChild(adg);
+      agen[m].forEach(function(d){ dd.appendChild(ddItem(dayLabel(d, true), function(){ attendDayStart = attendDayEnd = d; setModeAttend('day'); ddHide('dropdown'); }, {active:(d === attendDayStart), weekend:isWeekendD(d)})); });
+    });
   }
   dd.classList.remove('hidden');
+  scrollDropdownToActive();
 }
 function toggleAttendRegionDropdown(e){
   if (e) e.stopPropagation();

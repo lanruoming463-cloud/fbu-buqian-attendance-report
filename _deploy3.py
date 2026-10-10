@@ -101,7 +101,7 @@ if p.returncode != 0:
 log('reset ok at', head[:9])
 
 # ---- 5. 覆盖 index.html + commit（commit 信息按需修改） ----
-COMMIT_MSG = 'feat: 正式工考勤确认及时率口径收窄——仅取美洲区/欧洲区/亚太区下各区域及HRBP数据(HRBP不含国内HRBP组/美洲支持bp组/欧亚支持bp组)，剔除其他大区(海外销售部等392条)'
+COMMIT_MSG = 'feat: 美化三视图日期下拉控件——统一dd-item为item样式(圆角/阴影/蓝色高亮)，正式工与劳务工视图新增月份分组头、周末橙色、入场动画、打开自动滚动至选中项'
 shutil.copyfile(HTML, os.path.join(REPO, 'index.html'))
 run([GIT, 'add', '-A'], cwd=REPO)
 p = run([GIT, 'status', '--porcelain'], cwd=REPO)
