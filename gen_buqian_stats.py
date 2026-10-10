@@ -562,7 +562,7 @@ def build_labor_payload():
                 r['考勤日期'], r['班次'], r['首打卡补签时间'], r['末打卡补签时间'],
             ])
 
-    # 5) 各区 Top10 员工（板块五，按整体统计，不随日期筛选）
+    # 5) 各区 Top10 员工（板块五，整体口径供兜底；前端实际按所选月份取 topEmpIndexM）
     topagg = L_rec.groupby(['三级部门', '四级部门', '工号', '姓名', '职位']).agg(
         补签次数=('应补签数', 'sum'),
         已补签数=('实际补签数', 'sum'),
@@ -576,6 +576,23 @@ def build_labor_payload():
                 'name': rr['姓名'], 'gong': rr['工号'], 'gongzhong': rr['职位'],
                 'wh': rr['主属仓'], 'group': rr['主属组']} for _, rr in g.iterrows()]
         topEmpIndex[f"{maj}|{reg}"] = arr
+
+    # 按月 Top10（用户 2026-10-10：板块五随月份筛选联动，按月维度展示而非累计）
+    topEmpIndexM = {}
+    for ym_, sub_m in L_rec.groupby('ym'):
+        tg_m = sub_m.groupby(['三级部门', '四级部门', '工号', '姓名', '职位']).agg(
+            补签次数=('应补签数', 'sum'),
+            已补签数=('实际补签数', 'sum'),
+            主属仓=('五级部门', lambda s: s.value_counts().sort_index().idxmax()),
+            主属组=('六级部门', lambda s: s.value_counts().sort_index().idxmax()),
+        ).reset_index()
+        idx_m = {}
+        for (maj, reg), g in tg_m.groupby(['三级部门', '四级部门']):
+            g = g[g['补签次数'] > 3].sort_values('补签次数', ascending=False).head(10)
+            idx_m[f"{maj}|{reg}"] = [{'count': int(rr['补签次数']), 'done': int(rr['已补签数']), 'ing': int(rr['补签次数'] - rr['已补签数']),
+                                      'name': rr['姓名'], 'gong': rr['工号'], 'gongzhong': rr['职位'],
+                                      'wh': rr['主属仓'], 'group': rr['主属组']} for _, rr in g.iterrows()]
+        topEmpIndexM[ym_] = idx_m
 
     LABOR_EMP_KEYS = ['姓名', '工号', '工种', '考勤日期', '班次', '首打卡补签时间', '末打卡补签时间']
     LABOR_EMP_HEADERS = ['姓名', '工号', '工种', '考勤日期', '班次', '首打卡补签时间', '末打卡补签时间']
@@ -597,7 +614,7 @@ def build_labor_payload():
         <li><strong>板块一~四</strong>：按所选日期/月份对「应补签数 / 实际补签数（已补签数）」求和，结构与正式工一致（大区×区域×仓×组）。其中 <strong>补签合计 = 应补签数</strong>、<strong>已完成 = 已补签数</strong>、<strong>未完成 = 应补签数 − 已补签数</strong>。</li>
         <li><strong>补签率</strong> = 应补签数 ÷ 应打卡数（基于全量考勤行，分母取该范围全部应打卡点数，非仅补签记录），在 KPI 卡与各大区/区域/仓/组表中展示。</li>
         <li><strong>板块四下钻</strong>：点击组可展开该组下补签员工明细，展示姓名、工号、工种、考勤日期、班次、首打卡补签时间、末打卡补签时间。同一天同一班次的多条记录会合并为一行。</li>
-        <li><strong>板块五 Top10</strong>：按区域取补签次数前 10 名员工（<strong>整体统计，不随日期筛选</strong>），附带主属仓、主属组。</li>
+        <li><strong>板块五 Top10</strong>：按区域取补签次数前 10 名员工（<strong>按所选月份统计，随顶部日期筛选联动，按月维度展示</strong>），附带主属仓、主属组。</li>
         <li><strong>应补签数口径</strong>：一个人一天的应补签数合计最大为 2，对应上下班两次打卡；超过 2 的情况已按员工+考勤日期将应补签数合计封顶取 2（截断多余部分），并同步将实际补签数限制在封顶后的应补签数内，保证 未完成 ≥ 0。</li>
       </ul>
     </div>
@@ -606,6 +623,7 @@ def build_labor_payload():
     return {
         'months': months_l, 'days': days_l, 'data': data_l,
         'empIndex': empIndex, 'empCount': empCount, 'topEmpIndex': topEmpIndex,
+        'topEmpIndexM': topEmpIndexM,
         'empKeys': LABOR_EMP_KEYS, 'empHeaders': LABOR_EMP_HEADERS,
         'type': 'labor', 'subtitle': LABOR_SUBTITLE, 'noteHtml': LABOR_NOTE,
     }
@@ -975,6 +993,34 @@ def build_attend_payload_v2():
         lst.sort(key=lambda x: -x['ldk'])
         topEmpIndexLdk[f"{m}|{rg}"] = lst[:10]
 
+    # 按月 Top10（用户 2026-10-10：板块五随月份筛选联动，按月维度展示而非累计）
+    _emp_m = defaultdict(lambda: defaultdict(lambda: dict({'name': '', 'zg': ''}, **{f: 0 for f in ATTEND_METRICS})))
+    for r in all_recs:
+        a = _emp_m[r['date'][:7]][(r['major'], r['region'], r['wh'], r['grp'], r['gong'])]
+        a['name'] = r['name']
+        a['zg'] = r['zg']
+        for f in ATTEND_METRICS:
+            a[f] += r[f]
+    topEmpIndexM, topEmpIndexLdkM = {}, {}
+    for ym_, emp_m in _emp_m.items():
+        tb_m, tl_m = defaultdict(list), defaultdict(list)
+        for (m, rg, w, g, gong), a in emp_m.items():
+            tb_m[(m, rg)].append({'name': a['name'], 'gong': gong, 'zg': a['zg'],
+                                  'wh': w, 'group': g, 'unc': a['yqr'] - a['sjqr']})
+            tl_m[(m, rg)].append({'name': a['name'], 'gong': gong, 'zg': a['zg'],
+                                  'wh': w, 'group': g, 'ldk': a['ldk']})
+        i1, i2 = {}, {}
+        for (m, rg), lst in tb_m.items():
+            lst = [x for x in lst if x['unc'] > 0]
+            lst.sort(key=lambda x: -x['unc'])
+            i1[f"{m}|{rg}"] = lst[:10]
+        for (m, rg), lst in tl_m.items():
+            lst = [x for x in lst if x['ldk'] > 0]
+            lst.sort(key=lambda x: -x['ldk'])
+            i2[f"{m}|{rg}"] = lst[:10]
+        topEmpIndexM[ym_] = i1
+        topEmpIndexLdkM[ym_] = i2
+
     ATTEND_SUBTITLE = ('维度：三大区 × 区域 × 仓 × 组（逐人逐日）　|　'
                        '口径：考勤确认及时率 = 已确认数 ÷ 考勤总数；'
                        '未确认数 = 考勤总数 − 已确认数')
@@ -993,7 +1039,7 @@ def build_attend_payload_v2():
         <li><strong>板块一~四</strong>：按所选日期/月份对 考勤总数 / 已确认数 / 未确认数 求和，结构同正式工考勤确认及时率看板（大区×区域×仓×组）。</li>
         <li><strong>考勤确认及时率</strong>：考勤总数 = 考勤记录条数（每人每日 1 条）；已确认数 = 确认状态为「已确认 / 已复核」的记录数；未确认数 = 考勤总数 − 已确认数（含「未确认 / 已驳回」）；及时确认率 = 已确认数 ÷ 考勤总数（均按所选范围汇总值重算）。</li>
         <li><strong>板块四下钻</strong>：点击组可展开该组「未及时确认」员工明细（姓名/工号/工种/考勤日期/班次/首末打卡/确认状态/考勤状态/考勤异常原因），随日期/月份筛选联动，按考勤日期降序，每组最多展示 50 条。</li>
-        <li><strong>板块五 Top10</strong>：按区域取补签数前 10 名员工（整体统计，不随日期筛选），附主属仓、主属组。</li>
+        <li><strong>板块五 Top10</strong>：按区域取未确认数前 10 名员工，<strong>按所选月份统计（随顶部日期筛选联动，按月维度展示）</strong>，附主属仓、主属组。</li>
       </ul>
     </div>
     """
@@ -1005,7 +1051,9 @@ def build_attend_payload_v2():
         'regionOrder': REGION_ORDER,
         'months': months_l, 'days': days_l, 'data': data_l,
         'empIndex': att_emp_index, 'empCount': att_emp_count, 'topEmpIndex': topEmpIndex,
+        'topEmpIndexM': topEmpIndexM,
         'topEmpIndexLdk': topEmpIndexLdk,
+        'topEmpIndexLdkM': topEmpIndexLdkM,
         'empHeaders': ATT_UNTIMELY_HEADERS,
         'metrics': ATTEND_METRICS, 'metricLabels': ATTEND_METRIC_LABELS,
         'cols': [
@@ -1266,6 +1314,12 @@ def _build_formal_top(recs, metric, min_val=0):
 
 _formal_top_untimely = _build_formal_top(_formal_recs, 'untimely', min_val=3)
 
+# 按月 Top10（用户 2026-10-10：板块五随月份筛选联动，按月维度展示而非累计）
+_formal_top_untimely_m = {}
+for _ym in sorted({r['ym'] for r in _formal_recs}):
+    _formal_top_untimely_m[_ym] = _build_formal_top(
+        [r for r in _formal_recs if r['ym'] == _ym], 'untimely', min_val=3)
+
 # 组行角标：未及时确认员工明细索引（按 大区|区域|仓|组 分组，每组最多 50 条，全量计数另存）
 GEN_EMP_HEADERS = ['姓名', '工号', '部门', '职位', '职级', '考勤日期', '星期',
                    '当前班次', '首打卡时间', '末打卡时间', '考勤状态', '异常备注']
@@ -1317,9 +1371,10 @@ formal_att_payload = {
     'empIndex': gen_emp_index, 'empCount': gen_emp_count,
     'empHeaders': GEN_EMP_HEADERS,
     'topEmpIndex': _formal_top_untimely,
+    'topEmpIndexM': _formal_top_untimely_m,
     'topMetric': 'untimely',
     'topMetricLabel': '未及时确认',
-    'topCaption': '五、各区 Top10 员工（按区域内员工未及时确认考勤数排序，整体统计不随日期筛选）',
+    'topCaption': '五、各区 Top10 员工（按区域内员工未及时确认考勤数排序，随顶部月份筛选联动）',
 }
 formal_att_json = json.dumps(formal_att_payload, ensure_ascii=False, separators=(',', ':'))
 print("[正式工] 考勤总数=%d 正常=%d 异常=%d 未及时确认=%d 准确率=%.1f%% 及时确认率=%.1f%%" % (
@@ -1972,10 +2027,17 @@ function render() {{
 
   if (payload.type === 'labor') {{
     empIndex = payload.empIndex || {{}};
-    topEmpIndex = payload.topEmpIndex || {{}};
+    var _ymTop = (mode === 'month') ? (selected || '') : ((mode === 'week') ? (weekSel || '').slice(0, 7) : (daySel || '').slice(0, 7));
+    var _tmTop = payload.topEmpIndexM || {{}};
+    topEmpIndex = (_ymTop && _tmTop[_ymTop]) ? _tmTop[_ymTop] : (payload.topEmpIndex || {{}});
+    var capTop = document.getElementById('secTopCap');
+    if (capTop && _ymTop) capTop.innerHTML = '五、各区补签 Top10 员工（按区域内员工补签数排序，含已完成+未完成）　<small style="font-weight:400;color:#2563eb">统计月份：' + monthLabel(_ymTop) + '</small>　<small style="font-weight:400;color:#64748b">点击大区/区域可展开或收起 Top 员工</small>';
   }} else {{
     buildEmpIndex();
     buildTopEmp();
+    var _ymTop2 = (mode === 'month') ? (selected || '') : ((mode === 'week') ? (weekSel || '').slice(0, 7) : (daySel || '').slice(0, 7));
+    var capTop2 = document.getElementById('secTopCap');
+    if (capTop2 && _ymTop2) capTop2.innerHTML = '五、各区补签 Top10 员工（按区域内员工补签数排序，含已完成+审批中）　<small style="font-weight:400;color:#2563eb">统计月份：' + monthLabel(_ymTop2) + '</small>　<small style="font-weight:400;color:#64748b">点击大区/区域可展开或收起 Top 员工</small>';
   }}
 
   const gb = document.getElementById('grpBody');
@@ -2590,18 +2652,25 @@ function setGenRegionStateT(major, region, collapsed) {{
 function toggleGenMajorT(row) {{ setGenMajorStateT(row.dataset.major, row.dataset.expanded !== 'false'); }}
 function toggleGenRegionT(row) {{ setGenRegionStateT(row.dataset.major, row.dataset.region, row.dataset.expanded !== 'false'); }}
 
+function genCurMonth(){{
+  if (genMode === 'month') return genSel || (genPayload && genPayload.months && genPayload.months.length ? genPayload.months[genPayload.months.length - 1] : '');
+  if (genMode === 'week') return (genWeekSel || '').slice(0, 7);
+  return (genDayStart || genSel || '').slice(0, 7);
+}}
 function renderGenTop10(P) {{
   const tb = document.getElementById('genTopBody');
   const head = document.getElementById('genTopHead');
   const cap = document.getElementById('genSecTopCap');
-  if (cap) cap.innerHTML = P.topCaption || '五、各区 Top10 员工';
+  const ymTop = genCurMonth();
+  const topIdx = (P.topEmpIndexM && ymTop && P.topEmpIndexM[ymTop]) ? P.topEmpIndexM[ymTop] : (P.topEmpIndex || {{}});
+  if (cap) cap.innerHTML = (P.topCaption || '五、各区 Top10 员工') + (ymTop ? '　<small style="font-weight:400;color:#2563eb">统计月份：' + monthLabel(ymTop) + '</small>' : '');
   if (!tb) return;
-  if (!P.topEmpIndex) {{ tb.innerHTML = `<tr><td colspan="7" class="empty">暂无员工排名数据</td></tr>`; if (head) head.innerHTML = '<th>排名</th><th>姓名</th><th>工号</th><th>职位</th><th>主属仓</th><th>主属组</th><th>指标</th>'; return; }}
+  if (!P.topEmpIndex && !P.topEmpIndexM) {{ tb.innerHTML = `<tr><td colspan="7" class="empty">暂无员工排名数据</td></tr>`; if (head) head.innerHTML = '<th>排名</th><th>姓名</th><th>工号</th><th>职位</th><th>主属仓</th><th>主属组</th><th>指标</th>'; return; }}
   const metricKey = P.topMetric || 'val';
   const metricLabel = P.topMetricLabel || '指标';
   if (head) head.innerHTML = '<th>排名</th><th>姓名</th><th>工号</th><th>职位</th><th>主属仓</th><th>主属组</th><th>' + esc(metricLabel) + '</th>';
   const order = P.majorOrder || [];
-  const keys = Object.keys(P.topEmpIndex).sort(function(a, b){{
+  const keys = Object.keys(topIdx).sort(function(a, b){{
     const [ma, ra] = a.split('|'); const [mb, rb] = b.split('|');
     const oa = order.indexOf(ma), ob = order.indexOf(mb);
     if (oa !== ob) return (oa < 0 ? 99 : oa) - (ob < 0 ? 99 : ob);
@@ -2610,7 +2679,7 @@ function renderGenTop10(P) {{
   let html = '', curMajor = null, curRegion = null;
   keys.forEach(function(k){{
     const [major, region] = k.split('|');
-    const emps = P.topEmpIndex[k];
+    const emps = topIdx[k];
     if (!emps || !emps.length) return;
     if (major !== curMajor) {{ curMajor = major; curRegion = null; html += `<tr class="grp major-row-gt" data-major="${{attrEsc(major)}}" data-expanded="true" onclick="toggleGenMajorT(this)"><td colspan="7"><span class="fold-icon">▾</span> ${{esc(major)}}</td></tr>`; }}
     if (region !== curRegion) {{ curRegion = region; html += `<tr class="subgrp region-row-gt" data-major="${{attrEsc(major)}}" data-region="${{attrEsc(region)}}" data-expanded="true" onclick="toggleGenRegionT(this)"><td colspan="7"><span class="fold-icon">▾</span> ${{esc(region)}}（Top ${{emps.length}} 员工）</td></tr>`; }}
@@ -3053,7 +3122,7 @@ attend_block = """
   <div class="table-wrapper"><table id="tableAttGrp"><thead><tr><th>大区 / 区域 / 仓 / 组</th><th>考勤总数</th><th>已确认数</th><th>未确认数</th><th>及时确认率</th><th>图例</th></tr></thead><tbody id="attGrpBody"></tbody></table></div>
 </div>
 <div class="section" id="attSecTop">
-  <div class="section-caption">五、各区未确认 Top10 员工（按区域，未确认数排序，整体统计不随日期筛选）</div>
+  <div class="section-caption">五、各区未确认 Top10 员工（按区域，未确认数排序，按所选月份统计随日期筛选联动）</div>
   <div class="table-wrapper"><table id="tableAttTop"><thead><tr><th>排名</th><th>姓名</th><th>工号</th><th>工种</th><th>主属仓</th><th>主属组</th><th>未确认数</th></tr></thead><tbody id="attTopBody"></tbody></table></div>
 </div>
 <div class="note"><div class="note-header" data-notebody="attendNoteBody" onclick="toggleNoteById(this)"><div class="note-icon">i</div><div class="note-title">数据说明</div><div class="note-fold">▾</div></div><div class="note-body" id="attendNoteBody"></div></div>
@@ -3237,14 +3306,16 @@ function renderAttend(){
   });
   document.getElementById('attGrpBody').innerHTML = h4;
 
-  // 板块五：Top 员工
+  // 板块五：Top 员工（按所选月份统计，随日期筛选联动）
+  var attYm = (attendMode === 'month') ? (attendSel || '') : ((attendMode === 'week') ? (attendWeekSel || '').slice(0, 7) : ((attendDayStart || attendSel || '').slice(0, 7)));
+  var attTopIdx = (P.topEmpIndexM && attYm && P.topEmpIndexM[attYm]) ? P.topEmpIndexM[attYm] : (P.topEmpIndex || {});
   var h5 = '';
   majOrder.forEach(function(mj){
     var regs = details.filter(function(r){ return r.major === mj; }).map(function(r){ return r.region; });
     regs.forEach(function(rg){
-      var arr = (P.topEmpIndex && P.topEmpIndex[mj + '|' + rg]) || [];
+      var arr = attTopIdx[mj + '|' + rg] || [];
       if (!arr.length) return;
-      h5 += '<tr class="att-major"><td colspan="7">' + esc(mj) + ' / ' + esc(rg) + '（未确认 Top10）</td></tr>';
+      h5 += '<tr class="att-major"><td colspan="7">' + esc(mj) + ' / ' + esc(rg) + '（未确认 Top10' + (attYm ? ' · ' + monthLabel(attYm) : '') + '）</td></tr>';
       arr.forEach(function(e, i){
         h5 += '<tr class="top-emp-row"><td class="num">' + (i + 1) + '</td><td>' + esc(e.name) + '</td><td>' + esc(e.gong) + '</td><td>' + esc(e.zg || '—') + '</td><td>' + esc(e.wh) + '</td><td>' + esc(e.group) + '</td><td class="num">' + fmt(e.unc) + '</td></tr>';
       });
