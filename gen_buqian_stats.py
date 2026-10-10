@@ -1336,8 +1336,18 @@ print('[正式工及时率] 组角标未及时明细：%d 条，覆盖 %d 个组
     len(FORMAL_UNTIMELY_DETAILS), len(gen_emp_count)))
 
 # formalAtt：按天/按周同样保留仓/组明细（用户 2026-10-10：按天/按周有未及时确认人员的仓/组需展示，
-# 无数据的区域自然不出现；HTML 体积增量约 3MB，可接受）
-_formal_data_att = dict(_formal_data)
+# 无数据的区域自然不出现）。
+# 妙搭产物限体积（29MB 发布被拒）：日/周键仅保留 未及时确认>0 的 仓/组 行（月键全量保留；
+# 大区/区域层级全量保留保证合计与表头正确——仓合计取自仓行完整 total，不受过滤影响）。
+_formal_data_att = {}
+for _k, _blk in _formal_data.items():
+    if _k in _formal_months:
+        _formal_data_att[_k] = _blk  # 月键：全量
+        continue
+    _nb = {'total': _blk['total'], 'major': _blk['major'], 'detail': _blk['detail']}
+    _nb['warehouse'] = [w for w in _blk['warehouse'] if w.get('untimely', 0) > 0]
+    _nb['group'] = [g for g in _blk['group'] if g.get('untimely', 0) > 0]
+    _formal_data_att[_k] = _nb
 
 FORMAL_NOTE = (
     "<ul class='note-list'>"

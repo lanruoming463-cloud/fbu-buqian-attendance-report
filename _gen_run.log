@@ -12,11 +12,17 @@ C:\Users\zt25337\.workbuddy\binaries\python\envs\default\Lib\site-packages\openp
   warn("Workbook contains no default style, apply openpyxl's default")
 C:\Users\zt25337\.workbuddy\binaries\python\envs\default\Lib\site-packages\openpyxl\styles\stylesheet.py:237: UserWarning: Workbook contains no default style, apply openpyxl's default
   warn("Workbook contains no default style, apply openpyxl's default")
+C:\Users\zt25337\.workbuddy\binaries\python\envs\default\Lib\site-packages\openpyxl\styles\stylesheet.py:237: UserWarning: Workbook contains no default style, apply openpyxl's default
+  warn("Workbook contains no default style, apply openpyxl's default")
+C:\Users\zt25337\.workbuddy\binaries\python\envs\default\Lib\site-packages\openpyxl\styles\stylesheet.py:237: UserWarning: Workbook contains no default style, apply openpyxl's default
+  warn("Workbook contains no default style, apply openpyxl's default")
 [Top10剔除] 标记为剔除的记录数: 1744 / 7276
 Excel 已生成: C:/Users/zt25337/WorkBuddy/2026-08-20-09-25-58/补签流程_补签统计.xlsx
+[劳务工及时率] 组角标未及时明细：7033 条，覆盖 355 个组
 Excel 已追加考勤确认及时性 sheet（大区/区域/仓）
-[正式工] 考勤总数=98055 正常=84132 异常=13923 未及时确认=1845 准确率=85.8% 及时确认率=98.1%
+[正式工及时率] 剔除记录： {'财务部': 249, '四级部门为空': 276, 'HRBP剔除-国内/支持组': 14, '其他(非三大区/HRBP)': 392}
+[正式工及时率] 组角标未及时明细：2295 条，覆盖 391 个组
+[正式工] 考勤总数=111349 正常=95153 异常=16196 未及时确认=2295 准确率=85.5% 及时确认率=97.9%
 HTML 已生成: C:/Users/zt25337/WorkBuddy/2026-08-20-09-25-58/补签流程_补签统计.html
 月份: ['2026-05', '2026-06', '2026-07']
 日期数: 62
-GEN_DONE rc=0
