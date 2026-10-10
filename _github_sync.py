@@ -86,11 +86,11 @@ def collect_files():
         p = os.path.join(WS, name)
         if os.path.exists(p):
             items.append((p, name))
-    # 开发日志 -> docs/devlog/
+    # 工作日志（.workbuddy/memory 每日短记）-> docs/worklog/（与 docs/devlog 真实开发日志区分，避免同名覆盖）
     if os.path.isdir(MEMORY_DIR):
         for name in os.listdir(MEMORY_DIR):
             if name.endswith('.md'):
-                items.append((os.path.join(MEMORY_DIR, name), 'docs/devlog/' + name))
+                items.append((os.path.join(MEMORY_DIR, name), 'docs/worklog/' + name))
     # 发布说明（*发布说明*.md）
     import fnmatch
     for name in os.listdir(WS):
