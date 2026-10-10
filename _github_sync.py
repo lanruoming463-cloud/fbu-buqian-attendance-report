@@ -17,17 +17,24 @@ GH_USER  = 'lanruoming463-cloud'
 REPO     = 'fbu-buqian-attendance-report'
 BRANCH   = 'main'
 
-# ---- 同步范围（代码+文档+日志；大文件数据产物也包含，用户已确认） ----
+# ---- 同步范围（代码+文档+日志+口径诊断+数据产物；用户已确认公开上传） ----
 INCLUDE_FILES = [
     'gen_buqian_stats.py',
     '_deploy3.py',
     '_github_sync.py',
     'README.md', '.gitignore',
+    # T+1 日更看板模块（独立模块，整体性同步）
+    'tplus1_trial.py', 'tplus1_state.json',
+    'mcp_baseline_2026-06.py', 'mcp_baseline_2026-06_daily.csv',
+    'inspect_aug.py', '_audit_scripts.py', 'diff_0601.py',
+    'fix_t1_nesting.py', 'verify_after_fix.py', 'verify_nesting.py',
+    'verify_t1_data.py', 'verify_t1_js.py', 'verify_t1_js2.py',
 ]
 INCLUDE_PREFIXES = [
     '_probe',            # 无头浏览器验证脚本
     'gen_run', '_gen_run',  # 生成日志
     '_deploy3_run',      # 部署日志
+    '_diag', '_check', '_explore',  # 口径诊断 / 数据验证脚本
 ]
 INCLUDE_EXACT = [
     'attend_acc_data.json',
@@ -84,6 +91,20 @@ def collect_files():
         for name in os.listdir(MEMORY_DIR):
             if name.endswith('.md'):
                 items.append((os.path.join(MEMORY_DIR, name), 'docs/devlog/' + name))
+    # 发布说明（*发布说明*.md）
+    import fnmatch
+    for name in os.listdir(WS):
+        if fnmatch.fnmatch(name, '*发布说明*.md') and os.path.isfile(os.path.join(WS, name)):
+            items.append((os.path.join(WS, name), name))
+    # docs/ 整体递归（开发历史日志等，.md/.txt）
+    docs_dir = os.path.join(WS, 'docs')
+    if os.path.isdir(docs_dir):
+        for _root, _, _files in os.walk(docs_dir):
+            for _fn in _files:
+                if _fn.endswith(('.md', '.txt')):
+                    _abs = os.path.join(_root, _fn)
+                    _rel = os.path.relpath(_abs, WS).replace(os.sep, '/')
+                    items.append((_abs, _rel))
     # 去重（按 repo relpath）
     seen, out = set(), []
     for abs_p, rel in items:

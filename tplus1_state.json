@@ -1,0 +1,284 @@
+{
+ "oehr": {
+  "2026-08-01": {
+   "total": 1913,
+   "confirmed": 1912,
+   "confirmed_ncz": 1912,
+   "untimely": 1,
+   "rate": 99.95,
+   "frozen": true,
+   "calculated_at": "2026-09-22T17:59:57+08:00"
+  },
+  "2026-08-02": {
+   "total": 1899,
+   "confirmed": 1898,
+   "confirmed_ncz": 1898,
+   "untimely": 1,
+   "rate": 99.95,
+   "frozen": true,
+   "calculated_at": "2026-09-22T17:59:57+08:00"
+  },
+  "2026-08-03": {
+   "total": 1917,
+   "confirmed": 1915,
+   "confirmed_ncz": 1915,
+   "untimely": 2,
+   "rate": 99.9,
+   "frozen": true,
+   "calculated_at": "2026-09-22T17:59:57+08:00"
+  },
+  "2026-08-04": {
+   "total": 1921,
+   "confirmed": 1917,
+   "confirmed_ncz": 1917,
+   "untimely": 4,
+   "rate": 99.79,
+   "frozen": true,
+   "calculated_at": "2026-09-22T17:59:57+08:00"
+  },
+  "2026-08-05": {
+   "total": 1923,
+   "confirmed": 1918,
+   "confirmed_ncz": 1918,
+   "untimely": 5,
+   "rate": 99.74,
+   "frozen": true,
+   "calculated_at": "2026-09-22T17:59:57+08:00"
+  },
+  "2026-08-06": {
+   "total": 1920,
+   "confirmed": 1916,
+   "confirmed_ncz": 1916,
+   "untimely": 4,
+   "rate": 99.79,
+   "frozen": true,
+   "calculated_at": "2026-09-22T17:59:57+08:00"
+  },
+  "2026-08-07": {
+   "total": 1921,
+   "confirmed": 1918,
+   "confirmed_ncz": 1918,
+   "untimely": 3,
+   "rate": 99.84,
+   "frozen": true,
+   "calculated_at": "2026-09-22T17:59:57+08:00"
+  },
+  "2026-08-08": {
+   "total": 1918,
+   "confirmed": 1918,
+   "confirmed_ncz": 1918,
+   "untimely": 0,
+   "rate": 100.0,
+   "frozen": true,
+   "calculated_at": "2026-09-22T17:59:57+08:00"
+  },
+  "2026-08-09": {
+   "total": 1916,
+   "confirmed": 1916,
+   "confirmed_ncz": 1916,
+   "untimely": 0,
+   "rate": 100.0,
+   "frozen": true,
+   "calculated_at": "2026-09-22T17:59:57+08:00"
+  },
+  "2026-08-10": {
+   "total": 1926,
+   "confirmed": 1924,
+   "confirmed_ncz": 1924,
+   "untimely": 2,
+   "rate": 99.9,
+   "frozen": true,
+   "calculated_at": "2026-09-22T17:59:57+08:00"
+  },
+  "2026-08-11": {
+   "total": 1934,
+   "confirmed": 1932,
+   "confirmed_ncz": 1932,
+   "untimely": 2,
+   "rate": 99.9,
+   "frozen": true,
+   "calculated_at": "2026-09-22T17:59:57+08:00"
+  },
+  "2026-08-12": {
+   "total": 1939,
+   "confirmed": 1937,
+   "confirmed_ncz": 1937,
+   "untimely": 2,
+   "rate": 99.9,
+   "frozen": true,
+   "calculated_at": "2026-09-22T17:59:57+08:00"
+  },
+  "2026-08-13": {
+   "total": 1944,
+   "confirmed": 1941,
+   "confirmed_ncz": 1941,
+   "untimely": 3,
+   "rate": 99.85,
+   "frozen": true,
+   "calculated_at": "2026-09-22T17:59:57+08:00"
+  },
+  "2026-08-14": {
+   "total": 1944,
+   "confirmed": 1941,
+   "confirmed_ncz": 1941,
+   "untimely": 3,
+   "rate": 99.85,
+   "frozen": true,
+   "calculated_at": "2026-09-22T17:59:57+08:00"
+  },
+  "2026-08-15": {
+   "total": 1950,
+   "confirmed": 1949,
+   "confirmed_ncz": 1949,
+   "untimely": 1,
+   "rate": 99.95,
+   "frozen": true,
+   "calculated_at": "2026-09-22T17:59:57+08:00"
+  },
+  "2026-08-16": {
+   "total": 1947,
+   "confirmed": 1946,
+   "confirmed_ncz": 1946,
+   "untimely": 1,
+   "rate": 99.95,
+   "frozen": true,
+   "calculated_at": "2026-09-22T17:59:57+08:00"
+  },
+  "2026-08-17": {
+   "total": 1959,
+   "confirmed": 1956,
+   "confirmed_ncz": 1956,
+   "untimely": 3,
+   "rate": 99.85,
+   "frozen": true,
+   "calculated_at": "2026-09-22T17:59:57+08:00"
+  },
+  "2026-08-18": {
+   "total": 1960,
+   "confirmed": 1958,
+   "confirmed_ncz": 1958,
+   "untimely": 2,
+   "rate": 99.9,
+   "frozen": true,
+   "calculated_at": "2026-09-22T17:59:57+08:00"
+  },
+  "2026-08-19": {
+   "total": 1966,
+   "confirmed": 1965,
+   "confirmed_ncz": 1965,
+   "untimely": 1,
+   "rate": 99.95,
+   "frozen": true,
+   "calculated_at": "2026-09-22T17:59:57+08:00"
+  },
+  "2026-08-20": {
+   "total": 1966,
+   "confirmed": 1965,
+   "confirmed_ncz": 1965,
+   "untimely": 1,
+   "rate": 99.95,
+   "frozen": true,
+   "calculated_at": "2026-09-22T17:59:57+08:00"
+  },
+  "2026-08-21": {
+   "total": 1962,
+   "confirmed": 1961,
+   "confirmed_ncz": 1961,
+   "untimely": 1,
+   "rate": 99.95,
+   "frozen": true,
+   "calculated_at": "2026-09-22T17:59:57+08:00"
+  },
+  "2026-08-22": {
+   "total": 1957,
+   "confirmed": 1957,
+   "confirmed_ncz": 1957,
+   "untimely": 0,
+   "rate": 100.0,
+   "frozen": true,
+   "calculated_at": "2026-09-22T17:59:57+08:00"
+  },
+  "2026-08-23": {
+   "total": 1956,
+   "confirmed": 1956,
+   "confirmed_ncz": 1956,
+   "untimely": 0,
+   "rate": 100.0,
+   "frozen": true,
+   "calculated_at": "2026-09-22T17:59:57+08:00"
+  },
+  "2026-08-24": {
+   "total": 1970,
+   "confirmed": 1968,
+   "confirmed_ncz": 1968,
+   "untimely": 2,
+   "rate": 99.9,
+   "frozen": true,
+   "calculated_at": "2026-09-22T17:59:57+08:00"
+  },
+  "2026-08-25": {
+   "total": 1970,
+   "confirmed": 1969,
+   "confirmed_ncz": 1969,
+   "untimely": 1,
+   "rate": 99.95,
+   "frozen": true,
+   "calculated_at": "2026-09-22T17:59:57+08:00"
+  },
+  "2026-08-26": {
+   "total": 1969,
+   "confirmed": 1966,
+   "confirmed_ncz": 1966,
+   "untimely": 3,
+   "rate": 99.85,
+   "frozen": true,
+   "calculated_at": "2026-09-22T17:59:57+08:00"
+  },
+  "2026-08-27": {
+   "total": 1971,
+   "confirmed": 1968,
+   "confirmed_ncz": 1968,
+   "untimely": 3,
+   "rate": 99.85,
+   "frozen": true,
+   "calculated_at": "2026-09-22T17:59:57+08:00"
+  },
+  "2026-08-28": {
+   "total": 1977,
+   "confirmed": 1972,
+   "confirmed_ncz": 1972,
+   "untimely": 5,
+   "rate": 99.75,
+   "frozen": true,
+   "calculated_at": "2026-09-22T17:59:57+08:00"
+  },
+  "2026-08-29": {
+   "total": 1975,
+   "confirmed": 1975,
+   "confirmed_ncz": 1975,
+   "untimely": 0,
+   "rate": 100.0,
+   "frozen": true,
+   "calculated_at": "2026-09-22T17:59:57+08:00"
+  },
+  "2026-08-30": {
+   "total": 1974,
+   "confirmed": 1974,
+   "confirmed_ncz": 1974,
+   "untimely": 0,
+   "rate": 100.0,
+   "frozen": true,
+   "calculated_at": "2026-09-22T17:59:57+08:00"
+  },
+  "2026-08-31": {
+   "total": 1974,
+   "confirmed": 1970,
+   "confirmed_ncz": 1970,
+   "untimely": 4,
+   "rate": 99.8,
+   "frozen": true,
+   "calculated_at": "2026-09-22T17:59:57+08:00"
+  }
+ },
+ "otws": {}
+}

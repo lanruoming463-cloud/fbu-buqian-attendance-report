@@ -1,0 +1,3 @@
+body..viewAttend 净嵌套 = 0 (应为正数, viewAttend 在 wrap 内)
+viewAttend..</body> 净嵌套 = -1 (应为 0, attend 末尾闭合 wrap)
+GEN rc: ['GEN_DONE rc=0']

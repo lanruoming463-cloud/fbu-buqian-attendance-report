@@ -1,0 +1,8 @@
+size_MB=17.3
+globalControls True
+FBU HRBP Dept. True
+laborAtt True
+id="btnRegion" True
+id="rpGrid" True
+viewAttend True
+build_attend_payload_v2 False
