@@ -29,6 +29,7 @@ https://ztn.larkenterprise.com/page/RgGYm9pJkdaDGKafK8lc5pS1ntf
 | `_probe*.py` | 无头 Chrome 验证探针：本地 HTTP 服务 + iframe 加载报表，注入探针取 DOM / 计算样式，验证角标、展开、居中、月度联动等。最新为 `_probe39.py`。 |
 | `_diag*.py` / `_check*.py` / `_explore*.py` | 数据诊断与口径验证脚本：核对源文件月份分布、捷克区白名单、三大区 + HRBP 口径收窄、HTML payload 聚合等。 |
 | `docs/devlog/` | **开发历史日志（按日）**：每项需求的实现方案、数据口径、验证结果、踩坑记录。 |
+| `docs/worklog/` | 工作记忆日志（按日短记，与 devlog 区分存放，避免同名覆盖）。 |
 | `*发布说明*.md` | 报表发布说明：数据源、口径、校验结果、妙搭 release / GitHub commit 记录。 |
 | `补签流程_补签统计.html` | 报表产物（约 18–20 MB，内嵌全量数据 JSON，无需后端即可交互）。 |
 | `补签流程_补签统计.xlsx` | 汇总 Excel 产物（大区 / 区域 / 仓 / 组 / Top10 等多 sheet）。 |
