@@ -101,7 +101,7 @@ if p.returncode != 0:
 log('reset ok at', head[:9])
 
 # ---- 5. 覆盖 index.html + commit（commit 信息按需修改） ----
-COMMIT_MSG = 'feat: 考勤确认及时率并入10.8数据(正式工/劳务工)——主体报表数据范围10.1-10.8；正式工未及时2295->2389、总量111349->113296；体积20.6MB'
+COMMIT_MSG = 'feat: 补签率模块并入劳务工8月/9月数据(考勤确认及时性劳务工08.01-08.31/09.01-09.30)——补签率月份覆盖06/07/08/09；日块压缩(仓/组明细仅留月块)控体积至安全区间'
 shutil.copyfile(HTML, os.path.join(REPO, 'index.html'))
 run([GIT, 'add', '-A'], cwd=REPO)
 p = run([GIT, 'status', '--porcelain'], cwd=REPO)

@@ -395,7 +395,9 @@ FORMAL_EMP_HEADERS = ['姓名', '工号', '职位', '补签日期', '班次', '�
 FORMAL_SUBTITLE = '维度：三级部门（大区）× 四级部门（区域）　|　口径：审批状态 = 已完成 + 审批中'
 
 # ===================== 劳务工数据源（独立于正式工，结构对齐便于前端复用） =====================
-LABOR_SRCS = [r'D:/Documents/Downloads/劳务工补签-6月.xlsx', r'D:/Documents/Downloads/劳务工补签-7月.xlsx']
+LABOR_SRCS = [r'D:/Documents/Downloads/劳务工补签-6月.xlsx', r'D:/Documents/Downloads/劳务工补签-7月.xlsx',
+               r'D:/Documents/Downloads/考勤确认及时性劳务工（08.01-08.31）-.xlsx',
+               r'D:/Documents/Downloads/考勤确认及时性劳务工（09.01-09.30）.xlsx']
 LABOR_SHEET = '劳务工-考勤表'
 LABOR_ARCH_SHEET = '劳务工架构'
 
@@ -533,6 +535,13 @@ def build_labor_payload():
     for d_ in days_l:
         data_l[d_] = agg_period_labor(L_agg[L_agg['ymd'] == d_], major_order_l, region_order_l)
         add_labor_rate(data_l[d_], L[L['ymd'] == d_])
+        # 压缩：补签率日块不保留 仓/组 明细，仅保留 大区/区域 两级。
+        # 原因：劳务工考勤表仅含「补签异常」行，每个日块的 仓/组 行 total 均>0，
+        # 无法用「untimely>0」式过滤瘦身；4 个月 × 119 天 × (~71 仓 + ~159 组) 体积过大（约 6.7MB）。
+        # 月块(AGG)仍全量保留 仓/组 明细，月度分析不受影响；日/周视图仅展示大区/区域两级。
+        # 前端 aggRange/render 对空 warehouse/group 已做优雅降级（显示「无仓/组明细数据」）。
+        data_l[d_]['warehouse'] = []
+        data_l[d_]['group'] = []
 
     # 4) 员工明细（板块四下钻）：按 (姓名, 工号, 工种, 考勤日期, 班次) 聚合，
     #    保留「首打卡补签时间」「末打卡补签时间」两列（休息补签时间不展示）。
@@ -602,7 +611,7 @@ def build_labor_payload():
     <div class="note-section">
       <div class="note-label">数据来源</div>
       <ul class="note-list">
-        <li>合并 <code>劳务工补签-6月.xlsx</code> 与 <code>劳务工补签-7月.xlsx</code> 的「劳务工-考勤表」sheet。</li>
+        <li>合并 <code>劳务工补签-6月.xlsx</code>、<code>劳务工补签-7月.xlsx</code>、<code>考勤确认及时性劳务工（08.01-08.31）-.xlsx</code>、<code>考勤确认及时性劳务工（09.01-09.30）.xlsx</code> 的「劳务工-考勤表」sheet（均含 8/9 月补签率数据；下载文件名含「考勤确认及时性」但内部结构为劳务工-考勤表，与补签率模块口径一致）。</li>
         <li>劳务工无「补签申请」概念，本报告将 <strong>应补签数 &gt; 0 或 实际补签数 &gt; 0</strong> 的每日考勤行纳入「补签记录」，并对 <strong>应补签数 / 实际补签数（已补签数）</strong> 求和。</li>
         <li><strong>大区映射规则</strong>：欧洲区 = 英国/德国/捷克/法国/波兰/西班牙/意大利；亚太区 = 澳洲/日本/韩国；其余区域统一归入美洲区。</li>
       </ul>
