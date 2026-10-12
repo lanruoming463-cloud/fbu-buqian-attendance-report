@@ -4,6 +4,10 @@ C:\Users\zt25337\.workbuddy\binaries\python\envs\default\Lib\site-packages\openp
   warn("Workbook contains no default style, apply openpyxl's default")
 C:\Users\zt25337\.workbuddy\binaries\python\envs\default\Lib\site-packages\openpyxl\styles\stylesheet.py:237: UserWarning: Workbook contains no default style, apply openpyxl's default
   warn("Workbook contains no default style, apply openpyxl's default")
+C:\Users\zt25337\.workbuddy\binaries\python\envs\default\Lib\site-packages\openpyxl\styles\stylesheet.py:237: UserWarning: Workbook contains no default style, apply openpyxl's default
+  warn("Workbook contains no default style, apply openpyxl's default")
+C:\Users\zt25337\.workbuddy\binaries\python\envs\default\Lib\site-packages\openpyxl\styles\stylesheet.py:237: UserWarning: Workbook contains no default style, apply openpyxl's default
+  warn("Workbook contains no default style, apply openpyxl's default")
 C:\Users\zt25337\.workbuddy\binaries\python\envs\default\Lib\site-packages\openpyxl\worksheet\_reader.py:329: UserWarning: Unknown extension is not supported and will be removed
   warn(msg)
 C:\Users\zt25337\.workbuddy\binaries\python\envs\default\Lib\site-packages\openpyxl\worksheet\_reader.py:329: UserWarning: Conditional Formatting extension is not supported and will be removed
@@ -18,7 +22,7 @@ C:\Users\zt25337\.workbuddy\binaries\python\envs\default\Lib\site-packages\openp
   warn("Workbook contains no default style, apply openpyxl's default")
 C:\Users\zt25337\.workbuddy\binaries\python\envs\default\Lib\site-packages\openpyxl\styles\stylesheet.py:237: UserWarning: Workbook contains no default style, apply openpyxl's default
   warn("Workbook contains no default style, apply openpyxl's default")
-[Top10剔除] 标记为剔除的记录数: 1744 / 7276
+[Top10剔除] 标记为剔除的记录数: 3105 / 15016
 Excel 已生成: C:/Users/zt25337/WorkBuddy/2026-08-20-09-25-58/补签流程_补签统计.xlsx
 [劳务工及时率] 组角标未及时明细：7624 条，覆盖 358 个组
 Excel 已追加考勤确认及时性 sheet（大区/区域/仓）
@@ -26,5 +30,5 @@ Excel 已追加考勤确认及时性 sheet（大区/区域/仓）
 [正式工及时率] 组角标未及时明细：2389 条，覆盖 399 个组
 [正式工] 考勤总数=113296 正常=96700 异常=16596 未及时确认=2389 准确率=85.4% 及时确认率=97.9%
 HTML 已生成: C:/Users/zt25337/WorkBuddy/2026-08-20-09-25-58/补签流程_补签统计.html
-月份: ['2026-05', '2026-06', '2026-07']
-日期数: 62
+月份: ['2026-05', '2026-06', '2026-07', '2026-08', '2026-09']
+日期数: 123

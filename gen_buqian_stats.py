@@ -4,7 +4,8 @@ import json
 import re
 from datetime import datetime, time as dt_time
 
-SRCS = [r"D:/Documents/Downloads/补签流程-6月.xlsx", r"D:/Documents/Downloads/补签流程-7月.xlsx"]
+SRCS = [r"D:/Documents/Downloads/补签流程-6月.xlsx", r"D:/Documents/Downloads/补签流程-7月.xlsx",
+        r"D:/Documents/Downloads/补签流程-8月-正式工.xlsx", r"D:/Documents/Downloads/补签流程-9月-正式工.xlsx"]
 ROSTER = r"D:/Documents/Downloads/花名册 - 2026-08-24T185145.634.xlsx"
 OUT_XLSX = r"C:/Users/zt25337/WorkBuddy/2026-08-20-09-25-58/补签流程_补签统计.xlsx"
 OUT_HTML = r"C:/Users/zt25337/WorkBuddy/2026-08-20-09-25-58/补签流程_补签统计.html"
@@ -272,12 +273,18 @@ for m in months:
     data[m] = agg_period(sub[sub['ym'] == m])
 for d in days:
     data[d] = agg_period(sub[sub['ymd'] == d])
+    # 压缩：正式工补签率日块不保留 仓/组 明细，仅留 大区/区域 两级（与劳务工补签率日块同口径）。
+    # 原因：补签率日块每个 仓/组 行均含补签记录(total>0)，无法用「untimely>0」式过滤瘦身；
+    # 4 个月日块全量仓/组 会把 HTML 撑过妙搭体积上限（25.7MB 曾被拒）。月块仍全量保留 仓/组 明细。
+    # 前端 aggRange/render 对空 warehouse/group 已优雅降级（显示「无仓/组明细数据」）。
+    data[d]['warehouse'] = []
+    data[d]['group'] = []
 
 # Excel
 with pd.ExcelWriter(OUT_XLSX, engine='openpyxl') as xw:
     note = pd.DataFrame({
         '说明': [
-            '数据来源：补签流程-6月.xlsx + 补签流程-7月.xlsx（合并，按自然键零重叠，无重复计数）',
+            '数据来源：补签流程-6月.xlsx + 补签流程-7月.xlsx + 补签流程-8月-正式工.xlsx + 补签流程-9月-正式工.xlsx（合并，按自然键零重叠，无重复计数）',
             f'生成时间：{datetime.now().strftime("%Y-%m-%d %H:%M")}',
             '统计口径：审批状态 = 已完成 / 审批中（已排除 已驳回、已废弃、已撤回）',
             '大区维度：三级部门；区域维度：四级部门',
@@ -1724,7 +1731,8 @@ caption{{caption-side:top;text-align:left;font-weight:700;font-size:15px;padding
     <div class="note-section">
       <div class="note-label">数据来源</div>
       <ul class="note-list">
-        <li>合并 <code>补签流程-6月.xlsx</code> 与 <code>补签流程-7月.xlsx</code>，按自然键去重，无重复计数。</li>
+        <li>合并 <code>补签流程-6月.xlsx</code>、<code>补签流程-7月.xlsx</code>、<code>补签流程-8月-正式工.xlsx</code> 与 <code>补签流程-9月-正式工.xlsx</code>，按自然键去重，无重复计数。</li>
+        <li><strong>数据范围</strong>：补签率月份覆盖 2026-05（仅 05-31 边界日）/ 06 / 07 / 08 / 09（源文件月份边界日存在重叠，按自然月归桶）。</li>
         <li>已排除审批状态为 <strong>已驳回 / 已废弃 / 已撤回</strong> 的记录。</li>
         <li>补签合计 = 补签申请记录条数（源表一行一条）。</li>
       </ul>
