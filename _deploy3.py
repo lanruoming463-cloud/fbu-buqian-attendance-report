@@ -101,7 +101,7 @@ if p.returncode != 0:
 log('reset ok at', head[:9])
 
 # ---- 5. 覆盖 index.html + commit（commit 信息按需修改） ----
-COMMIT_MSG = 'perf: 压缩产物体积(29MB超妙搭限制发布被拒)——正式工及时率日/周数据仅保留未及时确认>0的仓/组行(月键全量、大区区域全量)，体积29MB->20MB，功能不变'
+COMMIT_MSG = 'feat: 考勤确认及时率并入10.8数据(正式工/劳务工)——主体报表数据范围10.1-10.8；正式工未及时2295->2389、总量111349->113296；体积20.6MB'
 shutil.copyfile(HTML, os.path.join(REPO, 'index.html'))
 run([GIT, 'add', '-A'], cwd=REPO)
 p = run([GIT, 'status', '--porcelain'], cwd=REPO)
