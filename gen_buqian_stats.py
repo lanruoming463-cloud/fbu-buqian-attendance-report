@@ -185,8 +185,11 @@ def agg_period_labor(df, major_order=MAJOR_ORDER, region_order=REGION_ORDER):
 # load (合并 6月 + 7月 两份数据源)
 pdf = pd.concat([pd.read_excel(f) for f in SRCS], ignore_index=True)
 sub = pdf[pdf['审批状态'].isin(KEEP)].copy()
-EXCLUDE_MAJORS = ['海外销售部', 'FBU财务部', '渠道管理部', 'LD 法务部']
-EXCLUDE_REGIONS = ['美洲支持HRBP组']
+# 正式工补签率 大区/区域收窄口径（2026-10-10 与「正式工考勤确认及时率」gen 视图保持一致）：
+# 仅保留 美洲区/欧洲区/亚太区 三大区 + FBU HRBP Dept.（HRBP 部），其余「其他」大区整类剔除；
+# HRBP 部内剔除 国内HRBP组、美洲支持bp组(美洲支持HRBP组)、欧亚支持bp组、欧亚支持HRBP组。
+EXCLUDE_MAJORS = ['海外销售部', 'FBU财务部', '渠道管理部', 'LD 法务部', 'FBU技术部', '平台业务部', '品牌客户部']
+EXCLUDE_REGIONS = ['国内HRBP组', '美洲支持HRBP组', '美洲支持bp组', '欧亚支持bp组', '欧亚支持HRBP组']
 sub = sub[~sub['三级部门'].isin(EXCLUDE_MAJORS)].copy()
 sub = sub[~sub['四级部门'].isin(EXCLUDE_REGIONS)].copy()
 sub['补签日期_dt'] = pd.to_datetime(sub['补签日期'], errors='coerce')
@@ -289,8 +292,8 @@ with pd.ExcelWriter(OUT_XLSX, engine='openpyxl') as xw:
             '统计口径：审批状态 = 已完成 / 审批中（已排除 已驳回、已废弃、已撤回）',
             '大区维度：三级部门；区域维度：四级部门',
             '加拿大区已归入美洲区（数据中三级部门=美洲区、四级部门=加拿大区）',
-            '已剔除大区：海外销售部、FBU财务部、渠道管理部、LD 法务部（按需求不展示）',
-            '已剔除区域：美洲支持HRBP组（不展示）',
+            '已剔除大区：海外销售部、FBU财务部、渠道管理部、LD 法务部、FBU技术部、平台业务部、品牌客户部（非三大区/非HRBP整类剔除，按需求不展示）',
+            '已剔除区域：国内HRBP组、美洲支持HRBP组、美洲支持bp组、欧亚支持bp组、欧亚支持HRBP组（HRBP部内不纳入，按需求不展示）',
             '展示排序（按架构）：大区顺序 美洲区 → 欧洲区 → 亚太区 → FBU HRBP Dept.；各区域按指定架构顺序（美洲/欧洲/亚太物理区域顺序，HRBP部按对应大区排列）',
             '仓维度：五级部门（到仓级），第三版块「区域_仓明细」不展示 FBU HRBP Dept. 数据；五级部门为空时统一显示为「部门直属」',
             '仓维度占比：各仓/部门直属补签数 ÷ 所属区域(四级部门)完整合计，确保与区域合计对齐',

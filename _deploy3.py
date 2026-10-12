@@ -101,7 +101,7 @@ if p.returncode != 0:
 log('reset ok at', head[:9])
 
 # ---- 5. 覆盖 index.html + commit（commit 信息按需修改） ----
-COMMIT_MSG = 'perf: 劳务工及时率日块按未确认>0过滤仓/组(与正式工及时率同口径)——HTML 20.4MB->约14.7MB 解决妙搭产物过大被拒'
+COMMIT_MSG = 'feat: 正式工补签率收窄至三大区+HRBP部(剔除其他大区及HRBP支持组)——与考勤确认及时率同口径'
 shutil.copyfile(HTML, os.path.join(REPO, 'index.html'))
 run([GIT, 'add', '-A'], cwd=REPO)
 p = run([GIT, 'status', '--porcelain'], cwd=REPO)

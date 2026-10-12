@@ -22,7 +22,7 @@ C:\Users\zt25337\.workbuddy\binaries\python\envs\default\Lib\site-packages\openp
   warn("Workbook contains no default style, apply openpyxl's default")
 C:\Users\zt25337\.workbuddy\binaries\python\envs\default\Lib\site-packages\openpyxl\styles\stylesheet.py:237: UserWarning: Workbook contains no default style, apply openpyxl's default
   warn("Workbook contains no default style, apply openpyxl's default")
-[Top10剔除] 标记为剔除的记录数: 3105 / 15016
+[Top10剔除] 标记为剔除的记录数: 3105 / 15012
 Excel 已生成: C:/Users/zt25337/WorkBuddy/2026-08-20-09-25-58/补签流程_补签统计.xlsx
 [劳务工及时率] 组角标未及时明细：7624 条，覆盖 358 个组
 Excel 已追加考勤确认及时性 sheet（大区/区域/仓）
