@@ -101,7 +101,7 @@ if p.returncode != 0:
 log('reset ok at', head[:9])
 
 # ---- 5. 覆盖 index.html + commit（commit 信息按需修改） ----
-COMMIT_MSG = 'feat: 正式工补签率并入8月/9月(补签流程-8月/9月-正式工)——补签率月份覆盖2026-05~09；正式工补签率日块同劳务工压缩(仓/组仅留月块)控体积'
+COMMIT_MSG = 'perf: 劳务工及时率日块按未确认>0过滤仓/组(与正式工及时率同口径)——HTML 20.4MB->约14.7MB 解决妙搭产物过大被拒'
 shutil.copyfile(HTML, os.path.join(REPO, 'index.html'))
 run([GIT, 'add', '-A'], cwd=REPO)
 p = run([GIT, 'status', '--porcelain'], cwd=REPO)

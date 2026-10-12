@@ -950,7 +950,16 @@ def build_attend_payload_v2():
         by_day[r['date']].append(r)
     days_l = sorted(by_day)
     months_l = sorted({d[:7] for d in days_l})
-    data_l = {d: _agg_attend_day(by_day[d]) for d in days_l}
+    data_l = {}
+    for d in days_l:
+        _blk = _agg_attend_day(by_day[d])
+        # 压缩：劳务工及时率日块仅保留 未确认数(unconfirmed>0) 的 仓/组 行（与正式工及时率日块同口径——
+        # 有未及时确认人员的仓/组才展示明细，无的不展示；大区/区域两级全量保留保证合计正确）。
+        # 该视图日/周/月均由前端 aggRangeAttend 聚合日块渲染，故此过滤对三种模式一致生效。
+        # 未压缩时日块仓/组 8454/36193 行(119天口径) 占 7.13MB，过滤后约 -96%。
+        _blk['warehouse'] = [w for w in _blk['warehouse'] if w.get('unconfirmed', 0) > 0]
+        _blk['group'] = [g for g in _blk['group'] if g.get('unconfirmed', 0) > 0]
+        data_l[d] = _blk
 
     # 员工明细（全期，按 大区|区域|仓|组 聚合，每组限 50 条；下钻展示用）
     emp_agg = defaultdict(lambda: {'name': '', 'zg': '', 'ydk': 0, 'sjk': 0, 'ybq': 0,
