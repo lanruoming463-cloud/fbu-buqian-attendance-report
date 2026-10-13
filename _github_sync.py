@@ -10,7 +10,7 @@ GitHub 同步脚本：补签考勤报表项目 -> github.com/lanruoming463-cloud
 import os, sys, subprocess, time
 
 WS       = r'C:\Users\zt25337\WorkBuddy\2026-08-20-09-25-58'
-BASE_GIT = r'C:\Users\zt25337\.workbuddy\binaries\PortableGit\versions\1.2.0'
+BASE_GIT = r'C:\Users\zt25337\.workbuddy\binaries\PortableGit\versions\1.3.0'
 GIT      = os.path.join(BASE_GIT, 'mingw64', 'bin', 'git.exe')
 REPO_DIR = os.path.join(WS, '_github_repo')          # 独立干净仓库目录
 GH_USER  = 'lanruoming463-cloud'
