@@ -3,7 +3,9 @@
 import os, sys, shutil, subprocess, json, time
 
 WS = r'C:\Users\zt25337\WorkBuddy\2026-08-20-09-25-58'
-GIT_BIN = r'C:\Users\zt25337\.workbuddy\binaries\PortableGit\versions\1.2.0\mingw64\bin'
+import glob as _glob
+_GIT_CANDIDATES = sorted(_glob.glob(r'C:\Users\zt25337\.workbuddy\binaries\PortableGit\versions\*\[Mm]ingw64\bin\git.exe'), reverse=True)
+GIT_BIN = os.path.dirname(_GIT_CANDIDATES[0]) if _GIT_CANDIDATES else r'C:\Users\zt25337\.workbuddy\binaries\PortableGit\versions\1.3.0\mingw64\bin'
 LARK = r'C:\Users\zt25337\.workbuddy\binaries\node\cli-connector-packages\node_modules\@larksuite\cli\bin\lark-cli.exe'
 APP = 'app_17cg3t4mvjm'
 OLD_PATH = '/apaas4.0/-/t_vkCL6f1I/code_p6iBZnfLI6KD.git'
@@ -24,7 +26,7 @@ def run(cmd, cwd=None, inp=None, env=None, timeout=600):
     return p
 
 ENV = os.environ.copy()
-_base_git = r'C:\Users\zt25337\.workbuddy\binaries\PortableGit\versions\1.2.0'
+_base_git = os.path.dirname(os.path.dirname(GIT_BIN))
 ENV.update({
     'GIT_EXEC_PATH': os.path.join(_base_git, 'mingw64', 'bin'),
     'GIT_CONFIG_NOSYSTEM': '1',
@@ -101,7 +103,7 @@ if p.returncode != 0:
 log('reset ok at', head[:9])
 
 # ---- 5. 覆盖 index.html + commit（commit 信息按需修改） ----
-COMMIT_MSG = 'feat: 正式工补签率收窄至三大区+HRBP部(剔除其他大区及HRBP支持组)——与考勤确认及时率同口径'
+COMMIT_MSG = 'feat: 考勤确认及时率并入10.9数据(正式工/劳务工各一份)——主体报表数据范围10.1-10.9'
 shutil.copyfile(HTML, os.path.join(REPO, 'index.html'))
 run([GIT, 'add', '-A'], cwd=REPO)
 p = run([GIT, 'status', '--porcelain'], cwd=REPO)
