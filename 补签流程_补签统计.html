@@ -521,10 +521,10 @@ function renderPicker() {
   if (mode === 'day') {
     const grouped = {};
     days.forEach(d => { const m = d.slice(0, 7); (grouped[m] = grouped[m] || []).push(d); });
-    months.forEach(m => {
+    [...months].reverse().forEach(m => {
       if (!grouped[m]) return;
       const g = document.createElement('div'); g.className = 'group'; g.textContent = monthLabel(m); dd.appendChild(g);
-      grouped[m].forEach(d => {
+      [...grouped[m]].reverse().forEach(d => {
         const el = document.createElement('div');
         el.className = 'item' + (d === daySel ? ' active' : '');
         el.textContent = dayLabel(d);
@@ -534,7 +534,7 @@ function renderPicker() {
     });
   } else if (mode === 'week') {
     const wk = weeksOf(days);
-    wk.forEach(w => {
+    wk.slice().reverse().forEach(w => {
       const el = document.createElement('div');
       el.className = 'item' + (w[0] === weekSel ? ' active' : '');
       el.textContent = weekLabel(w[0], w[1]);
@@ -542,7 +542,7 @@ function renderPicker() {
       dd.appendChild(el);
     });
   } else {
-    months.forEach(m => {
+    [...months].reverse().forEach(m => {
       const el = document.createElement('div');
       el.className = 'item' + (m === selected ? ' active' : '');
       el.textContent = monthLabel(m);
@@ -1577,18 +1577,18 @@ function toggleGenDropdownShared(){
   if(genMode==='day'){
     var ggen = {};
     genPayload.days.forEach(function(d){ var m=d.slice(0,7); (ggen[m]=ggen[m]||[]).push(d); });
-    genPayload.months.forEach(function(m){
+    genPayload.months.slice().reverse().forEach(function(m){
       if(!ggen[m]) return;
       var gh=document.createElement('div'); gh.className='group'; gh.textContent=monthLabel(m); dd.appendChild(gh);
-      ggen[m].forEach(function(d){ dd.appendChild(ddItem(dayLabel(d), function(){ genDayStart=d; genDayEnd=d; renderGen(genPayload); closeDropdown(); }, {active:(d===genDayStart), weekend:isWeekendD(d)})); });
+      ggen[m].slice().reverse().forEach(function(d){ dd.appendChild(ddItem(dayLabel(d), function(){ genDayStart=d; genDayEnd=d; renderGen(genPayload); closeDropdown(); }, {active:(d===genDayStart), weekend:isWeekendD(d)})); });
     });
   } else if(genMode==='week'){
     var wk=weeksOf(genPayload.days);
     var wg=document.createElement('div'); wg.className='group'; wg.textContent='按周'; dd.appendChild(wg);
-    wk.forEach(function(w){ dd.appendChild(ddItem(weekLabel(w[0],w[1]), function(){ genWeekSel=w[0]; renderGen(genPayload); closeDropdown(); }, {active:(w[0]===genWeekSel)})); });
+    wk.slice().reverse().forEach(function(w){ dd.appendChild(ddItem(weekLabel(w[0],w[1]), function(){ genWeekSel=w[0]; renderGen(genPayload); closeDropdown(); }, {active:(w[0]===genWeekSel)})); });
   } else {
     var mg=document.createElement('div'); mg.className='group'; mg.textContent='按月'; dd.appendChild(mg);
-    genPayload.months.forEach(function(m){ dd.appendChild(ddItem(monthLabel(m), function(){ genSel=m; renderGen(genPayload); closeDropdown(); }, {active:(m===genSel)})); });
+    genPayload.months.slice().reverse().forEach(function(m){ dd.appendChild(ddItem(monthLabel(m), function(){ genSel=m; renderGen(genPayload); closeDropdown(); }, {active:(m===genSel)})); });
   }
   dd.classList.remove('hidden');
   scrollDropdownToActive();
@@ -2089,20 +2089,19 @@ function toggleAttendDropdownShared(e){
   dd.innerHTML = '';
   if (attendMode === 'month'){
     var amg = document.createElement('div'); amg.className = 'group'; amg.textContent = '按月'; dd.appendChild(amg);
-    dd.appendChild(ddItem('最新月', function(){ attendSel = attendPayload.months[attendPayload.months.length - 1]; setModeAttend('month'); ddHide('dropdown'); }, {active:(attendSel === attendPayload.months[attendPayload.months.length - 1])}));
-    attendPayload.months.forEach(function(m){ dd.appendChild(ddItem(monthLabel(m), function(){ attendSel = m; setModeAttend('month'); ddHide('dropdown'); }, {active:(m === attendSel)})); });
+    attendPayload.months.slice().reverse().forEach(function(m){ dd.appendChild(ddItem(monthLabel(m), function(){ attendSel = m; setModeAttend('month'); ddHide('dropdown'); }, {active:(m === attendSel)})); });
   } else if (attendMode === 'week'){
     var wk = weeksOf(AD);
     var awg = document.createElement('div'); awg.className = 'group'; awg.textContent = '按周'; dd.appendChild(awg);
     if (!wk.length) dd.appendChild(ddItem('（无数据）', function(){ ddHide('dropdown'); }));
-    wk.forEach(function(w){ dd.appendChild(ddItem(weekLabel(w[0], w[1]), function(){ attendWeekSel = w[0]; setModeAttend('week'); ddHide('dropdown'); }, {active:(w[0] === attendWeekSel)})); });
+    wk.slice().reverse().forEach(function(w){ dd.appendChild(ddItem(weekLabel(w[0], w[1]), function(){ attendWeekSel = w[0]; setModeAttend('week'); ddHide('dropdown'); }, {active:(w[0] === attendWeekSel)})); });
   } else {
     var agen = {};
     AD.forEach(function(d){ var m = d.slice(0,7); (agen[m] = agen[m] || []).push(d); });
-    attendPayload.months.forEach(function(m){
+    attendPayload.months.slice().reverse().forEach(function(m){
       if (!agen[m]) return;
       var adg = document.createElement('div'); adg.className = 'group'; adg.textContent = monthLabel(m); dd.appendChild(adg);
-      agen[m].forEach(function(d){ dd.appendChild(ddItem(dayLabel(d, true), function(){ attendDayStart = attendDayEnd = d; setModeAttend('day'); ddHide('dropdown'); }, {active:(d === attendDayStart), weekend:isWeekendD(d)})); });
+      agen[m].slice().reverse().forEach(function(d){ dd.appendChild(ddItem(dayLabel(d, true), function(){ attendDayStart = attendDayEnd = d; setModeAttend('day'); ddHide('dropdown'); }, {active:(d === attendDayStart), weekend:isWeekendD(d)})); });
     });
   }
   dd.classList.remove('hidden');

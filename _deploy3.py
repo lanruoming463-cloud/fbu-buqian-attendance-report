@@ -103,7 +103,7 @@ if p.returncode != 0:
 log('reset ok at', head[:9])
 
 # ---- 5. 覆盖 index.html + commit（commit 信息按需修改） ----
-COMMIT_MSG = 'feat: 考勤确认及时率并入10.10-10.12数据(正式工/劳务工各一份)——主体报表数据范围10.1-10.12'
+COMMIT_MSG = 'feat: 全部日期下拉(按天/按周/按月,补签率/考勤确认及时率/劳务工)改为倒序,最新日期在最前'
 shutil.copyfile(HTML, os.path.join(REPO, 'index.html'))
 run([GIT, 'add', '-A'], cwd=REPO)
 p = run([GIT, 'status', '--porcelain'], cwd=REPO)
