@@ -103,7 +103,7 @@ if p.returncode != 0:
 log('reset ok at', head[:9])
 
 # ---- 5. 覆盖 index.html + commit（commit 信息按需修改） ----
-COMMIT_MSG = 'feat: 考勤确认及时率并入10.13数据(正式工/劳务工各一份)——主体报表数据范围10.1-10.13'
+COMMIT_MSG = 'feat: 正式工白名单员工zt0022905考勤确认统一算正常及时(不计入异常/未及时),同步报表口径说明与英国区导出'
 shutil.copyfile(HTML, os.path.join(REPO, 'index.html'))
 run([GIT, 'add', '-A'], cwd=REPO)
 p = run([GIT, 'status', '--porcelain'], cwd=REPO)

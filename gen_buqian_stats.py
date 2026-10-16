@@ -1203,6 +1203,8 @@ FORMAL_UNTIMELY_DETAILS = []  # 未及时确认员工明细（用于组行角标
 FORMAL_HRBP_EXCLUDE = {'国内HRBP组', '美洲支持HRBP组', '美洲支持bp组', '欧亚支持bp组', '欧亚支持HRBP组'}
 # 正式工「其他」大区（非三大区/非HRBP）整类剔除（用户 2026-10-10 口径）
 FORMAL_OTHER_MAJORS = {'海外销售部', '渠道管理部', 'LD 法务部', 'FBU技术部', '平台业务部', '品牌客户部'}
+# 正式工考勤确认「白名单」员工（用户 2026-10-16）：该员工会申请白名单，其考勤确认统一算 正常/及时，不计入异常与未及时确认
+FORMAL_ATT_WHITELIST = {'zt0022905'}
 
 
 def _build_formal_recs():
@@ -1243,6 +1245,7 @@ def _build_formal_recs():
                 region = core if core else l4
             wh = r['五级部门'] if pd.notna(r['五级部门']) else '部门直属'
             grp = r['六级部门'] if pd.notna(r['六级部门']) else '部门直属'
+            gong = str(r['工号']) if pd.notna(r['工号']) else ''
             status = str(r['考勤状态'])
             is_abn = (status == '异常')
             untimely = False
@@ -1263,10 +1266,13 @@ def _build_formal_recs():
                     _yc2 = _fs(r['异常备注'])
                     if _fc2 and _lc2 and (_yc2 == '' or _yc2 == '空白'):
                         untimely = False
+            # 白名单员工（用户 2026-10-16）：统一算 正常/及时，不计入异常与未及时确认
+            if gong in FORMAL_ATT_WHITELIST:
+                status = '正常'; is_abn = False; untimely = False
             recs.append({
                 'major': major, 'region': region, 'wh': str(wh), 'grp': str(grp),
                 'name': str(r['姓名']) if pd.notna(r['姓名']) else '',
-                'gong': str(r['工号']) if pd.notna(r['工号']) else '',
+                'gong': gong,
                 'date': d.strftime('%Y-%m-%d'), 'ym': d.strftime('%Y-%m'),
                 'total': 1, 'normal': 1 if status == '正常' else 0,
                 'abnormal': 1 if is_abn else 0, 'untimely': 1 if untimely else 0,
@@ -1395,7 +1401,7 @@ FORMAL_NOTE = (
     "<ul class='note-list'>"
     "<li><strong>数据来源</strong>：合并 <code>正式工-7月考勤记录.xlsx</code>、<code>正式工-6月考勤记录.xlsx</code> 与 <code>正式工-考勤记录-10.1-10.6-及时性.xlsx</code>、<code>正式工-考勤记录-10.7-及时性.xlsx</code>、<code>正式工-考勤记录-10.8-及时性.xlsx</code>、<code>正式工-考勤记录-10.9-及时性.xlsx</code>、<code>正式工-考勤记录-10.10-10.12-及时性.xlsx</code>、<code>正式工-考勤记录-10.13-及时性.xlsx</code> 的「考勤记录」sheet（逐人逐日原始考勤，覆盖 2026-06、2026-07、2026-10（10.1–10.13）；注：2026-08~09 在独立 T+1 日更看板，本主体报表暂未合并）。</li>"
     "<li><strong>维度</strong>：三级部门=大区（欧洲区/美洲区/亚太区/FBU HRBP Dept.）；四级部门=区域（去除 HRBP部/行政部/渠道部/交付管理部/商务部/财务部 后缀后按物理仓归属归入三大区；HRBP 各部单独成大区，区域保留「××区HRBP部」原名）；五级部门=仓；六级部门=组。<strong>数据范围（2026-10-10 口径收窄）</strong>：仅取 <strong>美洲区、欧洲区、亚太区</strong> 三大区下各区域，以及 HRBP 数据；HRBP 不含 <strong>国内HRBP组、美洲支持bp组（美洲支持HRBP组）、欧亚支持bp组</strong>；<strong>「其他」大区整类剔除</strong>（海外销售部、渠道管理部、LD 法务部、FBU技术部、平台业务部、品牌客户部及三级部门为空等无法归属三大区/HRBP 的记录）；财务部（FBU财务部）整部剔除不展示；四级部门为空、无法归属区域的记录剔除。</li>"
-    "<li><strong>考勤确认及时率</strong>：未及时确认 = 考勤状态=异常 且 异常备注不含「迟到/早退」（即缺卡类：缺少首打卡/末打卡等）；及时确认率 = (考勤总数 − 未及时确认) ÷ 考勤总数（分母为全部考勤，约为 98%）。迟到/早退视为已及时确认。<strong>捷克区特殊口径（2026-10-10 起）</strong>：首打卡与末打卡均为空的缺卡记录（异常备注「缺少首打卡和末打卡」等）视为及时确认，不计入未及时确认。<strong>新口径（2026-10-13 起）</strong>：异常记录若首打卡与末打卡均存在、且异常说明（异常备注）为空白（空或「空白」），视为已及时确认，不计入未及时确认。</li>"
+    "<li><strong>考勤确认及时率</strong>：未及时确认 = 考勤状态=异常 且 异常备注不含「迟到/早退」（即缺卡类：缺少首打卡/末打卡等）；及时确认率 = (考勤总数 − 未及时确认) ÷ 考勤总数（分母为全部考勤，约为 98%）。迟到/早退视为已及时确认。<strong>捷克区特殊口径（2026-10-10 起）</strong>：首打卡与末打卡均为空的缺卡记录（异常备注「缺少首打卡和末打卡」等）视为及时确认，不计入未及时确认。<strong>新口径（2026-10-13 起）</strong>：异常记录若首打卡与末打卡均存在、且异常说明（异常备注）为空白（空或「空白」），视为已及时确认，不计入未及时确认。<strong>白名单员工（2026-10-16 起）</strong>：工号 zt0022905 已申请白名单，其考勤确认统一计为 正常/及时，不计入异常与未及时确认（无论源数据考勤状态为何）。</li>"
     "<li><strong>交互</strong>：点击「按天/按月」或选择月份/日期切换时间范围（按天/按周视图同样提供仓/组明细，无数据的仓/组自然不展示）；点击大区/区域/仓行可逐级下钻至组；组行带角标，点击可展开该组「未及时确认」员工明细（姓名/工号/部门/职位/职级/考勤日期/星期/当前班次/首末打卡/考勤状态/异常备注；职位、职级取自 2026-08-24 花名册按工号匹配，未匹配显示「—」，每组最多展示 50 条、按考勤日期降序）。</li>"
     "</ul>"
 )
