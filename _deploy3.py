@@ -103,7 +103,7 @@ if p.returncode != 0:
 log('reset ok at', head[:9])
 
 # ---- 5. 覆盖 index.html + commit（commit 信息按需修改） ----
-COMMIT_MSG = 'feat: 追加10.14考勤数据到正式工/劳务工考勤确认及时率模块,同步报表口径说明与英国区导出'
+COMMIT_MSG = 'feat: 增量注入10.15考勤数据到正式工/劳务工考勤确认及时率(仅注入10.15天块并更新2026-10月块,规避被安全中心拦截的6/7月【每月】文件)'
 shutil.copyfile(HTML, os.path.join(REPO, 'index.html'))
 run([GIT, 'add', '-A'], cwd=REPO)
 p = run([GIT, 'status', '--porcelain'], cwd=REPO)
