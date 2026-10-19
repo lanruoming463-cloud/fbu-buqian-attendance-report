@@ -103,7 +103,7 @@ if p.returncode != 0:
 log('reset ok at', head[:9])
 
 # ---- 5. 覆盖 index.html + commit（commit 信息按需修改） ----
-COMMIT_MSG = 'feat: 增量注入10.15考勤数据到正式工/劳务工考勤确认及时率(仅注入10.15天块并更新2026-10月块,规避被安全中心拦截的6/7月【每月】文件)'
+COMMIT_MSG = 'fix: 正式工补签率整体剔除西班牙区补签事由=其他的1673条(按客观原因,补签合计/欧洲区/总计同步扣减,占比重算;Top10与组下明细亦不含)'
 shutil.copyfile(HTML, os.path.join(REPO, 'index.html'))
 run([GIT, 'add', '-A'], cwd=REPO)
 p = run([GIT, 'status', '--porcelain'], cwd=REPO)

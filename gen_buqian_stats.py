@@ -192,6 +192,8 @@ EXCLUDE_MAJORS = ['海外销售部', 'FBU财务部', '渠道管理部', 'LD 法�
 EXCLUDE_REGIONS = ['国内HRBP组', '美洲支持HRBP组', '美洲支持bp组', '欧亚支持bp组', '欧亚支持HRBP组']
 sub = sub[~sub['三级部门'].isin(EXCLUDE_MAJORS)].copy()
 sub = sub[~sub['四级部门'].isin(EXCLUDE_REGIONS)].copy()
+# 西班牙区「补签事由=其他」统一按客观原因处理，从补签合计统计整体剔除（2026-10-19 口径调整：用户确认选"整体剔除"）
+sub = sub[~((sub['四级部门'].astype(str).str.strip() == '西班牙区') & (sub['补签事由'].astype(str).str.strip() == '其他'))].copy()
 sub['补签日期_dt'] = pd.to_datetime(sub['补签日期'], errors='coerce')
 sub['ym'] = sub['补签日期_dt'].dt.strftime('%Y-%m')
 sub['ymd'] = sub['补签日期_dt'].dt.strftime('%Y-%m-%d')
@@ -1769,6 +1771,7 @@ caption{{caption-side:top;text-align:left;font-weight:700;font-size:15px;padding
         <li><strong>数据范围</strong>：补签率月份覆盖 2026-05（仅 05-31 边界日）/ 06 / 07 / 08 / 09（源文件月份边界日存在重叠，按自然月归桶）。</li>
         <li>已排除审批状态为 <strong>已驳回 / 已废弃 / 已撤回</strong> 的记录。</li>
         <li>补签合计 = 补签申请记录条数（源表一行一条）。</li>
+      <li>西班牙区「补签事由=其他」的正式工记录统一按客观原因处理，已从补签合计统计中<strong>整体剔除</strong>（欧洲区/西班牙区/其下仓组/总计同步扣减，占比重算；Top10 与组下员工明细亦不含）。</li>
       </ul>
     </div>
     <div class="note-section">
