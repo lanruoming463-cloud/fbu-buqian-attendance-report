@@ -815,6 +815,10 @@ with pd.ExcelWriter(OUT_XLSX, engine='openpyxl', mode='a', if_sheet_exists='new'
     _lt_df.to_excel(xw2, sheet_name='劳务工_各区补签Top10员工', index=False)
 print("Excel（劳务工补签率·考勤为基）已追加:", OUT_XLSX)
 
+# att_excel 仅用于 Excel 追加，不随 laborPayload 序列化进 HTML（避免体积膨胀 ~20MB 导致妙搭发布超限）
+labor_payload.pop('att_excel', None)
+del _lx
+
 # ===== 考勤确认及时性（劳务工）看板数据 =====
 ATTEND_FILES = {
     '2026-07': r"D:/Documents/Downloads/考勤确认及时性劳务工（07.01-07.31）(1).xlsx",
