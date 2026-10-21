@@ -3270,11 +3270,19 @@ function showCell(wt, sec) {{
     if (payload.months && payload.months.length) selected = payload.months[payload.months.length - 1];
     setMode('month'); applyNote(); render(); setupStickyHeaders();
   }} else if (showAtt) {{
+    // 考勤确认及时率（劳务工）：恢复 按天/按周 按钮（仅补签率视图隐藏）
+    var bd3 = document.getElementById('btnDay'), bw3 = document.getElementById('btnWeek');
+    if (bd3) bd3.style.display = '';
+    if (bw3) bw3.style.display = '';
     renderAttend();
   }} else if (showGen) {{
     genPayload = (wt === 'formal' && sec === 'att') ? formalAttPayload : null;
     if (!genPayload) return;
-    if (!genPayload.days || !genPayload.days.length) genMode = 'month';
+    // 考勤确认及时率（正式工）：恢复 按天/按周 按钮（仅补签率视图隐藏）
+    var bd2 = document.getElementById('btnDay'), bw2 = document.getElementById('btnWeek');
+    if (bd2) bd2.style.display = '';
+    if (bw2) bw2.style.display = '';
+    if (!genPayload.days || !genPayload.days.length) {{ if (bd2) bd2.style.display = 'none'; if (bw2) bw2.style.display = 'none'; genMode = 'month'; }}
     var rbtn2 = document.getElementById('btnRegion'); if (rbtn2) rbtn2.textContent = 'FBU交付前台';
     renderGen(genPayload);
   }}

@@ -8,6 +8,7 @@
 - 正式工补签率板块（2026-10-21 起）改为**考勤为基**口径：分母=范围内考勤总记录数（人日）、分子=JOIN 补签流程已完成并剔除西班牙"其他"+客观原因；数据由 `_formal_attend_rate.json`（`_gen_formal_attend_rate.py` 产出，已校验）驱动，HTML 与 Excel 6 个补签率 sheet 同口径。KPI=考勤记录总数/已补签数/补签率；仅按月呈现（days=[]，按天/按周隐藏）；Top10 按补签天数>3 取 7 列；组下明细 5 列。教训：render 行模板中 ingCell/ydkCell/rateCell 已返回完整 <td>，外层不可再包 <td>；colspan C 已改为动态。release 7698990216392854805。
 - 图例规范（2026-10-21）：补签率两板块表头=「补签率图例」且图例条宽度=补签率（barW=rate，非占总体比）；及时率板块=「及时确认率图例」。法国区导出脚本 `_export_france.py`（未及时确认10月/补签Top10 9月，4 sheet）可复用。最新 release 7699025157558553848。
 - 劳务工补签率（2026-10-21 起）改为**考勤为基**口径，与正式工完全一致：分母=考勤记录总数（人日=全量考勤行），分子=首/末打卡补签时间非空 且 非客观因素（is_top_exclude 检查 修改原因/备注）；补签率两板块均移除占总体比列、移除应打卡合计/未完成列，表头统一 5 列=[大区,考勤记录总数,已补签数,补签率,补签率图例]；劳务工也仅按月（days_l=[]，隐藏日/周按钮）。核心函数 `agg_period_labor_att`（与 _att_block 同构）；Excel 新增 6 个「劳务工_*」补签率 sheet。aggRange JS 补签率=已完成/total。探针注意：renderAttend 未定义系时序误报（attend script 解析需 ~1s）。release 7699063854717799723。
+- **体积红线**：att_excel（Excel 专用全量明细）不得随 payload 序列化进 HTML——曾致 54MB 超妙搭发布上限；gen_buqian_stats.py 已在 Excel 追加后 pop('att_excel')，HTML 10.36MB。修复发布 release 7699065068139334920。
 
 ## GitHub 同步机制（2026-10-10 修订）
 - _github_sync.py 同步范围：核心脚本(gen_buqian_stats/_deploy3/_github_sync)、README/.gitignore、无头探针(_probe*)、口径诊断脚本(_diag/_check/_explore)、发布说明(*发布说明*.md)、docs/ 递归、T+1看板核心脚本、报表产物(HTML/xlsx)、attend_acc_data.json。
