@@ -8,33 +8,37 @@ C:\Users\zt25337\.workbuddy\binaries\python\envs\default\Lib\site-packages\openp
   warn("Workbook contains no default style, apply openpyxl's default")
 C:\Users\zt25337\.workbuddy\binaries\python\envs\default\Lib\site-packages\openpyxl\styles\stylesheet.py:237: UserWarning: Workbook contains no default style, apply openpyxl's default
   warn("Workbook contains no default style, apply openpyxl's default")
+[Top10剔除] 标记为剔除的记录数: 2692 / 13339
+Excel 已生成: C:/Users/zt25337/WorkBuddy/2026-08-20-09-25-58/补签流程_补签统计.xlsx
+[劳务工及时率] 组角标未及时明细：10900 条，覆盖 399 个组
 C:\Users\zt25337\.workbuddy\binaries\python\envs\default\Lib\site-packages\openpyxl\worksheet\_reader.py:329: UserWarning: Unknown extension is not supported and will be removed
   warn(msg)
 C:\Users\zt25337\.workbuddy\binaries\python\envs\default\Lib\site-packages\openpyxl\worksheet\_reader.py:329: UserWarning: Conditional Formatting extension is not supported and will be removed
   warn(msg)
-C:\Users\zt25337\.workbuddy\binaries\python\envs\default\Lib\site-packages\openpyxl\styles\stylesheet.py:237: UserWarning: Workbook contains no default style, apply openpyxl's default
-  warn("Workbook contains no default style, apply openpyxl's default")
-C:\Users\zt25337\.workbuddy\binaries\python\envs\default\Lib\site-packages\openpyxl\styles\stylesheet.py:237: UserWarning: Workbook contains no default style, apply openpyxl's default
-  warn("Workbook contains no default style, apply openpyxl's default")
-C:\Users\zt25337\.workbuddy\binaries\python\envs\default\Lib\site-packages\openpyxl\styles\stylesheet.py:237: UserWarning: Workbook contains no default style, apply openpyxl's default
-  warn("Workbook contains no default style, apply openpyxl's default")
-C:\Users\zt25337\.workbuddy\binaries\python\envs\default\Lib\site-packages\openpyxl\styles\stylesheet.py:237: UserWarning: Workbook contains no default style, apply openpyxl's default
-  warn("Workbook contains no default style, apply openpyxl's default")
-C:\Users\zt25337\.workbuddy\binaries\python\envs\default\Lib\site-packages\openpyxl\styles\stylesheet.py:237: UserWarning: Workbook contains no default style, apply openpyxl's default
-  warn("Workbook contains no default style, apply openpyxl's default")
-C:\Users\zt25337\.workbuddy\binaries\python\envs\default\Lib\site-packages\openpyxl\styles\stylesheet.py:237: UserWarning: Workbook contains no default style, apply openpyxl's default
-  warn("Workbook contains no default style, apply openpyxl's default")
-C:\Users\zt25337\.workbuddy\binaries\python\envs\default\Lib\site-packages\openpyxl\styles\stylesheet.py:237: UserWarning: Workbook contains no default style, apply openpyxl's default
-  warn("Workbook contains no default style, apply openpyxl's default")
-C:\Users\zt25337\.workbuddy\binaries\python\envs\default\Lib\site-packages\openpyxl\styles\stylesheet.py:237: UserWarning: Workbook contains no default style, apply openpyxl's default
-  warn("Workbook contains no default style, apply openpyxl's default")
-[Top10剔除] 标记为剔除的记录数: 3105 / 15012
-Excel 已生成: C:/Users/zt25337/WorkBuddy/2026-08-20-09-25-58/补签流程_补签统计.xlsx
-[劳务工及时率] 组角标未及时明细：9466 条，覆盖 384 个组
 Excel 已追加考勤确认及时性 sheet（大区/区域/仓）
-[正式工及时率] 剔除记录： {'财务部': 411, '四级部门为空': 336, 'HRBP剔除-国内/支持组': 26, '其他(非三大区/HRBP)': 728}
-[正式工及时率] 组角标未及时明细：2583 条，覆盖 376 个组
-[正式工] 考勤总数=123034 正常=104898 异常=18136 未及时确认=2583 准确率=85.3% 及时确认率=97.9%
+C:\Users\zt25337\.workbuddy\binaries\python\envs\default\Lib\site-packages\openpyxl\styles\stylesheet.py:237: UserWarning: Workbook contains no default style, apply openpyxl's default
+  warn("Workbook contains no default style, apply openpyxl's default")
+C:\Users\zt25337\.workbuddy\binaries\python\envs\default\Lib\site-packages\openpyxl\styles\stylesheet.py:237: UserWarning: Workbook contains no default style, apply openpyxl's default
+  warn("Workbook contains no default style, apply openpyxl's default")
+C:\Users\zt25337\.workbuddy\binaries\python\envs\default\Lib\site-packages\openpyxl\styles\stylesheet.py:237: UserWarning: Workbook contains no default style, apply openpyxl's default
+  warn("Workbook contains no default style, apply openpyxl's default")
+C:\Users\zt25337\.workbuddy\binaries\python\envs\default\Lib\site-packages\openpyxl\styles\stylesheet.py:237: UserWarning: Workbook contains no default style, apply openpyxl's default
+  warn("Workbook contains no default style, apply openpyxl's default")
+C:\Users\zt25337\.workbuddy\binaries\python\envs\default\Lib\site-packages\openpyxl\styles\stylesheet.py:237: UserWarning: Workbook contains no default style, apply openpyxl's default
+  warn("Workbook contains no default style, apply openpyxl's default")
+C:\Users\zt25337\.workbuddy\binaries\python\envs\default\Lib\site-packages\openpyxl\styles\stylesheet.py:237: UserWarning: Workbook contains no default style, apply openpyxl's default
+  warn("Workbook contains no default style, apply openpyxl's default")
+C:\Users\zt25337\.workbuddy\binaries\python\envs\default\Lib\site-packages\openpyxl\styles\stylesheet.py:237: UserWarning: Workbook contains no default style, apply openpyxl's default
+  warn("Workbook contains no default style, apply openpyxl's default")
+C:\Users\zt25337\.workbuddy\binaries\python\envs\default\Lib\site-packages\openpyxl\styles\stylesheet.py:237: UserWarning: Workbook contains no default style, apply openpyxl's default
+  warn("Workbook contains no default style, apply openpyxl's default")
+C:\Users\zt25337\.workbuddy\binaries\python\envs\default\Lib\site-packages\openpyxl\styles\stylesheet.py:237: UserWarning: Workbook contains no default style, apply openpyxl's default
+  warn("Workbook contains no default style, apply openpyxl's default")
+C:\Users\zt25337\.workbuddy\binaries\python\envs\default\Lib\site-packages\openpyxl\styles\stylesheet.py:237: UserWarning: Workbook contains no default style, apply openpyxl's default
+  warn("Workbook contains no default style, apply openpyxl's default")
+[正式工及时率] 剔除记录： {'财务部': 465, '四级部门为空': 356, 'HRBP剔除-国内/支持组': 30, '其他(非三大区/HRBP)': 840}
+[正式工及时率] 组角标未及时明细：2800 条，覆盖 396 个组
+[正式工] 考勤总数=126969 正常=107924 异常=19045 未及时确认=2800 准确率=85.0% 及时确认率=97.8%
 HTML 已生成: C:/Users/zt25337/WorkBuddy/2026-08-20-09-25-58/补签流程_补签统计.html
-月份: ['2026-05', '2026-06', '2026-07', '2026-08', '2026-09']
-日期数: 123
+月份: ['2026-06', '2026-07', '2026-08', '2026-09']
+日期数: 0

@@ -103,7 +103,7 @@ if p.returncode != 0:
 log('reset ok at', head[:9])
 
 # ---- 5. 覆盖 index.html + commit（commit 信息按需修改） ----
-COMMIT_MSG = 'feat: 正式工组下员工明细改日级(姓名/工号/职位/补签日期/补签事由/备注/审批状态);JSON新增emp_detail;Excel组下员工明细同步日级7594条;空仓组归部门直属'
+COMMIT_MSG = 'feat: 补签率图例改名并改为补签率可视化(正式工/劳务工图例条=补签率);劳务工及时率图例统一及时确认率图例'
 shutil.copyfile(HTML, os.path.join(REPO, 'index.html'))
 run([GIT, 'add', '-A'], cwd=REPO)
 p = run([GIT, 'status', '--porcelain'], cwd=REPO)
