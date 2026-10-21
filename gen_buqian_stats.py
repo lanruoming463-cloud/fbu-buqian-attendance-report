@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 import numpy as np
 import json
@@ -270,141 +271,198 @@ cnt['__mo'] = cnt['三级部门'].map(MAJOR_IDX).fillna(len(MAJOR_ORDER)).astype
 cnt['__ro'] = [region_idx(m, r) for m, r in zip(cnt['三级部门'], cnt['四级部门'])]
 cnt = cnt.sort_values(['__mo', '__ro']).drop(columns=['__mo', '__ro']).reset_index(drop=True)
 
-# period data
-months = sorted(sub['ym'].dropna().unique())
-days = sorted(sub['ymd'].dropna().unique())
+# ===================== 正式工补签率（考勤为基）数据 =====================
+# 复用已校验口径（_gen_formal_attend_rate.py → _formal_attend_rate.json）：
+# 分母 = 范围内考勤总记录数（人日）；分子 = 已补签通过的人日（JOIN 补签流程 审批状态=已完成，
+# 剔除 西班牙区 补签事由=其他 及 客观原因：考勤机故障/网络/工牌/系统/消防/司机在外/入职当天等）。
+# 经用户确认（2026-10-21）：主报表正式工补签率板块由「流程为基」切换为「考勤为基」。
+_ATT_JSON = os.path.join(os.path.dirname(OUT_HTML), '_formal_attend_rate.json')
+with open(_ATT_JSON, encoding='utf-8') as _f:
+    _att = json.load(_f)
+
+_HRBP = 'FBU HRBP Dept.'
+def _att_block(block):
+    """把已校验口径的月份块转换为 render() 兼容结构（复用 已完成/审批中/total/pct/rate 键名，装入考勤为基数值）。"""
+    out = {'total': block['total']['den'], 'done': block['total']['num'], 'ing': 0, 'rate': block['total']['rate']}
+    out['major'] = [
+        {'name': r['name'], '已完成': r['num'], '审批中': 0, 'total': r['den'], 'pct': r['pct_total'], 'rate': r['rate']}
+        for r in block['major']
+    ]
+    out['detail'] = [
+        {'major': r['major'], 'region': r['region'], '已完成': r['num'], '审批中': 0, 'total': r['den'], 'pctMajor': r['pct_major'], 'rate': r['rate']}
+        for r in block['detail']
+    ]
+    out['warehouse'] = [
+        {'major': r['major'], 'region': r['region'], 'wh': r['wh'], '已完成': r['num'], '审批中': 0, 'total': r['den'], 'pctRegion': r['pct_region'], 'rate': r['rate']}
+        for r in block['warehouse'] if r['major'] != _HRBP
+    ]
+    out['group'] = [
+        {'major': r['major'], 'region': r['region'], 'wh': r['wh'], 'group': r['group'], '已完成': r['num'], '审批中': 0, 'total': r['den'], 'pctWh': r['pct_wh'], 'rate': r['rate']}
+        for r in block['group'] if r['major'] != _HRBP
+    ]
+    return out
+
 data = {}
-for m in months:
-    data[m] = agg_period(sub[sub['ym'] == m])
-for d in days:
-    data[d] = agg_period(sub[sub['ymd'] == d])
-    # 压缩：正式工补签率日块不保留 仓/组 明细，仅留 大区/区域 两级（与劳务工补签率日块同口径）。
-    # 原因：补签率日块每个 仓/组 行均含补签记录(total>0)，无法用「untimely>0」式过滤瘦身；
-    # 4 个月日块全量仓/组 会把 HTML 撑过妙搭体积上限（25.7MB 曾被拒）。月块仍全量保留 仓/组 明细。
-    # 前端 aggRange/render 对空 warehouse/group 已优雅降级（显示「无仓/组明细数据」）。
-    data[d]['warehouse'] = []
-    data[d]['group'] = []
+for _ym in ['2026-06', '2026-07', '2026-08', '2026-09']:
+    data[_ym] = _att_block(_att['data'][_ym])
+months = ['2026-06', '2026-07', '2026-08', '2026-09']
+days = []   # 考勤为基：仅按月呈现（日级考勤源跨 6-9 月不连续，正式工补签率日/周视图不提供）
 
 # Excel
 with pd.ExcelWriter(OUT_XLSX, engine='openpyxl') as xw:
+    # ===== 正式工补签率板块（考勤为基）：全部 sheet 改由 _formal_attend_rate.json 驱动，与网页版同口径 =====
+    # 跨 2026-06 ~ 2026-09 累加；分母=考勤记录总数（人日），分子=已补签通过人日。
+    _MONTHS = ['2026-06', '2026-07', '2026-08', '2026-09']
+    _maj, _det, _wh, _gp = {}, {}, {}, {}
+    _emps = []
+    for _ym in _MONTHS:
+        _b = _att['data'][_ym]
+        for r in _b['major']:
+            a = _maj.setdefault(r['name'], {'num': 0, 'den': 0}); a['num'] += r['num']; a['den'] += r['den']
+        for r in _b['detail']:
+            a = _det.setdefault((r['major'], r['region']), {'num': 0, 'den': 0}); a['num'] += r['num']; a['den'] += r['den']
+        for r in _b['warehouse']:
+            if r['major'] == _HRBP: continue
+            a = _wh.setdefault((r['major'], r['region'], r['wh']), {'num': 0, 'den': 0}); a['num'] += r['num']; a['den'] += r['den']
+        for r in _b['group']:
+            if r['major'] == _HRBP: continue
+            a = _gp.setdefault((r['major'], r['region'], r['wh'], r['group']), {'num': 0, 'den': 0}); a['num'] += r['num']; a['den'] += r['den']
+        for _e in _b['emp']:
+            _emps.append({'major': _e['major'], 'region': _e['region'], 'wh': _e['wh'], 'group': _e['group'],
+                          'gong': str(_e['gong']), 'name': _e['name'], 'days': _e['days']})
+
+    _grand_den = sum(v['den'] for v in _maj.values())
+    _grand_num = sum(v['num'] for v in _maj.values())
+
     note = pd.DataFrame({
         '说明': [
-            '数据来源：补签流程-6月.xlsx + 补签流程-7月.xlsx + 补签流程-8月-正式工.xlsx + 补签流程-9月-正式工.xlsx（合并，按自然键零重叠，无重复计数）',
+            '数据来源：补签流程-6~9月.xlsx 与 考勤记录（6~9月）按(工号,考勤日期) JOIN；口径（考勤为基）见下。',
             f'生成时间：{datetime.now().strftime("%Y-%m-%d %H:%M")}',
-            '统计口径：审批状态 = 已完成 / 审批中（已排除 已驳回、已废弃、已撤回）',
-            '大区维度：三级部门；区域维度：四级部门',
-            '加拿大区已归入美洲区（数据中三级部门=美洲区、四级部门=加拿大区）',
-            '已剔除大区：海外销售部、FBU财务部、渠道管理部、LD 法务部、FBU技术部、平台业务部、品牌客户部（非三大区/非HRBP整类剔除，按需求不展示）',
-            '已剔除区域：国内HRBP组、美洲支持HRBP组、美洲支持bp组、欧亚支持bp组、欧亚支持HRBP组（HRBP部内不纳入，按需求不展示）',
-            '展示排序（按架构）：大区顺序 美洲区 → 欧洲区 → 亚太区 → FBU HRBP Dept.；各区域按指定架构顺序（美洲/欧洲/亚太物理区域顺序，HRBP部按对应大区排列）',
-            '仓维度：五级部门（到仓级），第三版块「区域_仓明细」不展示 FBU HRBP Dept. 数据；五级部门为空时统一显示为「部门直属」',
-            '仓维度占比：各仓/部门直属补签数 ÷ 所属区域(四级部门)完整合计，确保与区域合计对齐',
-            '组维度：六级部门（到组级），第四版块「区域_仓_组明细」展示大区×区域×仓×组占比并可点击组展开组内员工；空组统一显示为「部门直属」，不展示 FBU HRBP Dept. 数据',
-            '组维度占比：各组补签数 ÷ 所属仓(五级部门)完整合计，确保与仓合计对齐',
-            '组下员工：网页版第四板块点击任意组可展开该组补签员工明细（姓名/工号/职位/补签日期/班次/补签点/补签事由/备注/审批状态）；Excel「组下员工明细」sheet 为全量记录',
-            '第五板块「各区补签 Top10 员工」：按区域（四级部门）聚合员工补签数，各区取补签数前 10 名员工（含已完成+审批中），并展示该员工在该区域下补签次数最多的仓（五级部门）和组（六级部门），按大区→区域可折叠展示；Excel「各区补签Top10员工」sheet 为全量排名。Top10 已剔除补签事由=入职当天及备注因客观情况无法打卡的记录',
-            f'纳入记录合计：{len(sub)} 条（已完成 {int((sub["审批状态"]=="已完成").sum())} + 审批中 {int((sub["审批状态"]=="审批中").sum())}）',
-            '网页版支持按天/按月切换查看，Excel 为全量汇总。',
-            '考勤确认及时率（劳务工）看板：见 sheet「考勤确认及时性_大区 / 考勤确认及时性_区域 / 考勤确认及时性_仓」。数据源为《劳务工工时》Excel 的「考勤」sheet（2026-06 与 2026-07 两份，逐人逐日原始考勤，共约 41 万行）；区域按物理仓归属归入三大区（加拿大区归美洲区），口径同正式工考勤确认及时率看板。补签率=应补签数÷应打卡次数，考勤确认率=已确认数÷考勤总数；及时确认率下降代表及时性变差。',
+            '【正式工补签率板块（考勤为基）】分母 = 范围内考勤总记录数（人日，含封存，按 工号+考勤日期 去重）；分子 = 考勤记录中「已补签通过」的人日（JOIN 补签流程 审批状态=已完成），并剔除：① 西班牙区 补签事由=其他（整体）；② 客观原因（考勤机故障/网络/工牌/系统/消防/司机在外/入职当天等）。',
+            '补签率 = 已补签数 ÷ 考勤记录总数 × 100%。跨 2026-06~09 累加。',
+            '已剔除大区（整类）：海外销售部、FBU财务部、渠道管理部、LD 法务部、FBU技术部、平台业务部、品牌客户部；已剔除区域（HRBP部内）：国内HRBP组、美洲支持HRBP组、美洲支持bp组、欧亚支持bp组、欧亚支持HRBP组。',
+            '维度：三级部门（大区）× 四级部门（区域）× 五级部门（仓）× 六级部门（组）。加拿大区归入美洲区。',
+            '占比口径：大区「占总体比」= 已补签数 ÷ 全口径考勤记录总数；区域「占大区比」= 已补签数 ÷ 所属大区已补签数；仓「占区域比」= 已补签数 ÷ 所属区域考勤记录总数；组「占仓比」= 已补签数 ÷ 所属仓考勤记录总数。',
+            '组下员工明细（考勤为基）：按 大区×区域×仓×组×工号 聚合，每条=该员工在范围内累计已补签通过的考勤天数（补签天数），职位取自花名册，审批状态=已完成。',
+            '各区补签 Top10 员工（考勤为基）：按 大区×区域×工号 聚合补签天数（>3 天），各区取前 10，并标主属仓/主属组。',
+            '考勤确认及时率（正式工/劳务工）看板：见 sheet「考勤确认及时性_*」。劳务工数据源为《劳务工工时》考勤 sheet（2026-06~07 两份，约 41 万行）；区域归入三大区，口径同正式工考勤确认及时率。补签率=应补签数÷应打卡次数；及时确认率下降代表及时性变差。',
         ]
     })
     note.to_excel(xw, sheet_name='说明', index=False)
-    g_major.to_excel(xw, sheet_name='大区汇总', index=False)
-    cnt.to_excel(xw, sheet_name='大区_区域明细', index=False)
 
-    # 区域 × 仓 明细：五级部门为空则归为“部门直属”；第三版块不展示 HRBP 数据
-    wh = sub[sub['三级部门'] != 'FBU HRBP Dept.'].copy()
-    wh['五级部门'] = wh['五级部门'].fillna('部门直属')
-    whg = wh.groupby(['三级部门', '四级部门', '五级部门', '审批状态']).size().unstack(fill_value=0)
-    for s in KEEP:
-        if s not in whg.columns:
-            whg[s] = 0
-    whg['补签合计'] = whg['已完成'] + whg['审批中']
-    whg = whg.reset_index()
-    region_full_tot = sub.groupby(['三级部门', '四级部门']).size().rename('region_full')
-    whg = whg.merge(region_full_tot.reset_index(), on=['三级部门', '四级部门'], how='left')
-    whg['占区域比'] = (whg['补签合计'] / whg['region_full'] * 100).round(1)
-    whg['__mo'] = whg['三级部门'].map(MAJOR_IDX).fillna(len(MAJOR_ORDER)).astype(int)
-    whg['__ro'] = [region_idx(m, r) for m, r in zip(whg['三级部门'], whg['四级部门'])]
-    whg = whg.sort_values(['__mo', '__ro', '补签合计'], ascending=[True, True, False]).drop(columns=['__mo', '__ro', 'region_full']).reset_index(drop=True)
-    whg = whg.rename(columns={'三级部门': '大区', '四级部门': '区域', '五级部门': '仓'})
-    whg.to_excel(xw, sheet_name='区域_仓明细', index=False)
+    # 大区汇总（考勤为基）
+    _rows = []
+    for name, v in _maj.items():
+        _rows.append({'大区': name, '考勤记录总数': v['den'], '已补签数': v['num'],
+                      '补签率': round(v['num'] / v['den'] * 100, 1) if v['den'] else 0,
+                      '占总体比': round(v['num'] / _grand_den * 100, 1) if _grand_den else 0})
+    _g = pd.DataFrame(_rows)
+    _g['__o'] = _g['大区'].map(MAJOR_IDX).fillna(len(MAJOR_ORDER)).astype(int)
+    _g = _g.sort_values('__o').drop(columns='__o').reset_index(drop=True)
+    _g.to_excel(xw, sheet_name='大区汇总', index=False)
 
-    # 区域 × 仓 × 组 明细：六级部门为空则归为“部门直属”；不展示 HRBP 数据；占仓比=该组÷所属仓合计
-    grpX = sub[sub['三级部门'] != 'FBU HRBP Dept.'].copy()
-    grpX['五级部门'] = grpX['五级部门'].fillna('部门直属')
-    grpX['六级部门'] = grpX['六级部门'].fillna('部门直属')
-    gg = grpX.groupby(['三级部门', '四级部门', '五级部门', '六级部门', '审批状态']).size().unstack(fill_value=0)
-    for s in KEEP:
-        if s not in gg.columns:
-            gg[s] = 0
-    gg['补签合计'] = gg['已完成'] + gg['审批中']
-    gg = gg.reset_index()
-    wh_full = grpX.groupby(['三级部门', '四级部门', '五级部门']).size().rename('wh_full')
-    gg = gg.merge(wh_full.reset_index(), on=['三级部门', '四级部门', '五级部门'], how='left')
-    gg['占仓比'] = (gg['补签合计'] / gg['wh_full'] * 100).round(1)
-    gg['__mo'] = gg['三级部门'].map(MAJOR_IDX).fillna(len(MAJOR_ORDER)).astype(int)
-    gg['__ro'] = [region_idx(m, r) for m, r in zip(gg['三级部门'], gg['四级部门'])]
-    gg = gg.sort_values(['__mo', '__ro', '五级部门', '补签合计'], ascending=[True, True, True, False]).drop(columns=['__mo', '__ro', 'wh_full']).reset_index(drop=True)
-    gg = gg.rename(columns={'三级部门': '大区', '四级部门': '区域', '五级部门': '仓', '六级部门': '组'})
-    gg.to_excel(xw, sheet_name='区域_仓_组明细', index=False)
+    # 大区_区域明细
+    _rows = []
+    for (maj, reg), v in _det.items():
+        _rows.append({'大区': maj, '区域': reg, '考勤记录总数': v['den'], '已补签数': v['num'],
+                      '补签率': round(v['num'] / v['den'] * 100, 1) if v['den'] else 0,
+                      '占大区比': round(v['num'] / _maj[maj]['num'] * 100, 1) if _maj[maj]['num'] else 0})
+    _c = pd.DataFrame(_rows)
+    _c['__mo'] = _c['大区'].map(MAJOR_IDX).fillna(len(MAJOR_ORDER)).astype(int)
+    _c['__ro'] = [region_idx(m, r) for m, r in zip(_c['大区'], _c['区域'])]
+    _c = _c.sort_values(['__mo', '__ro']).drop(columns=['__mo', '__ro']).reset_index(drop=True)
+    _c.to_excel(xw, sheet_name='大区_区域明细', index=False)
 
-    # 组下员工明细（全量）：每条补签记录对应一名员工的补签申请
-    empX = grpX[['三级部门', '四级部门', '五级部门', '六级部门', '姓名', '工号', '职位', '补签日期', '班次名称', '补签点', '补签事由', '备注', '审批状态']].copy()
-    empX['备注'] = empX['备注'].fillna('')
-    empX = empX.rename(columns={'三级部门': '大区', '四级部门': '区域', '五级部门': '仓', '六级部门': '组', '班次名称': '班次'})
-    empX.to_excel(xw, sheet_name='组下员工明细', index=False)
+    # 区域_仓明细
+    _rows = []
+    for (maj, reg, wh), v in _wh.items():
+        _rows.append({'大区': maj, '区域': reg, '仓': wh, '考勤记录总数': v['den'], '已补签数': v['num'],
+                      '补签率': round(v['num'] / v['den'] * 100, 1) if v['den'] else 0,
+                      '占区域比': round(v['num'] / _det[(maj, reg)]['den'] * 100, 1) if _det[(maj, reg)]['den'] else 0})
+    _w = pd.DataFrame(_rows)
+    _w['__mo'] = _w['大区'].map(MAJOR_IDX).fillna(len(MAJOR_ORDER)).astype(int)
+    _w['__ro'] = [region_idx(m, r) for m, r in zip(_w['大区'], _w['区域'])]
+    _w = _w.sort_values(['__mo', '__ro', '已补签数'], ascending=[True, True, False]).drop(columns=['__mo', '__ro']).reset_index(drop=True)
+    _w.to_excel(xw, sheet_name='区域_仓明细', index=False)
 
-    # 各区补签 Top10 员工：按 大区×区域×工号 聚合补签数，各区取前 10（含 HRBP 区域，与区域明细表口径一致）
-    # Top10 已剔除「补签事由=入职当天」及「备注因客观情况无法打卡」的记录
-    sub_top = sub[~sub['top_exclude']]
-    emp_grp = sub_top[['三级部门', '四级部门', '工号', '姓名', '职位', '五级部门', '六级部门', '审批状态']].copy()
-    emp_grp['五级部门'] = emp_grp['五级部门'].fillna('部门直属')
-    emp_grp['六级部门'] = emp_grp['六级部门'].fillna('部门直属')
-    agg = emp_grp.groupby(['三级部门', '四级部门', '工号', '姓名']).agg(
-        补签数=('审批状态', 'size'),
-        已完成=('审批状态', lambda s: int((s == '已完成').sum())),
-        审批中=('审批状态', lambda s: int((s == '审批中').sum())),
-        # 主属仓/组：该员工在该区域下补签次数最多的仓/组（并列时取名字母序最小）
-        主属仓=('五级部门', lambda s: s.value_counts().sort_index(ascending=True).idxmax()),
-        主属组=('六级部门', lambda s: s.value_counts().sort_index(ascending=True).idxmax()),
-        # 职位：取该员工在该区域下第一条非空职位
-        职位=('职位', lambda s: s.dropna().replace('—', pd.NA).dropna().iloc[0] if len(s.dropna().replace('—', pd.NA).dropna()) else '—'),
-    ).reset_index()
-    top_parts = []
-    for (maj, reg), g in agg.groupby(['三级部门', '四级部门']):
-        g = g.sort_values(['补签数', '姓名'], ascending=[False, True]).head(10).reset_index(drop=True)
-        g['排名'] = range(1, len(g) + 1)
-        g['大区'] = maj
-        g['区域'] = reg
-        top_parts.append(g[['大区', '区域', '排名', '姓名', '工号', '职位', '主属仓', '主属组', '补签数', '已完成', '审批中']])
-    if top_parts:
-        top_df = pd.concat(top_parts, ignore_index=True)
-    else:
-        top_df = pd.DataFrame(columns=['大区', '区域', '排名', '姓名', '工号', '职位', '主属仓', '主属组', '补签数', '已完成', '审批中'])
-    top_df['__mo'] = top_df['大区'].map(MAJOR_IDX).fillna(len(MAJOR_ORDER)).astype(int)
-    top_df['__ro'] = [region_idx(m, r) for m, r in zip(top_df['大区'], top_df['区域'])]
-    top_df = top_df.sort_values(['__mo', '__ro', '排名']).drop(columns=['__mo', '__ro']).reset_index(drop=True)
-    top_df.to_excel(xw, sheet_name='各区补签Top10员工', index=False)
+    # 区域_仓_组明细
+    _rows = []
+    for (maj, reg, wh, gp), v in _gp.items():
+        _rows.append({'大区': maj, '区域': reg, '仓': wh, '组': gp, '考勤记录总数': v['den'], '已补签数': v['num'],
+                      '补签率': round(v['num'] / v['den'] * 100, 1) if v['den'] else 0,
+                      '占仓比': round(v['num'] / _wh[(maj, reg, wh)]['den'] * 100, 1) if _wh[(maj, reg, wh)]['den'] else 0})
+    _p = pd.DataFrame(_rows)
+    _p['__mo'] = _p['大区'].map(MAJOR_IDX).fillna(len(MAJOR_ORDER)).astype(int)
+    _p['__ro'] = [region_idx(m, r) for m, r in zip(_p['大区'], _p['区域'])]
+    _p = _p.sort_values(['__mo', '__ro', '仓', '已补签数'], ascending=[True, True, True, False]).drop(columns=['__mo', '__ro']).reset_index(drop=True)
+    _p.to_excel(xw, sheet_name='区域_仓_组明细', index=False)
+
+    # 组下员工明细（考勤为基，按 大区×区域×仓×组×工号 累计补签天数）
+    _ea = {}
+    for e in _emps:
+        k = (e['major'], e['region'], e['wh'], e['group'], e['gong'], e['name'])
+        _ea[k] = _ea.get(k, 0) + e['days']
+    _er = [{'大区': k[0], '区域': k[1], '仓': k[2], '组': k[3], '姓名': k[5], '工号': k[4],
+            '职位': pos_map.get(k[4], '—'), '补签天数': v, '审批状态': '已完成'} for k, v in _ea.items()]
+    _ed = pd.DataFrame(_er)
+    _ed['__mo'] = _ed['大区'].map(MAJOR_IDX).fillna(len(MAJOR_ORDER)).astype(int)
+    _ed['__ro'] = [region_idx(m, r) for m, r in zip(_ed['大区'], _ed['区域'])]
+    _ed = _ed.sort_values(['__mo', '__ro', '仓', '组', '补签天数'], ascending=[True, True, True, True, False]).drop(columns=['__mo', '__ro']).reset_index(drop=True)
+    _ed.to_excel(xw, sheet_name='组下员工明细', index=False)
+
+    # 各区补签 Top10 员工（考勤为基，补签天数>3）
+    _top = {}
+    for e in _emps:
+        k = (e['major'], e['region'], e['gong'], e['name'])
+        o = _top.setdefault(k, {'days': 0, 'wh': {}, 'gp': {}})
+        o['days'] += e['days']
+        o['wh'][e['wh']] = o['wh'].get(e['wh'], 0) + e['days']
+        o['gp'][e['group']] = o['gp'].get(e['group'], 0) + e['days']
+    def _pick(obj):
+        best, bc = '', -1
+        for kk, vv in obj.items():
+            if vv > bc or (vv == bc and str(kk) < str(best)):
+                best, bc = kk, vv
+        return best
+    _by_reg = {}
+    for (maj, reg, gong, name), o in _top.items():
+        _by_reg.setdefault((maj, reg), []).append({'大区': maj, '区域': reg, '姓名': name, '工号': gong,
+                                                    '职位': pos_map.get(gong, '—'), '主属仓': _pick(o['wh']), '主属组': _pick(o['gp']),
+                                                    '补签天数': o['days']})
+    _tp = []
+    for (maj, reg), lst in _by_reg.items():
+        lst = sorted([x for x in lst if x['补签天数'] > 3], key=lambda x: (-x['补签天数'], x['姓名']))[:10]
+        for idx, x in enumerate(lst, 1):
+            x['排名'] = idx
+        _tp.extend(lst)
+    _td = pd.DataFrame(_tp) if _tp else pd.DataFrame(columns=['大区', '区域', '排名', '姓名', '工号', '职位', '主属仓', '主属组', '补签天数'])
+    if not _td.empty:
+        _td['__mo'] = _td['大区'].map(MAJOR_IDX).fillna(len(MAJOR_ORDER)).astype(int)
+        _td['__ro'] = [region_idx(m, r) for m, r in zip(_td['大区'], _td['区域'])]
+        _td = _td.sort_values(['__mo', '__ro', '排名']).drop(columns=['__mo', '__ro']).reset_index(drop=True)
+    _td.to_excel(xw, sheet_name='各区补签Top10员工', index=False)
+
 
 print("Excel 已生成:", OUT_XLSX)
 
-# 员工明细（全量，顶层只存一份；前端按当前月/天过滤建索引，避免逐周期重复存储）
-# 此处包含 HRBP，使「各区 Top10 员工」板块与区域明细表（二级板块）口径一致；
-# 组/仓明细（第三、四板块）仍用非 HRBP 的 grpX，不受影响
-emp_all = sub.copy()
-emp_all['五级部门'] = emp_all['五级部门'].fillna('部门直属')
-emp_all['六级部门'] = emp_all['六级部门'].fillna('部门直属')
-emp_all['补签日期'] = emp_all['补签日期'].map(lambda x: str(x)[:10] if pd.notna(x) else '')
-emp_all['备注'] = emp_all['备注'].fillna('')
-emp_all = emp_all[['三级部门', '四级部门', '五级部门', '六级部门', '姓名', '工号', '职位', '补签日期', '班次名称', '补签点', '补签事由', '备注', '审批状态', 'ym', 'ymd', 'top_exclude']]
-emp_all = emp_all.rename(columns={'三级部门': 'major', '四级部门': 'region', '五级部门': 'wh', '六级部门': 'group', '班次名称': '班次'})
-allEmp = emp_all.to_dict('records')
+# 员工明细（考勤为基）：每条 = 一名员工在某月被补签通过的考勤人日（月级聚合行）。
+# 供第四板块「点击组展开员工」与第五板块「Top10」使用；职位从花名册按工号匹配（pos_map）。
+_att_emp = []
+for _ym in ['2026-06', '2026-07', '2026-08', '2026-09']:
+    for _e in _att['data'][_ym]['emp']:
+        _g = str(_e['gong'])
+        _att_emp.append({
+            'major': _e['major'], 'region': _e['region'], 'wh': _e['wh'], 'group': _e['group'],
+            '姓名': _e['name'], '工号': _g, '职位': pos_map.get(_g, '—'),
+            '考勤日期': _ym, 'ym': _ym, 'ymd': _ym, '补签天数': _e['days'], 'weight': _e['days'],
+            '补签事由': '', '备注': '', '审批状态': '已完成', 'top_exclude': False,
+        })
+allEmp = _att_emp
 
-# 正式工 emp 明细表列定义（供前端 data-driven 渲染）
-FORMAL_EMP_KEYS = ['姓名', '工号', '职位', '补签日期', '班次', '补签点', '补签事由', '备注', '审批状态']
-FORMAL_EMP_HEADERS = ['姓名', '工号', '职位', '补签日期', '班次', '补签点', '补签事由', '备注', '审批状态']
-FORMAL_SUBTITLE = '维度：三级部门（大区）× 四级部门（区域）　|　口径：审批状态 = 已完成 + 审批中'
+# 正式工 emp 明细表列定义（供前端 data-driven 渲染，考勤为基）
+FORMAL_EMP_KEYS = ['姓名', '工号', '职位', '补签天数', '审批状态']
+FORMAL_EMP_HEADERS = ['姓名', '工号', '职位', '补签天数', '审批状态']
+FORMAL_SUBTITLE = '维度：三级部门（大区）× 四级部门（区域）　|　口径（考勤为基）：补签率 = 已补签通过考勤人日 ÷ 范围内考勤总记录数（人日）；已剔除 西班牙区 补签事由=其他 及 客观原因（考勤机故障/网络/工牌/系统/消防/司机在外/入职当天等）'
 
 # ===================== 劳务工数据源（独立于正式工，结构对齐便于前端复用） =====================
 LABOR_SRCS = [r'D:/Documents/Downloads/劳务工补签-6月.xlsx', r'D:/Documents/Downloads/劳务工补签-7月.xlsx',
@@ -1471,8 +1529,7 @@ body{{font-family:-apple-system,"Microsoft YaHei",sans-serif;margin:0;background
 .top-nav-tabs button{{border:none;background:transparent;color:#475569;font-size:13px;cursor:pointer;padding:7px 16px;border-radius:20px;transition:.15s;font-weight:500}}
 .top-nav-tabs button.active{{background:#2563eb;color:#fff;font-weight:600;box-shadow:0 2px 6px rgba(37,99,235,.25)}}
 .top-nav-tabs button:not(.active):hover{{background:#e2e8f0;color:#1e293b}}
-body:not(.labor-rate) .rate-col{{display:none}}
-body:not(.labor-rate) .rate{{display:none}}
+/* 正式工（考勤为基）与劳务工均展示补签率列 */
 .rate{{font-weight:700;color:#b45309}}
 .view-panel.hidden{{display:none}}
 .view-placeholder{{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:80px 20px;background:#fff;border-radius:14px;box-shadow:0 1px 3px rgba(0,0,0,.08);text-align:center}}
@@ -1703,7 +1760,7 @@ caption{{caption-side:top;text-align:left;font-weight:700;font-size:15px;padding
 
 <div class="view-panel" id="viewFormal">
 <div class="header">
-<h1>补签率统计</h1>
+<h1 id="hdrTitle">正式工补签率（考勤为基）</h1>
 <div class="sub" id="hdrSub">维度：三级部门（大区）× 四级部门（区域）　|　口径：审批状态 = 已完成 + 审批中</div>
 </div>
 
@@ -1753,7 +1810,7 @@ caption{{caption-side:top;text-align:left;font-weight:700;font-size:15px;padding
 <div class="table-section" id="secTop">
 <div class="section-caption" id="secTopCap">五、各区补签 Top10 员工（按区域内员工补签数排序，含已完成+审批中）　<small style="font-weight:400;color:#64748b">点击大区/区域可展开或收起 Top 员工</small></div>
 <div class="table-wrapper">
-<table id="tableTop"><thead><tr><th>排名</th><th>姓名</th><th>工号</th><th id="thTopZhiwei">职位</th><th>主属仓</th><th>主属组</th><th>补签数</th><th>已完成</th><th id="thTopIng">审批中</th></tr></thead><tbody id="topBody"></tbody></table>
+<table id="tableTop"><thead><tr id="topHeadRow"><th>排名</th><th>姓名</th><th>工号</th><th id="thTopZhiwei">职位</th><th>主属仓</th><th>主属组</th><th>补签数</th><th>已完成</th><th id="thTopIng">审批中</th></tr></thead><tbody id="topBody"></tbody></table>
 </div>
 </div>
 
@@ -1767,41 +1824,39 @@ caption{{caption-side:top;text-align:left;font-weight:700;font-size:15px;padding
     <div class="note-section">
       <div class="note-label">数据来源</div>
       <ul class="note-list">
-        <li>合并 <code>补签流程-6月.xlsx</code>、<code>补签流程-7月.xlsx</code>、<code>补签流程-8月-正式工.xlsx</code> 与 <code>补签流程-9月-正式工.xlsx</code>，按自然键去重，无重复计数。</li>
-        <li><strong>数据范围</strong>：补签率月份覆盖 2026-05（仅 05-31 边界日）/ 06 / 07 / 08 / 09（源文件月份边界日存在重叠，按自然月归桶）。</li>
-        <li>已排除审批状态为 <strong>已驳回 / 已废弃 / 已撤回</strong> 的记录。</li>
-        <li>补签合计 = 补签申请记录条数（源表一行一条）。</li>
-      <li>西班牙区「补签事由=其他」的正式工记录统一按客观原因处理，已从补签合计统计中<strong>整体剔除</strong>（欧洲区/西班牙区/其下仓组/总计同步扣减，占比重算；Top10 与组下员工明细亦不含）。</li>
+        <li>合并 正式工 2026-06 / 07 / 08 / 09 月考勤记录（人日级原始考勤），按 (工号, 考勤日期) 天然去重，无重复计数。</li>
+        <li><strong>数据范围</strong>：考勤为基补签率覆盖 2026-06 / 07 / 08 / 09（全月；缺补签状态列的月份统一以 JOIN 法取数）。</li>
+        <li>已剔除整类大区：海外销售部、FBU财务部、渠道管理部、LD 法务部、FBU技术部、平台业务部、品牌客户部；HRBP 部内剔除：国内HRBP组、美洲支持bp组、欧亚支持bp组、欧亚支持HRBP组。</li>
       </ul>
     </div>
     <div class="note-section">
       <div class="note-label">交互方式</div>
       <ul class="note-list">
-        <li>点击右上角 <strong>「按天 / 按周 / 按月」</strong>，可切换按天、按周、按月查看对应时间范围的补签分布。</li>
+        <li>点击右上角 <strong>「按月」</strong>，可切换 6 / 7 / 8 / 9 月查看对应月份的正式工补签率分布（考勤为基：按天 / 按周视图不提供）。</li>
       </ul>
     </div>
     <div class="note-section">
-      <div class="note-label">口径定义</div>
+      <div class="note-label">口径定义（考勤为基）</div>
       <ul class="note-list">
-        <li><strong>大区</strong> = 三级部门，<strong>区域</strong> = 四级部门；加拿大区已归入美洲区（数据中三级部门=美洲区、四级部门=加拿大区）。</li>
-        <li>已剔除大区：海外销售部、FBU财务部、渠道管理部。</li>
+        <li><strong>考勤记录总数</strong> = 范围内全部考勤人日（含封存），即该大区/区域/仓/组的考勤总记录数。</li>
+        <li><strong>已补签数</strong> = 考勤记录中「已补签通过」的人日：与《补签流程》按 (工号, 考勤日期) JOIN，取 审批状态=已完成，再剔除 ① 西班牙区 补签事由=其他（整体剔除）② 备注/事由属客观原因（考勤机故障、网络不好、工牌、系统问题、消防、司机在外、入职当天等）。</li>
+        <li><strong>补签率</strong> = 已补签数 ÷ 考勤记录总数 × 100%。</li>
+        <li><strong>大区</strong> = 三级部门，<strong>区域</strong> = 四级部门；加拿大区已归入美洲区（数据中三级部门=美洲区、四级部门=加拿大区）。仓 = 五级部门，组 = 六级部门（空值归为「部门直属」）。第三、四板块不展示 FBU HRBP Dept. 数据。</li>
         <li>职位从 2026-08-24 花名册按工号匹配，未匹配到显示为 <strong>—</strong>。</li>
       </ul>
     </div>
-    <div class="note-divider"></div>
     <div class="note-section">
       <div class="note-label">第四板块 · 大区×区域×仓×组</div>
       <ul class="note-list">
-        <li>下钻到 <strong>组（六级部门）</strong>，点击任意组行可展开该组下员工明细：姓名、工号、职位、补签日期、班次、补签点、补签事由、备注、审批状态。</li>
+        <li>下钻到 <strong>组（六级部门）</strong>，点击任意组行可展开该组下员工明细：姓名、工号、职位、已补签天数、审批状态。</li>
         <li>空组显示为 <strong>部门直属</strong>。</li>
       </ul>
     </div>
     <div class="note-section">
       <div class="note-label">第五板块 · 各区补签 Top10 员工</div>
       <ul class="note-list">
-        <li>按区域聚合员工补签数，各区取前 10 名（含已完成+审批中），附带职位、主属仓、主属组。</li>
-        <li><strong>主属仓 / 主属组</strong>：该员工在该区域下补签次数最多的仓/组；并列时按名称字母序取第一个。</li>
-        <li>Top10 补签数已剔除 <strong>补签事由=入职当天</strong>，以及备注明确为客观情况无法打卡的记录（无打卡机/考勤机、机器故障、系统问题、闸机故障、消防、无工牌工卡、司机在外跑业务、西班牙语入职 Nuevo ingreso 等）。</li>
+        <li>按区域聚合员工已补签考勤天数，各区取前 10 名（已补签天数 &gt; 3），附带职位、主属仓、主属组。</li>
+        <li><strong>主属仓 / 主属组</strong>：该员工在该区域下已补签天数最多的仓/组；并列时按名称字母序取第一个。</li>
       </ul>
     </div>
   </div>
@@ -2010,25 +2065,30 @@ function renderPicker() {{
 function render() {{
   renderPicker();
   const d = currentData();
-  const showRate = payload.type === 'labor';
-  const showYdk = payload.type === 'labor';
-  C = (showRate ? 1 : 0) + (showYdk ? 1 : 0) + 6;
+  const isAtt = payload.type === 'formal';   // 正式工补签率 = 考勤为基
+  const showRate = true;                      // 正式工 / 劳务工 均展示补签率
+  const showYdk = payload.type === 'labor';   // 应打卡合计 仅劳务工
+  const showIng = !isAtt;                     // 考勤为基无「审批中」列
+  const labelTotal = isAtt ? '考勤记录总数' : '补签合计';
+  const labelDone = isAtt ? '已补签数' : '已完成';
   const ingLabel = payload.type === 'labor' ? '未完成' : '审批中';
-  const rateCell = (r) => showRate ? `<td class='num rate'>${{r.rate != null ? r.rate + '%' : '—'}}</td>` : '';
-  const rateTh = showRate ? "<th class='rate-col'>补签率</th>" : '';
+  const rateCell = (r) => showRate ? `<td class='num rate'>${{r.rate != null ? r.rate + '%' : (r.total ? (r['已完成'] / r.total * 100).toFixed(1) + '%' : '—')}}</td>` : '';
+  const rateTh = showRate ? "<th>补签率</th>" : '';
   const ydkCell = (r) => showYdk ? `<td class='num ydk'>${{r.ydk != null ? fmt(r.ydk) : '—'}}</td>` : '';
   const ydkTh = showYdk ? "<th>应打卡合计</th>" : '';
-  document.querySelector('#tableMajor thead tr').innerHTML = `<th>大区</th>${{ydkTh}}<th>补签合计</th><th>已完成</th><th>${{ingLabel}}</th><th>占总体比</th>${{rateTh}}<th>占比图例</th>`;
-  document.querySelector('#tableDetail thead tr').innerHTML = `<th>区域（四级部门）</th>${{ydkTh}}<th>补签合计</th><th>已完成</th><th>${{ingLabel}}</th><th>占大区比</th>${{rateTh}}<th>占比图例</th>`;
-  document.querySelector('#tableWh thead tr').innerHTML = `<th>仓（五级部门）</th>${{ydkTh}}<th>补签合计</th><th>已完成</th><th>${{ingLabel}}</th><th>占区域比</th>${{rateTh}}<th>占比图例</th>`;
-  document.querySelector('#tableGrp thead tr').innerHTML = `<th>组（六级部门）</th>${{ydkTh}}<th>补签合计</th><th>已完成</th><th>${{ingLabel}}</th><th>占仓比</th>${{rateTh}}<th>占比图例</th>`;
-  const thTopIng = document.getElementById('thTopIng');
-  if (thTopIng) thTopIng.textContent = ingLabel;
+  const ingCell = (r) => showIng ? `<td class='num'>${{r['审批中']}}</td>` : '';
+  const headCols = (firstLabel) => `<th>${{firstLabel}}</th>${{ydkTh}}<th>${{labelTotal}}</th><th>${{labelDone}}</th>${{showIng ? `<th>${{ingLabel}}</th>` : ''}}<th>占总体比</th>${{rateTh}}<th>占比图例</th>`;
+  // 动态列数（用于空行/合计行的 colspan）：首列 + 应打卡 + 总数 + 已完成 + 审批中 + 占总体比 + 补签率 + 图例
+  C = 5 + (showYdk ? 1 : 0) + (showIng ? 1 : 0) + (showRate ? 1 : 0);
+  document.querySelector('#tableMajor thead tr').innerHTML = headCols('大区');
+  document.querySelector('#tableDetail thead tr').innerHTML = headCols('区域（四级部门）');
+  document.querySelector('#tableWh thead tr').innerHTML = headCols('仓（五级部门）');
+  document.querySelector('#tableGrp thead tr').innerHTML = headCols('组（六级部门）');
   const thTopZhiwei = document.getElementById('thTopZhiwei');
   if (thTopZhiwei) thTopZhiwei.textContent = payload.type === 'labor' ? '工种' : '职位';
   document.getElementById('cTotal').textContent = fmt(d.total);
   document.getElementById('cDone').textContent = fmt(d.done);
-  document.getElementById('cIng').textContent = fmt(d.ing);
+  document.getElementById('cIng').textContent = isAtt ? (d.rate != null ? d.rate + '%' : '—') : fmt(d.ing);
   document.getElementById('cMajors').textContent = d.major.length;
 
   const mb = document.getElementById('majorBody');
@@ -2037,7 +2097,7 @@ function render() {{
   }} else {{
     mb.innerHTML = d.major.map(r => {{
       const bar = `<div class='bar'><span style='width:${{r.pct}}%'></span></div>`;
-      return `<tr data-major="${{attrEsc(r.name)}}"><td>${{esc(r.name)}}</td>${{ydkCell(r)}}<td class='num'>${{fmt(r.total)}}</td><td class='num'>${{r['已完成']}}</td><td class='num'>${{r['审批中']}}</td><td class='num'>${{r.pct}}%</td>${{rateCell(r)}}<td>${{bar}}</td></tr>`;
+      return `<tr data-major="${{attrEsc(r.name)}}"><td>${{esc(r.name)}}</td>${{ydkCell(r)}}<td class='num'>${{fmt(r.total)}}</td><td class='num'>${{r['已完成']}}</td>${{ingCell(r)}}<td class='num'>${{r.pct}}%</td>${{rateCell(r)}}<td>${{bar}}</td></tr>`;
     }}).join('');
   }}
 
@@ -2053,7 +2113,7 @@ function render() {{
         html += `<tr class='grp major-row2' data-major="${{cur}}" data-expanded="true" onclick="toggleMajor2(this)"><td colspan='${{C}}'><span class='fold-icon'>▾</span> ${{cur}}（大区合计 ${{fmt(mt)}}）</td></tr>`;
       }}
       const bar = `<div class='bar'><span style='width:${{r.pctMajor}}%'></span></div>`;
-      html += `<tr class='region-row2' data-major="${{attrEsc(cur)}}" data-region="${{attrEsc(r.region)}}"><td class='indent'>${{esc(r.region)}}</td>${{ydkCell(r)}}<td class='num'>${{fmt(r.total)}}</td><td class='num'>${{r['已完成']}}</td><td class='num'>${{r['审批中']}}</td><td class='num'>${{r.pctMajor}}%</td>${{rateCell(r)}}<td>${{bar}}</td></tr>`;
+      html += `<tr class='region-row2' data-major="${{attrEsc(cur)}}" data-region="${{attrEsc(r.region)}}"><td class='indent'>${{esc(r.region)}}</td>${{ydkCell(r)}}<td class='num'>${{fmt(r.total)}}</td><td class='num'>${{r['已完成']}}</td>${{ingCell(r)}}<td class='num'>${{r.pctMajor}}%</td>${{rateCell(r)}}<td>${{bar}}</td></tr>`;
     }});
     db.innerHTML = html;
   }}
@@ -2078,7 +2138,7 @@ function render() {{
         html += `<tr class='subgrp region-row' data-major="${{curMajor}}" data-region="${{curRegion}}" data-expanded="true" onclick="toggleRegion(this)"><td colspan='${{C}}'><span class='fold-icon'>▾</span> ${{curRegion}}（区域合计 ${{fmt(rt)}}）</td></tr>`;
       }}
       const bar = `<div class='bar'><span style='width:${{r.pctRegion}}%'></span></div>`;
-      html += `<tr class='wh-row' data-major="${{curMajor}}" data-region="${{curRegion}}"><td class='indent2'>${{r.wh}}</td>${{ydkCell(r)}}<td class='num'>${{fmt(r.total)}}</td><td class='num'>${{r['已完成']}}</td><td class='num'>${{r['审批中']}}</td><td class='num'>${{r.pctRegion}}%</td>${{rateCell(r)}}<td>${{bar}}</td></tr>`;
+      html += `<tr class='wh-row' data-major="${{curMajor}}" data-region="${{curRegion}}"><td class='indent2'>${{r.wh}}</td>${{ydkCell(r)}}<td class='num'>${{fmt(r.total)}}</td><td class='num'>${{r['已完成']}}</td>${{ingCell(r)}}<td class='num'>${{r.pctRegion}}%</td>${{rateCell(r)}}<td>${{bar}}</td></tr>`;
     }});
     wb.innerHTML = html;
   }}
@@ -2095,7 +2155,7 @@ function render() {{
     buildTopEmp();
     var _ymTop2 = (mode === 'month') ? (selected || '') : ((mode === 'week') ? (weekSel || '').slice(0, 7) : (daySel || '').slice(0, 7));
     var capTop2 = document.getElementById('secTopCap');
-    if (capTop2 && _ymTop2) capTop2.innerHTML = '五、各区补签 Top10 员工（按区域内员工补签数排序，含已完成+审批中）　<small style="font-weight:400;color:#2563eb">统计月份：' + monthLabel(_ymTop2) + '</small>　<small style="font-weight:400;color:#64748b">点击大区/区域可展开或收起 Top 员工</small>';
+    if (capTop2 && _ymTop2) capTop2.innerHTML = '五、各区补签 Top10 员工（按区域内员工已补签考勤天数排序）　<small style="font-weight:400;color:#2563eb">统计月份：' + monthLabel(_ymTop2) + '</small>　<small style="font-weight:400;color:#64748b">点击大区/区域可展开或收起 Top 员工</small>';
   }}
 
   const gb = document.getElementById('grpBody');
@@ -2120,30 +2180,40 @@ function render() {{
         html += `<tr class='subgrp3 wh-row-g' data-major="${{curMajor}}" data-region="${{curRegion}}" data-wh="${{curWh}}" data-expanded="true" onclick="toggleWhG(this)"><td colspan='${{C}}'><span class='fold-icon'>▾</span> ${{curWh}}（仓合计 ${{fmt(wt)}}）</td></tr>`;
       }}
       const bar = `<div class='bar'><span style='width:${{r.pctWh}}%'></span></div>`;
-      html += `<tr class='group-row' data-major="${{attrEsc(curMajor)}}" data-region="${{attrEsc(curRegion)}}" data-wh="${{attrEsc(curWh)}}" data-group="${{attrEsc(r.group)}}" data-expanded="false" onclick="toggleEmp(this)"><td class='indent3'><span class='fold-icon'>▸</span> ${{esc(r.group)}} <span class='emp-count'>（点击展开员工）</span></td>${{ydkCell(r)}}<td class='num'>${{fmt(r.total)}}</td><td class='num'>${{r['已完成']}}</td><td class='num'>${{r['审批中']}}</td><td class='num'>${{r.pctWh}}%</td>${{rateCell(r)}}<td>${{bar}}</td></tr>`;
+      html += `<tr class='group-row' data-major="${{attrEsc(curMajor)}}" data-region="${{attrEsc(curRegion)}}" data-wh="${{attrEsc(curWh)}}" data-group="${{attrEsc(r.group)}}" data-expanded="false" onclick="toggleEmp(this)"><td class='indent3'><span class='fold-icon'>▸</span> ${{esc(r.group)}} <span class='emp-count'>（点击展开员工）</span></td>${{ydkCell(r)}}<td class='num'>${{fmt(r.total)}}</td><td class='num'>${{r['已完成']}}</td>${{ingCell(r)}}<td class='num'>${{r.pctWh}}%</td>${{rateCell(r)}}<td>${{bar}}</td></tr>`;
     }});
     gb.innerHTML = html;
   }}
 
   const tb = document.getElementById('topBody');
+  const topCols = isAtt
+    ? ['排名','姓名','工号','职位','主属仓','主属组','补签天数']
+    : ['排名','姓名','工号','职位','主属仓','主属组','补签数','已完成','审批中'];
+  const topColCount = topCols.length;
+  const topHead = document.getElementById('topHeadRow');
+  if (topHead) topHead.innerHTML = topCols.map(c => `<th>${{esc(c)}}</th>`).join('');
   if (!d.total) {{
-    tb.innerHTML = "<tr><td colspan='9' class='empty'>该时间范围无数据</td></tr>";
+    tb.innerHTML = "<tr><td colspan='" + topColCount + "' class='empty'>该时间范围无数据</td></tr>";
   }} else {{
     let curMajor = null, html = '';
     d.detail.forEach(r => {{
       if (r.major !== curMajor) {{
         curMajor = r.major;
-        html += `<tr class='grp major-row-t' data-major="${{attrEsc(curMajor)}}" data-expanded="true" onclick="toggleMajorT(this)"><td colspan='9'><span class='fold-icon'>▾</span> ${{esc(curMajor)}}</td></tr>`;
+        html += `<tr class='grp major-row-t' data-major="${{attrEsc(curMajor)}}" data-expanded="true" onclick="toggleMajorT(this)"><td colspan='" + topColCount + "'><span class='fold-icon'>▾</span> ${{esc(curMajor)}}</td></tr>`;
       }}
       const rk = r.major + '|' + r.region;
       const emps = topEmpIndex[rk] || [];
-      html += `<tr class='subgrp region-row-t' data-major="${{attrEsc(curMajor)}}" data-region="${{attrEsc(r.region)}}" data-expanded="true" onclick="toggleRegionT(this)"><td colspan='9'><span class='fold-icon'>▾</span> ${{r.region}}（区域合计 ${{fmt(r.total)}}）<span class='emp-count'>　Top ${{emps.length}} 员工</span></td></tr>`;
+      html += `<tr class='subgrp region-row-t' data-major="${{attrEsc(curMajor)}}" data-region="${{attrEsc(r.region)}}" data-expanded="true" onclick="toggleRegionT(this)"><td colspan='" + topColCount + "'><span class='fold-icon'>▾</span> ${{r.region}}（区域合计 ${{fmt(r.total)}}）<span class='emp-count'>　Top ${{emps.length}} 员工</span></td></tr>`;
       emps.forEach((e, i) => {{
         const zg = payload.type === 'labor' ? (e.gongzhong || '—') : (e.zhiwei || '—');
-        html += `<tr class='top-emp-row' data-major="${{attrEsc(curMajor)}}" data-region="${{attrEsc(r.region)}}"><td class='num'>${{i+1}}</td><td>${{esc(e.name)}}</td><td>${{esc(e.gong)}}</td><td style="white-space:nowrap">${{esc(zg)}}</td><td style="white-space:nowrap">${{esc(e.wh)}}</td><td style="white-space:nowrap">${{esc(e.group)}}</td><td class='num'>${{fmt(e.count)}}</td><td class='num'>${{e.done}}</td><td class='num'>${{e.ing}}</td></tr>`;
+        if (isAtt) {{
+          html += `<tr class='top-emp-row' data-major="${{attrEsc(curMajor)}}" data-region="${{attrEsc(r.region)}}"><td class='num'>${{i+1}}</td><td>${{esc(e.name)}}</td><td>${{esc(e.gong)}}</td><td style="white-space:nowrap">${{esc(zg)}}</td><td style="white-space:nowrap">${{esc(e.wh)}}</td><td style="white-space:nowrap">${{esc(e.group)}}</td><td class='num'>${{fmt(e.count)}}</td></tr>`;
+        }} else {{
+          html += `<tr class='top-emp-row' data-major="${{attrEsc(curMajor)}}" data-region="${{attrEsc(r.region)}}"><td class='num'>${{i+1}}</td><td>${{esc(e.name)}}</td><td>${{esc(e.gong)}}</td><td style="white-space:nowrap">${{esc(zg)}}</td><td style="white-space:nowrap">${{esc(e.wh)}}</td><td style="white-space:nowrap">${{esc(e.group)}}</td><td class='num'>${{fmt(e.count)}}</td><td class='num'>${{e.done}}</td><td class='num'>${{e.ing}}</td></tr>`;
+        }}
       }});
       if (!emps.length) {{
-        html += `<tr class='top-emp-row' data-major="${{attrEsc(curMajor)}}" data-region="${{attrEsc(r.region)}}"><td class='indent2 empty' colspan='9'>该区域无补签次数大于3次的员工</td></tr>`;
+        html += `<tr class='top-emp-row' data-major="${{attrEsc(curMajor)}}" data-region="${{attrEsc(r.region)}}"><td class='indent2 empty' colspan='" + topColCount + "'>该区域无补签次数大于3次的员工</td></tr>`;
       }}
     }});
     tb.innerHTML = html;
@@ -3070,16 +3140,27 @@ function showCell(wt, sec) {{
     var sub = document.getElementById('hdrSub'); if (sub) sub.textContent = payload.subtitle || '';
     var rbtn = document.getElementById('btnRegion'); if (rbtn) rbtn.textContent = 'FBU交付前台';
     var cTotalL = document.getElementById('cTotalL');
+    var cDoneL = document.getElementById('cDoneL');
     var cIngL = document.getElementById('cIngL');
     var secTopCap = document.getElementById('secTopCap');
+    var h1t = document.getElementById('hdrTitle');
+    var bd = document.getElementById('btnDay'), bw = document.getElementById('btnWeek');
     if (wt === 'formal') {{
-      if (cTotalL) cTotalL.textContent = '补签合计（条）';
-      if (cIngL) cIngL.textContent = '审批中';
-      if (secTopCap) secTopCap.innerHTML = '五、各区补签 Top10 员工（按区域内员工补签数排序，含已完成+审批中）　<small style="font-weight:400;color:#64748b">点击大区/区域可展开或收起 Top 员工</small>';
+      if (cTotalL) cTotalL.textContent = '考勤记录总数（人日）';
+      if (cDoneL) cDoneL.textContent = '已补签数';
+      if (cIngL) cIngL.textContent = '补签率';
+      if (secTopCap) secTopCap.innerHTML = '五、各区补签 Top10 员工（按区域内员工已补签考勤天数排序）　<small style="font-weight:400;color:#64748b">点击大区/区域可展开或收起 Top 员工</small>';
+      if (h1t) h1t.textContent = '正式工补签率（考勤为基）';
+      if (bd) bd.style.display = 'none';
+      if (bw) bw.style.display = 'none';
     }} else {{
       if (cTotalL) cTotalL.textContent = '补签合计（应补签数）';
+      if (cDoneL) cDoneL.textContent = '已完成';
       if (cIngL) cIngL.textContent = '未完成';
       if (secTopCap) secTopCap.innerHTML = '五、各区补签 Top10 员工（按区域内员工补签数排序，含已完成+未完成）　<small style="font-weight:400;color:#64748b">点击大区/区域可展开或收起 Top 员工</small>';
+      if (h1t) h1t.textContent = '劳务工补签率';
+      if (bd) bd.style.display = '';
+      if (bw) bw.style.display = '';
     }}
     if (payload.months && payload.months.length) selected = payload.months[payload.months.length - 1];
     setMode('month'); applyNote(); render(); setupStickyHeaders();
