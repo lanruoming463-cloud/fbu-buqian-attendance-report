@@ -343,7 +343,7 @@ with pd.ExcelWriter(OUT_XLSX, engine='openpyxl') as xw:
             '已剔除大区（整类）：海外销售部、FBU财务部、渠道管理部、LD 法务部、FBU技术部、平台业务部、品牌客户部；已剔除区域（HRBP部内）：国内HRBP组、美洲支持HRBP组、美洲支持bp组、欧亚支持bp组、欧亚支持HRBP组。',
             '维度：三级部门（大区）× 四级部门（区域）× 五级部门（仓）× 六级部门（组）。加拿大区归入美洲区。',
             '占比口径：大区「占总体比」= 已补签数 ÷ 全口径考勤记录总数；区域「占大区比」= 已补签数 ÷ 所属大区已补签数；仓「占区域比」= 已补签数 ÷ 所属区域考勤记录总数；组「占仓比」= 已补签数 ÷ 所属仓考勤记录总数。',
-            '组下员工明细（考勤为基）：按 大区×区域×仓×组×工号 聚合，每条=该员工在范围内累计已补签通过的考勤天数（补签天数），职位取自花名册，审批状态=已完成。',
+            '组下员工明细（考勤为基，日级）：每条=该员工某天被补签通过的考勤人日，含补签日期/补签事由/备注，职位取自花名册，审批状态=已完成。',
             '各区补签 Top10 员工（考勤为基）：按 大区×区域×工号 聚合补签天数（>3 天），各区取前 10，并标主属仓/主属组。',
             '考勤确认及时率（正式工/劳务工）看板：见 sheet「考勤确认及时性_*」。劳务工数据源为《劳务工工时》考勤 sheet（2026-06~07 两份，约 41 万行）；区域归入三大区，口径同正式工考勤确认及时率。补签率=应补签数÷应打卡次数；及时确认率下降代表及时性变差。',
         ]
@@ -397,17 +397,22 @@ with pd.ExcelWriter(OUT_XLSX, engine='openpyxl') as xw:
     _p = _p.sort_values(['__mo', '__ro', '仓', '已补签数'], ascending=[True, True, True, False]).drop(columns=['__mo', '__ro']).reset_index(drop=True)
     _p.to_excel(xw, sheet_name='区域_仓_组明细', index=False)
 
-    # 组下员工明细（考勤为基，按 大区×区域×仓×组×工号 累计补签天数）
-    _ea = {}
-    for e in _emps:
-        k = (e['major'], e['region'], e['wh'], e['group'], e['gong'], e['name'])
-        _ea[k] = _ea.get(k, 0) + e['days']
-    _er = [{'大区': k[0], '区域': k[1], '仓': k[2], '组': k[3], '姓名': k[5], '工号': k[4],
-            '职位': pos_map.get(k[4], '—'), '补签天数': v, '审批状态': '已完成'} for k, v in _ea.items()]
-    _ed = pd.DataFrame(_er)
+    # 组下员工明细（考勤为基，日级）：每条=该员工某天被补签通过的考勤人日，含补签日期/事由/备注
+    _edet = []
+    for _ym in _MONTHS:
+        for _e in _att['data'][_ym]['emp_detail']:
+            _g = str(_e['gong'])
+            _edet.append({'大区': _e['major'], '区域': _e['region'], '仓': _e['wh'], '组': _e['group'],
+                          '姓名': _e['name'], '工号': _g, '职位': pos_map.get(_g, '—'),
+                          '补签日期': _e['date'], '补签事由': _e['reason'], '备注': _e['remark'], '审批状态': '已完成'})
+    _ed = pd.DataFrame(_edet)
+    # JSON 中空仓/组被 astype(str) 转成 'nan' 字符串，统一归为「部门直属」；备注清空
+    _ed['仓'] = _ed['仓'].replace(['nan', 'None', 'NaN', ''], '部门直属')
+    _ed['组'] = _ed['组'].replace(['nan', 'None', 'NaN', ''], '部门直属')
+    _ed['备注'] = _ed['备注'].replace(['nan', 'None', 'NaN'], '')
     _ed['__mo'] = _ed['大区'].map(MAJOR_IDX).fillna(len(MAJOR_ORDER)).astype(int)
     _ed['__ro'] = [region_idx(m, r) for m, r in zip(_ed['大区'], _ed['区域'])]
-    _ed = _ed.sort_values(['__mo', '__ro', '仓', '组', '补签天数'], ascending=[True, True, True, True, False]).drop(columns=['__mo', '__ro']).reset_index(drop=True)
+    _ed = _ed.sort_values(['__mo', '__ro', '仓', '组', '工号', '补签日期']).drop(columns=['__mo', '__ro']).reset_index(drop=True)
     _ed.to_excel(xw, sheet_name='组下员工明细', index=False)
 
     # 各区补签 Top10 员工（考勤为基，补签天数>3）
@@ -445,23 +450,28 @@ with pd.ExcelWriter(OUT_XLSX, engine='openpyxl') as xw:
 
 print("Excel 已生成:", OUT_XLSX)
 
-# 员工明细（考勤为基）：每条 = 一名员工在某月被补签通过的考勤人日（月级聚合行）。
-# 供第四板块「点击组展开员工」与第五板块「Top10」使用；职位从花名册按工号匹配（pos_map）。
+# 员工明细（考勤为基，日级）：每条 = 一名员工某天被补签通过的考勤人日（含补签日期/事由/备注）。
+# 供第四板块「点击组展开员工」与第五板块「Top10」使用（weight=1，天数=行数累加）；职位从花名册按工号匹配（pos_map）。
 _att_emp = []
+def _clean(v):
+    v = str(v).strip()
+    return '' if v in ('nan', 'None', 'NaN') else v
 for _ym in ['2026-06', '2026-07', '2026-08', '2026-09']:
-    for _e in _att['data'][_ym]['emp']:
+    for _e in _att['data'][_ym]['emp_detail']:
         _g = str(_e['gong'])
         _att_emp.append({
-            'major': _e['major'], 'region': _e['region'], 'wh': _e['wh'], 'group': _e['group'],
+            'major': _e['major'], 'region': _e['region'],
+            'wh': _clean(_e['wh']) or '部门直属', 'group': _clean(_e['group']) or '部门直属',
             '姓名': _e['name'], '工号': _g, '职位': pos_map.get(_g, '—'),
-            '考勤日期': _ym, 'ym': _ym, 'ymd': _ym, '补签天数': _e['days'], 'weight': _e['days'],
-            '补签事由': '', '备注': '', '审批状态': '已完成', 'top_exclude': False,
+            '补签日期': _e['date'], '补签事由': _clean(_e['reason']), '备注': _clean(_e['remark']),
+            '考勤日期': _e['date'], 'ym': _ym, 'ymd': _e['date'], 'weight': 1,
+            '审批状态': '已完成', 'top_exclude': False,
         })
 allEmp = _att_emp
 
-# 正式工 emp 明细表列定义（供前端 data-driven 渲染，考勤为基）
-FORMAL_EMP_KEYS = ['姓名', '工号', '职位', '补签天数', '审批状态']
-FORMAL_EMP_HEADERS = ['姓名', '工号', '职位', '补签天数', '审批状态']
+# 正式工 emp 明细表列定义（供前端 data-driven 渲染，考勤为基日级明细）
+FORMAL_EMP_KEYS = ['姓名', '工号', '职位', '补签日期', '补签事由', '备注', '审批状态']
+FORMAL_EMP_HEADERS = ['姓名', '工号', '职位', '补签日期', '补签事由', '备注', '审批状态']
 FORMAL_SUBTITLE = '维度：三级部门（大区）× 四级部门（区域）　|　口径（考勤为基）：补签率 = 已补签通过考勤人日 ÷ 范围内考勤总记录数（人日）；已剔除 西班牙区 补签事由=其他 及 客观原因（考勤机故障/网络/工牌/系统/消防/司机在外/入职当天等）'
 
 # ===================== 劳务工数据源（独立于正式工，结构对齐便于前端复用） =====================
@@ -1848,7 +1858,7 @@ caption{{caption-side:top;text-align:left;font-weight:700;font-size:15px;padding
     <div class="note-section">
       <div class="note-label">第四板块 · 大区×区域×仓×组</div>
       <ul class="note-list">
-        <li>下钻到 <strong>组（六级部门）</strong>，点击任意组行可展开该组下员工明细：姓名、工号、职位、已补签天数、审批状态。</li>
+        <li>下钻到 <strong>组（六级部门）</strong>，点击任意组行可展开该组下员工明细（日级）：姓名、工号、职位、补签日期、补签事由、备注、审批状态。</li>
         <li>空组显示为 <strong>部门直属</strong>。</li>
       </ul>
     </div>
