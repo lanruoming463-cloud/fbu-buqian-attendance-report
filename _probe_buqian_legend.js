@@ -28,6 +28,9 @@ async function main(){
     // 正式工补签率
     showCell('formal','sign');
     o.formalMajHead=[...document.querySelectorAll('#tableMajor thead th')].map(t=>t.textContent.trim());
+    o.formalMajCols=document.querySelectorAll('#tableMajor thead th').length;
+    const fmRow=document.querySelector('#majorBody tr');
+    o.formalMajRowCols=fmRow?fmRow.querySelectorAll('td').length:null;
     const fmBar=document.querySelector('#majorBody tr .bar>span');
     o.formalMajBarWidth=fmBar?fmBar.style.width:null;
     const fmRate=document.querySelector('#majorBody tr td.rate');
@@ -39,10 +42,14 @@ async function main(){
     const lrow=rows.find(tr=>tr.textContent.includes('欧洲区'))||rows[0];
     if(lrow){
       const tds=[...lrow.querySelectorAll('td')];
-      o.laborEuropeRow=tds.slice(0,7).map(t=>t.textContent.trim());
+      o.laborEuropeRow=tds.slice(0,8).map(t=>t.textContent.trim());
+      o.laborEuropeRowCols=tds.length;
       const bar=lrow.querySelector('.bar>span');
       o.laborEuropeBarWidth=bar?bar.style.width:null;
     }
+    // 组行 colspan（空行/合计行对齐用）
+    const emptyRow=document.querySelector('#grpBody tr td.empty, #detailBody tr td.empty');
+    o.emptyColspan=emptyRow?emptyRow.colSpan:null;
     // 劳务工及时率表头
     showCell('labor','att');
     o.laborAttHead=[...document.querySelectorAll('#tableAttMajor thead th')].map(t=>t.textContent.trim());

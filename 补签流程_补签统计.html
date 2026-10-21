@@ -270,28 +270,28 @@ caption{caption-side:top;text-align:left;font-weight:700;font-size:15px;padding:
 <div class="table-section" id="secMajor">
 <div class="section-caption">一、大区（三级部门）汇总</div>
 <div class="table-wrapper">
-<table id="tableMajor"><thead><tr><th>大区</th><th>补签合计</th><th>已完成</th><th>审批中</th><th>占总体比</th><th class='rate-col'>补签率</th><th>补签率图例</th></tr></thead><tbody id="majorBody"></tbody></table>
+<table id="tableMajor"><thead><tr><th>大区</th><th>补签合计</th><th>已完成</th><th>审批中</th><th class='rate-col'>补签率</th><th>补签率图例</th></tr></thead><tbody id="majorBody"></tbody></table>
 </div>
 </div>
 
 <div class="table-section" id="secDetail">
 <div class="section-caption">二、大区 × 区域（三级部门 × 四级部门）明细</div>
 <div class="table-wrapper">
-<table id="tableDetail"><thead><tr><th>区域（四级部门）</th><th>补签合计</th><th>已完成</th><th>审批中</th><th>占大区比</th><th class='rate-col'>补签率</th><th>补签率图例</th></tr></thead><tbody id="detailBody"></tbody></table>
+<table id="tableDetail"><thead><tr><th>区域（四级部门）</th><th>补签合计</th><th>已完成</th><th>审批中</th><th class='rate-col'>补签率</th><th>补签率图例</th></tr></thead><tbody id="detailBody"></tbody></table>
 </div>
 </div>
 
 <div class="table-section" id="secWh">
-<div class="section-caption">三、大区 × 区域 × 仓（三级部门 × 四级部门 × 五级部门）补签占比</div>
+<div class="section-caption">三、大区 × 区域 × 仓（三级部门 × 四级部门 × 五级部门）补签明细</div>
 <div class="table-wrapper">
-<table id="tableWh"><thead><tr><th>仓（五级部门）</th><th>补签合计</th><th>已完成</th><th>审批中</th><th>占区域比</th><th class='rate-col'>补签率</th><th>补签率图例</th></tr></thead><tbody id="whBody"></tbody></table>
+<table id="tableWh"><thead><tr><th>仓（五级部门）</th><th>补签合计</th><th>已完成</th><th>审批中</th><th class='rate-col'>补签率</th><th>补签率图例</th></tr></thead><tbody id="whBody"></tbody></table>
 </div>
 </div>
 
 <div class="table-section" id="secGrp">
-<div class="section-caption">四、大区 × 区域 × 仓 × 组（三级部门 × 四级部门 × 五级部门 × 六级部门）补签占比　<small style="font-weight:400;color:#64748b">点击组可展开组内员工</small></div>
+<div class="section-caption">四、大区 × 区域 × 仓 × 组（三级部门 × 四级部门 × 五级部门 × 六级部门）补签明细　<small style="font-weight:400;color:#64748b">点击组可展开组内员工</small></div>
 <div class="table-wrapper">
-<table id="tableGrp"><thead><tr><th>组（六级部门）</th><th>补签合计</th><th>已完成</th><th>审批中</th><th>占仓比</th><th class='rate-col'>补签率</th><th>补签率图例</th></tr></thead><tbody id="grpBody"></tbody></table>
+<table id="tableGrp"><thead><tr><th>组（六级部门）</th><th>补签合计</th><th>已完成</th><th>审批中</th><th class='rate-col'>补签率</th><th>补签率图例</th></tr></thead><tbody id="grpBody"></tbody></table>
 </div>
 </div>
 
@@ -567,9 +567,9 @@ function render() {
   const ingCell = (r) => showIng ? `<td class='num'>${r['审批中']}</td>` : '';
   // 图例条宽度 = 补签率（与左侧补签率列同值；rate 缺失时按 已完成/total 兜底）
   const barW = (r) => Math.min(100, r.rate != null ? r.rate : (r.total ? (r['已完成'] / r.total * 100) : 0));
-  const headCols = (firstLabel) => `<th>${firstLabel}</th>${ydkTh}<th>${labelTotal}</th><th>${labelDone}</th>${showIng ? `<th>${ingLabel}</th>` : ''}<th>占总体比</th>${rateTh}<th>补签率图例</th>`;
-  // 动态列数（用于空行/合计行的 colspan）：首列 + 应打卡 + 总数 + 已完成 + 审批中 + 占总体比 + 补签率 + 图例
-  C = 5 + (showYdk ? 1 : 0) + (showIng ? 1 : 0) + (showRate ? 1 : 0);
+  const headCols = (firstLabel) => `<th>${firstLabel}</th>${ydkTh}<th>${labelTotal}</th><th>${labelDone}</th>${showIng ? `<th>${ingLabel}</th>` : ''}${rateTh}<th>补签率图例</th>`;
+  // 动态列数（用于空行/合计行的 colspan）：首列 + 应打卡 + 总数 + 已完成 + 审批中 + 补签率 + 图例
+  C = 4 + (showYdk ? 1 : 0) + (showIng ? 1 : 0) + (showRate ? 1 : 0);
   document.querySelector('#tableMajor thead tr').innerHTML = headCols('大区');
   document.querySelector('#tableDetail thead tr').innerHTML = headCols('区域（四级部门）');
   document.querySelector('#tableWh thead tr').innerHTML = headCols('仓（五级部门）');
@@ -587,7 +587,7 @@ function render() {
   } else {
     mb.innerHTML = d.major.map(r => {
       const bar = `<div class='bar'><span style='width:${barW(r)}%'></span></div>`;
-      return `<tr data-major="${attrEsc(r.name)}"><td>${esc(r.name)}</td>${ydkCell(r)}<td class='num'>${fmt(r.total)}</td><td class='num'>${r['已完成']}</td>${ingCell(r)}<td class='num'>${r.pct}%</td>${rateCell(r)}<td>${bar}</td></tr>`;
+      return `<tr data-major="${attrEsc(r.name)}"><td>${esc(r.name)}</td>${ydkCell(r)}<td class='num'>${fmt(r.total)}</td><td class='num'>${r['已完成']}</td>${ingCell(r)}${rateCell(r)}<td>${bar}</td></tr>`;
     }).join('');
   }
 
@@ -603,7 +603,7 @@ function render() {
         html += `<tr class='grp major-row2' data-major="${cur}" data-expanded="true" onclick="toggleMajor2(this)"><td colspan='${C}'><span class='fold-icon'>▾</span> ${cur}（大区合计 ${fmt(mt)}）</td></tr>`;
       }
       const bar = `<div class='bar'><span style='width:${barW(r)}%'></span></div>`;
-      html += `<tr class='region-row2' data-major="${attrEsc(cur)}" data-region="${attrEsc(r.region)}"><td class='indent'>${esc(r.region)}</td>${ydkCell(r)}<td class='num'>${fmt(r.total)}</td><td class='num'>${r['已完成']}</td>${ingCell(r)}<td class='num'>${r.pctMajor}%</td>${rateCell(r)}<td>${bar}</td></tr>`;
+      html += `<tr class='region-row2' data-major="${attrEsc(cur)}" data-region="${attrEsc(r.region)}"><td class='indent'>${esc(r.region)}</td>${ydkCell(r)}<td class='num'>${fmt(r.total)}</td><td class='num'>${r['已完成']}</td>${ingCell(r)}${rateCell(r)}<td>${bar}</td></tr>`;
     });
     db.innerHTML = html;
   }
@@ -628,7 +628,7 @@ function render() {
         html += `<tr class='subgrp region-row' data-major="${curMajor}" data-region="${curRegion}" data-expanded="true" onclick="toggleRegion(this)"><td colspan='${C}'><span class='fold-icon'>▾</span> ${curRegion}（区域合计 ${fmt(rt)}）</td></tr>`;
       }
       const bar = `<div class='bar'><span style='width:${barW(r)}%'></span></div>`;
-      html += `<tr class='wh-row' data-major="${curMajor}" data-region="${curRegion}"><td class='indent2'>${r.wh}</td>${ydkCell(r)}<td class='num'>${fmt(r.total)}</td><td class='num'>${r['已完成']}</td>${ingCell(r)}<td class='num'>${r.pctRegion}%</td>${rateCell(r)}<td>${bar}</td></tr>`;
+      html += `<tr class='wh-row' data-major="${curMajor}" data-region="${curRegion}"><td class='indent2'>${r.wh}</td>${ydkCell(r)}<td class='num'>${fmt(r.total)}</td><td class='num'>${r['已完成']}</td>${ingCell(r)}${rateCell(r)}<td>${bar}</td></tr>`;
     });
     wb.innerHTML = html;
   }
@@ -670,7 +670,7 @@ function render() {
         html += `<tr class='subgrp3 wh-row-g' data-major="${curMajor}" data-region="${curRegion}" data-wh="${curWh}" data-expanded="true" onclick="toggleWhG(this)"><td colspan='${C}'><span class='fold-icon'>▾</span> ${curWh}（仓合计 ${fmt(wt)}）</td></tr>`;
       }
       const bar = `<div class='bar'><span style='width:${barW(r)}%'></span></div>`;
-      html += `<tr class='group-row' data-major="${attrEsc(curMajor)}" data-region="${attrEsc(curRegion)}" data-wh="${attrEsc(curWh)}" data-group="${attrEsc(r.group)}" data-expanded="false" onclick="toggleEmp(this)"><td class='indent3'><span class='fold-icon'>▸</span> ${esc(r.group)} <span class='emp-count'>（点击展开员工）</span></td>${ydkCell(r)}<td class='num'>${fmt(r.total)}</td><td class='num'>${r['已完成']}</td>${ingCell(r)}<td class='num'>${r.pctWh}%</td>${rateCell(r)}<td>${bar}</td></tr>`;
+      html += `<tr class='group-row' data-major="${attrEsc(curMajor)}" data-region="${attrEsc(curRegion)}" data-wh="${attrEsc(curWh)}" data-group="${attrEsc(r.group)}" data-expanded="false" onclick="toggleEmp(this)"><td class='indent3'><span class='fold-icon'>▸</span> ${esc(r.group)} <span class='emp-count'>（点击展开员工）</span></td>${ydkCell(r)}<td class='num'>${fmt(r.total)}</td><td class='num'>${r['已完成']}</td>${ingCell(r)}${rateCell(r)}<td>${bar}</td></tr>`;
     });
     gb.innerHTML = html;
   }

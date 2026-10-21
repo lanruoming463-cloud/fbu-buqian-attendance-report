@@ -342,7 +342,6 @@ with pd.ExcelWriter(OUT_XLSX, engine='openpyxl') as xw:
             '补签率 = 已补签数 ÷ 考勤记录总数 × 100%。跨 2026-06~09 累加。',
             '已剔除大区（整类）：海外销售部、FBU财务部、渠道管理部、LD 法务部、FBU技术部、平台业务部、品牌客户部；已剔除区域（HRBP部内）：国内HRBP组、美洲支持HRBP组、美洲支持bp组、欧亚支持bp组、欧亚支持HRBP组。',
             '维度：三级部门（大区）× 四级部门（区域）× 五级部门（仓）× 六级部门（组）。加拿大区归入美洲区。',
-            '占比口径：大区「占总体比」= 已补签数 ÷ 全口径考勤记录总数；区域「占大区比」= 已补签数 ÷ 所属大区已补签数；仓「占区域比」= 已补签数 ÷ 所属区域考勤记录总数；组「占仓比」= 已补签数 ÷ 所属仓考勤记录总数。',
             '组下员工明细（考勤为基，日级）：每条=该员工某天被补签通过的考勤人日，含补签日期/补签事由/备注，职位取自花名册，审批状态=已完成。',
             '各区补签 Top10 员工（考勤为基）：按 大区×区域×工号 聚合补签天数（>3 天），各区取前 10，并标主属仓/主属组。',
             '考勤确认及时率（正式工/劳务工）看板：见 sheet「考勤确认及时性_*」。劳务工数据源为《劳务工工时》考勤 sheet（2026-06~07 两份，约 41 万行）；区域归入三大区，口径同正式工考勤确认及时率。补签率=应补签数÷应打卡次数；及时确认率下降代表及时性变差。',
@@ -354,8 +353,7 @@ with pd.ExcelWriter(OUT_XLSX, engine='openpyxl') as xw:
     _rows = []
     for name, v in _maj.items():
         _rows.append({'大区': name, '考勤记录总数': v['den'], '已补签数': v['num'],
-                      '补签率': round(v['num'] / v['den'] * 100, 1) if v['den'] else 0,
-                      '占总体比': round(v['num'] / _grand_den * 100, 1) if _grand_den else 0})
+                      '补签率': round(v['num'] / v['den'] * 100, 1) if v['den'] else 0})
     _g = pd.DataFrame(_rows)
     _g['__o'] = _g['大区'].map(MAJOR_IDX).fillna(len(MAJOR_ORDER)).astype(int)
     _g = _g.sort_values('__o').drop(columns='__o').reset_index(drop=True)
@@ -365,8 +363,7 @@ with pd.ExcelWriter(OUT_XLSX, engine='openpyxl') as xw:
     _rows = []
     for (maj, reg), v in _det.items():
         _rows.append({'大区': maj, '区域': reg, '考勤记录总数': v['den'], '已补签数': v['num'],
-                      '补签率': round(v['num'] / v['den'] * 100, 1) if v['den'] else 0,
-                      '占大区比': round(v['num'] / _maj[maj]['num'] * 100, 1) if _maj[maj]['num'] else 0})
+                      '补签率': round(v['num'] / v['den'] * 100, 1) if v['den'] else 0})
     _c = pd.DataFrame(_rows)
     _c['__mo'] = _c['大区'].map(MAJOR_IDX).fillna(len(MAJOR_ORDER)).astype(int)
     _c['__ro'] = [region_idx(m, r) for m, r in zip(_c['大区'], _c['区域'])]
@@ -377,8 +374,7 @@ with pd.ExcelWriter(OUT_XLSX, engine='openpyxl') as xw:
     _rows = []
     for (maj, reg, wh), v in _wh.items():
         _rows.append({'大区': maj, '区域': reg, '仓': wh, '考勤记录总数': v['den'], '已补签数': v['num'],
-                      '补签率': round(v['num'] / v['den'] * 100, 1) if v['den'] else 0,
-                      '占区域比': round(v['num'] / _det[(maj, reg)]['den'] * 100, 1) if _det[(maj, reg)]['den'] else 0})
+                      '补签率': round(v['num'] / v['den'] * 100, 1) if v['den'] else 0})
     _w = pd.DataFrame(_rows)
     _w['__mo'] = _w['大区'].map(MAJOR_IDX).fillna(len(MAJOR_ORDER)).astype(int)
     _w['__ro'] = [region_idx(m, r) for m, r in zip(_w['大区'], _w['区域'])]
@@ -389,8 +385,7 @@ with pd.ExcelWriter(OUT_XLSX, engine='openpyxl') as xw:
     _rows = []
     for (maj, reg, wh, gp), v in _gp.items():
         _rows.append({'大区': maj, '区域': reg, '仓': wh, '组': gp, '考勤记录总数': v['den'], '已补签数': v['num'],
-                      '补签率': round(v['num'] / v['den'] * 100, 1) if v['den'] else 0,
-                      '占仓比': round(v['num'] / _wh[(maj, reg, wh)]['den'] * 100, 1) if _wh[(maj, reg, wh)]['den'] else 0})
+                      '补签率': round(v['num'] / v['den'] * 100, 1) if v['den'] else 0})
     _p = pd.DataFrame(_rows)
     _p['__mo'] = _p['大区'].map(MAJOR_IDX).fillna(len(MAJOR_ORDER)).astype(int)
     _p['__ro'] = [region_idx(m, r) for m, r in zip(_p['大区'], _p['区域'])]
@@ -1792,28 +1787,28 @@ caption{{caption-side:top;text-align:left;font-weight:700;font-size:15px;padding
 <div class="table-section" id="secMajor">
 <div class="section-caption">一、大区（三级部门）汇总</div>
 <div class="table-wrapper">
-<table id="tableMajor"><thead><tr><th>大区</th><th>补签合计</th><th>已完成</th><th>审批中</th><th>占总体比</th><th class='rate-col'>补签率</th><th>补签率图例</th></tr></thead><tbody id="majorBody"></tbody></table>
+<table id="tableMajor"><thead><tr><th>大区</th><th>补签合计</th><th>已完成</th><th>审批中</th><th class='rate-col'>补签率</th><th>补签率图例</th></tr></thead><tbody id="majorBody"></tbody></table>
 </div>
 </div>
 
 <div class="table-section" id="secDetail">
 <div class="section-caption">二、大区 × 区域（三级部门 × 四级部门）明细</div>
 <div class="table-wrapper">
-<table id="tableDetail"><thead><tr><th>区域（四级部门）</th><th>补签合计</th><th>已完成</th><th>审批中</th><th>占大区比</th><th class='rate-col'>补签率</th><th>补签率图例</th></tr></thead><tbody id="detailBody"></tbody></table>
+<table id="tableDetail"><thead><tr><th>区域（四级部门）</th><th>补签合计</th><th>已完成</th><th>审批中</th><th class='rate-col'>补签率</th><th>补签率图例</th></tr></thead><tbody id="detailBody"></tbody></table>
 </div>
 </div>
 
 <div class="table-section" id="secWh">
-<div class="section-caption">三、大区 × 区域 × 仓（三级部门 × 四级部门 × 五级部门）补签占比</div>
+<div class="section-caption">三、大区 × 区域 × 仓（三级部门 × 四级部门 × 五级部门）补签明细</div>
 <div class="table-wrapper">
-<table id="tableWh"><thead><tr><th>仓（五级部门）</th><th>补签合计</th><th>已完成</th><th>审批中</th><th>占区域比</th><th class='rate-col'>补签率</th><th>补签率图例</th></tr></thead><tbody id="whBody"></tbody></table>
+<table id="tableWh"><thead><tr><th>仓（五级部门）</th><th>补签合计</th><th>已完成</th><th>审批中</th><th class='rate-col'>补签率</th><th>补签率图例</th></tr></thead><tbody id="whBody"></tbody></table>
 </div>
 </div>
 
 <div class="table-section" id="secGrp">
-<div class="section-caption">四、大区 × 区域 × 仓 × 组（三级部门 × 四级部门 × 五级部门 × 六级部门）补签占比　<small style="font-weight:400;color:#64748b">点击组可展开组内员工</small></div>
+<div class="section-caption">四、大区 × 区域 × 仓 × 组（三级部门 × 四级部门 × 五级部门 × 六级部门）补签明细　<small style="font-weight:400;color:#64748b">点击组可展开组内员工</small></div>
 <div class="table-wrapper">
-<table id="tableGrp"><thead><tr><th>组（六级部门）</th><th>补签合计</th><th>已完成</th><th>审批中</th><th>占仓比</th><th class='rate-col'>补签率</th><th>补签率图例</th></tr></thead><tbody id="grpBody"></tbody></table>
+<table id="tableGrp"><thead><tr><th>组（六级部门）</th><th>补签合计</th><th>已完成</th><th>审批中</th><th class='rate-col'>补签率</th><th>补签率图例</th></tr></thead><tbody id="grpBody"></tbody></table>
 </div>
 </div>
 
@@ -2089,9 +2084,9 @@ function render() {{
   const ingCell = (r) => showIng ? `<td class='num'>${{r['审批中']}}</td>` : '';
   // 图例条宽度 = 补签率（与左侧补签率列同值；rate 缺失时按 已完成/total 兜底）
   const barW = (r) => Math.min(100, r.rate != null ? r.rate : (r.total ? (r['已完成'] / r.total * 100) : 0));
-  const headCols = (firstLabel) => `<th>${{firstLabel}}</th>${{ydkTh}}<th>${{labelTotal}}</th><th>${{labelDone}}</th>${{showIng ? `<th>${{ingLabel}}</th>` : ''}}<th>占总体比</th>${{rateTh}}<th>补签率图例</th>`;
-  // 动态列数（用于空行/合计行的 colspan）：首列 + 应打卡 + 总数 + 已完成 + 审批中 + 占总体比 + 补签率 + 图例
-  C = 5 + (showYdk ? 1 : 0) + (showIng ? 1 : 0) + (showRate ? 1 : 0);
+  const headCols = (firstLabel) => `<th>${{firstLabel}}</th>${{ydkTh}}<th>${{labelTotal}}</th><th>${{labelDone}}</th>${{showIng ? `<th>${{ingLabel}}</th>` : ''}}${{rateTh}}<th>补签率图例</th>`;
+  // 动态列数（用于空行/合计行的 colspan）：首列 + 应打卡 + 总数 + 已完成 + 审批中 + 补签率 + 图例
+  C = 4 + (showYdk ? 1 : 0) + (showIng ? 1 : 0) + (showRate ? 1 : 0);
   document.querySelector('#tableMajor thead tr').innerHTML = headCols('大区');
   document.querySelector('#tableDetail thead tr').innerHTML = headCols('区域（四级部门）');
   document.querySelector('#tableWh thead tr').innerHTML = headCols('仓（五级部门）');
@@ -2109,7 +2104,7 @@ function render() {{
   }} else {{
     mb.innerHTML = d.major.map(r => {{
       const bar = `<div class='bar'><span style='width:${{barW(r)}}%'></span></div>`;
-      return `<tr data-major="${{attrEsc(r.name)}}"><td>${{esc(r.name)}}</td>${{ydkCell(r)}}<td class='num'>${{fmt(r.total)}}</td><td class='num'>${{r['已完成']}}</td>${{ingCell(r)}}<td class='num'>${{r.pct}}%</td>${{rateCell(r)}}<td>${{bar}}</td></tr>`;
+      return `<tr data-major="${{attrEsc(r.name)}}"><td>${{esc(r.name)}}</td>${{ydkCell(r)}}<td class='num'>${{fmt(r.total)}}</td><td class='num'>${{r['已完成']}}</td>${{ingCell(r)}}${{rateCell(r)}}<td>${{bar}}</td></tr>`;
     }}).join('');
   }}
 
@@ -2125,7 +2120,7 @@ function render() {{
         html += `<tr class='grp major-row2' data-major="${{cur}}" data-expanded="true" onclick="toggleMajor2(this)"><td colspan='${{C}}'><span class='fold-icon'>▾</span> ${{cur}}（大区合计 ${{fmt(mt)}}）</td></tr>`;
       }}
       const bar = `<div class='bar'><span style='width:${{barW(r)}}%'></span></div>`;
-      html += `<tr class='region-row2' data-major="${{attrEsc(cur)}}" data-region="${{attrEsc(r.region)}}"><td class='indent'>${{esc(r.region)}}</td>${{ydkCell(r)}}<td class='num'>${{fmt(r.total)}}</td><td class='num'>${{r['已完成']}}</td>${{ingCell(r)}}<td class='num'>${{r.pctMajor}}%</td>${{rateCell(r)}}<td>${{bar}}</td></tr>`;
+      html += `<tr class='region-row2' data-major="${{attrEsc(cur)}}" data-region="${{attrEsc(r.region)}}"><td class='indent'>${{esc(r.region)}}</td>${{ydkCell(r)}}<td class='num'>${{fmt(r.total)}}</td><td class='num'>${{r['已完成']}}</td>${{ingCell(r)}}${{rateCell(r)}}<td>${{bar}}</td></tr>`;
     }});
     db.innerHTML = html;
   }}
@@ -2150,7 +2145,7 @@ function render() {{
         html += `<tr class='subgrp region-row' data-major="${{curMajor}}" data-region="${{curRegion}}" data-expanded="true" onclick="toggleRegion(this)"><td colspan='${{C}}'><span class='fold-icon'>▾</span> ${{curRegion}}（区域合计 ${{fmt(rt)}}）</td></tr>`;
       }}
       const bar = `<div class='bar'><span style='width:${{barW(r)}}%'></span></div>`;
-      html += `<tr class='wh-row' data-major="${{curMajor}}" data-region="${{curRegion}}"><td class='indent2'>${{r.wh}}</td>${{ydkCell(r)}}<td class='num'>${{fmt(r.total)}}</td><td class='num'>${{r['已完成']}}</td>${{ingCell(r)}}<td class='num'>${{r.pctRegion}}%</td>${{rateCell(r)}}<td>${{bar}}</td></tr>`;
+      html += `<tr class='wh-row' data-major="${{curMajor}}" data-region="${{curRegion}}"><td class='indent2'>${{r.wh}}</td>${{ydkCell(r)}}<td class='num'>${{fmt(r.total)}}</td><td class='num'>${{r['已完成']}}</td>${{ingCell(r)}}${{rateCell(r)}}<td>${{bar}}</td></tr>`;
     }});
     wb.innerHTML = html;
   }}
@@ -2192,7 +2187,7 @@ function render() {{
         html += `<tr class='subgrp3 wh-row-g' data-major="${{curMajor}}" data-region="${{curRegion}}" data-wh="${{curWh}}" data-expanded="true" onclick="toggleWhG(this)"><td colspan='${{C}}'><span class='fold-icon'>▾</span> ${{curWh}}（仓合计 ${{fmt(wt)}}）</td></tr>`;
       }}
       const bar = `<div class='bar'><span style='width:${{barW(r)}}%'></span></div>`;
-      html += `<tr class='group-row' data-major="${{attrEsc(curMajor)}}" data-region="${{attrEsc(curRegion)}}" data-wh="${{attrEsc(curWh)}}" data-group="${{attrEsc(r.group)}}" data-expanded="false" onclick="toggleEmp(this)"><td class='indent3'><span class='fold-icon'>▸</span> ${{esc(r.group)}} <span class='emp-count'>（点击展开员工）</span></td>${{ydkCell(r)}}<td class='num'>${{fmt(r.total)}}</td><td class='num'>${{r['已完成']}}</td>${{ingCell(r)}}<td class='num'>${{r.pctWh}}%</td>${{rateCell(r)}}<td>${{bar}}</td></tr>`;
+      html += `<tr class='group-row' data-major="${{attrEsc(curMajor)}}" data-region="${{attrEsc(curRegion)}}" data-wh="${{attrEsc(curWh)}}" data-group="${{attrEsc(r.group)}}" data-expanded="false" onclick="toggleEmp(this)"><td class='indent3'><span class='fold-icon'>▸</span> ${{esc(r.group)}} <span class='emp-count'>（点击展开员工）</span></td>${{ydkCell(r)}}<td class='num'>${{fmt(r.total)}}</td><td class='num'>${{r['已完成']}}</td>${{ingCell(r)}}${{rateCell(r)}}<td>${{bar}}</td></tr>`;
     }});
     gb.innerHTML = html;
   }}
