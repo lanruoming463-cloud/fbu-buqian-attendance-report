@@ -687,11 +687,11 @@ function render() {
     d.detail.forEach(r => {
       if (r.major !== curMajor) {
         curMajor = r.major;
-        html += `<tr class='grp major-row-t' data-major="${attrEsc(curMajor)}" data-expanded="true" onclick="toggleMajorT(this)"><td colspan='" + topColCount + "'><span class='fold-icon'>▾</span> ${esc(curMajor)}</td></tr>`;
+        html += `<tr class='grp major-row-t' data-major="${attrEsc(curMajor)}" data-expanded="true" onclick="toggleMajorT(this)"><td colspan='${topColCount}'><span class='fold-icon'>▾</span> ${esc(curMajor)}</td></tr>`;
       }
       const rk = r.major + '|' + r.region;
       const emps = topEmpIndex[rk] || [];
-      html += `<tr class='subgrp region-row-t' data-major="${attrEsc(curMajor)}" data-region="${attrEsc(r.region)}" data-expanded="true" onclick="toggleRegionT(this)"><td colspan='" + topColCount + "'><span class='fold-icon'>▾</span> ${r.region}（区域合计 ${fmt(r.total)}）<span class='emp-count'>　Top ${emps.length} 员工</span></td></tr>`;
+      html += `<tr class='subgrp region-row-t' data-major="${attrEsc(curMajor)}" data-region="${attrEsc(r.region)}" data-expanded="true" onclick="toggleRegionT(this)"><td colspan='${topColCount}'><span class='fold-icon'>▾</span> ${r.region}（区域合计 ${fmt(r.total)}）<span class='emp-count'>　Top ${emps.length} 员工</span></td></tr>`;
       emps.forEach((e, i) => {
         const zg = payload.type === 'labor' ? (e.gongzhong || '—') : (e.zhiwei || '—');
         if (isAtt) {
@@ -701,7 +701,7 @@ function render() {
         }
       });
       if (!emps.length) {
-        html += `<tr class='top-emp-row' data-major="${attrEsc(curMajor)}" data-region="${attrEsc(r.region)}"><td class='indent2 empty' colspan='" + topColCount + "'>该区域无补签次数大于3次的员工</td></tr>`;
+        html += `<tr class='top-emp-row' data-major="${attrEsc(curMajor)}" data-region="${attrEsc(r.region)}"><td class='indent2 empty' colspan='${topColCount}'>该区域无补签次数大于3次的员工</td></tr>`;
       }
     });
     tb.innerHTML = html;
