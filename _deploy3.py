@@ -103,7 +103,7 @@ if p.returncode != 0:
 log('reset ok at', head[:9])
 
 # ---- 5. 覆盖 index.html + commit（commit 信息按需修改） ----
-COMMIT_MSG = 'feat: 补签率两板块(正式工/劳务工)移除占总体比列,HTML表头与Excel 4个补签率sheet同步'
+COMMIT_MSG = 'feat: 劳务工补签率改为考勤为基口径(已补签数/考勤记录总数),与正式工结构统一,仅按月维度并隐藏日/周切换'
 shutil.copyfile(HTML, os.path.join(REPO, 'index.html'))
 run([GIT, 'add', '-A'], cwd=REPO)
 p = run([GIT, 'status', '--porcelain'], cwd=REPO)

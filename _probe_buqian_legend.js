@@ -35,24 +35,36 @@ async function main(){
     o.formalMajBarWidth=fmBar?fmBar.style.width:null;
     const fmRate=document.querySelector('#majorBody tr td.rate');
     o.formalMajRate=fmRate?fmRate.textContent.trim():null;
-    // 劳务工补签率（默认月=最新）
+    // 劳务工补签率（默认月=最新，考勤为基）
     showCell('labor','sign');
     o.laborMajHead=[...document.querySelectorAll('#tableMajor thead th')].map(t=>t.textContent.trim());
+    o.laborMajCols=document.querySelectorAll('#tableMajor thead th').length;
+    o.laborKpiTotalL=document.getElementById('cTotalL')?document.getElementById('cTotalL').textContent.trim():null;
+    o.laborKpiDoneL=document.getElementById('cDoneL')?document.getElementById('cDoneL').textContent.trim():null;
+    o.laborKpiIngL=document.getElementById('cIngL')?document.getElementById('cIngL').textContent.trim():null;
+    o.laborHasYdkCol=o.laborMajHead.some(h=>h.includes('应打卡'));
+    o.laborHasIngCol=o.laborMajHead.some(h=>h.includes('未完成')||h.includes('审批中'));
+    o.laborDayBtnDisplay=document.getElementById('btnDay')?document.getElementById('btnDay').style.display:null;
+    o.laborWeekBtnDisplay=document.getElementById('btnWeek')?document.getElementById('btnWeek').style.display:null;
     const rows=[...document.querySelectorAll('#majorBody tr')].filter(tr=>tr.querySelector('.bar>span'));
     const lrow=rows.find(tr=>tr.textContent.includes('欧洲区'))||rows[0];
     if(lrow){
       const tds=[...lrow.querySelectorAll('td')];
-      o.laborEuropeRow=tds.slice(0,8).map(t=>t.textContent.trim());
+      o.laborEuropeRow=tds.map(t=>t.textContent.trim());
       o.laborEuropeRowCols=tds.length;
       const bar=lrow.querySelector('.bar>span');
       o.laborEuropeBarWidth=bar?bar.style.width:null;
+      const rateTd=lrow.querySelector('td.rate');
+      o.laborEuropeRate=rateTd?rateTd.textContent.trim():null;
     }
     // 组行 colspan（空行/合计行对齐用）
     const emptyRow=document.querySelector('#grpBody tr td.empty, #detailBody tr td.empty');
     o.emptyColspan=emptyRow?emptyRow.colSpan:null;
-    // 劳务工及时率表头
-    showCell('labor','att');
-    o.laborAttHead=[...document.querySelectorAll('#tableAttMajor thead th')].map(t=>t.textContent.trim());
+    // 劳务工及时率表头（独立捕获，避免 renderAttend 未定义导致整体丢失）
+    try {
+      showCell('labor','att');
+      o.laborAttHead=[...document.querySelectorAll('#tableAttMajor thead th')].map(t=>t.textContent.trim());
+    } catch(e2) { o.laborAttErr=e2.message; }
     return JSON.stringify(o);
   }catch(e){ return JSON.stringify({FATAL:e.message}); } })()`,returnByValue:true});
   const v=r.result&&r.result.result?r.result.result.value:null;
