@@ -103,7 +103,7 @@ if p.returncode != 0:
 log('reset ok at', head[:9])
 
 # ---- 5. 覆盖 index.html + commit（commit 信息按需修改） ----
-COMMIT_MSG = 'feat: T+1增量注入10.16-10.20考勤确认及时率(正式工+劳务工),数据范围扩至10.1-10.20'
+COMMIT_MSG = 'feat: 劳务工补签9月启用新剔除口径(补签记录文件:入职当天/西班牙区-其他/日本区-提前打卡/备注客观因素)'
 shutil.copyfile(HTML, os.path.join(REPO, 'index.html'))
 run([GIT, 'add', '-A'], cwd=REPO)
 p = run([GIT, 'status', '--porcelain'], cwd=REPO)

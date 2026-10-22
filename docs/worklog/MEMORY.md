@@ -10,6 +10,7 @@
 - 劳务工补签率（2026-10-21 起）改为**考勤为基**口径，与正式工完全一致：分母=考勤记录总数（人日=全量考勤行），分子=首/末打卡补签时间非空 且 非客观因素（is_top_exclude 检查 修改原因/备注）；补签率两板块均移除占总体比列、移除应打卡合计/未完成列，表头统一 5 列=[大区,考勤记录总数,已补签数,补签率,补签率图例]；劳务工也仅按月（days_l=[]，隐藏日/周按钮）。核心函数 `agg_period_labor_att`（与 _att_block 同构）；Excel 新增 6 个「劳务工_*」补签率 sheet。aggRange JS 补签率=已完成/total。探针注意：renderAttend 未定义系时序误报（attend script 解析需 ~1s）。release 7699063854717799723。
 - **体积红线**：att_excel（Excel 专用全量明细）不得随 payload 序列化进 HTML——曾致 54MB 超妙搭发布上限；gen_buqian_stats.py 已在 Excel 追加后 pop('att_excel')，HTML 10.36MB。修复发布 release 7699065068139334920。
 - **日期组件规则（2026-10-21）**：考勤确认及时率（正式工 gen 视图/劳务工 attend 视图）=按天/按周/按月 全组件；仅补签率两板块（正式工/劳务工）仅按月隐藏日/周。关键点：showCell 切换视图时必须恢复 btnDay/btnWeek 的 display（showAtt/showGen 分支已固化）。release 7699069573207018790。
+- **T+1 注入回退教训（2026-10-22）**：全量重跑 gen_buqian_stats.py 会丢失已注入的 T+1 日块（源文件仅到注入时点）——重跑后必须重新注入其后所有 T+1 文件。`_inject_1020.py` 已支持多文件列表循环（FORMAL_FILES/LABOR_FILES），可直接复用为补齐脚本；数据范围现 10.1–10.20（release 7699310530578992373）。
 
 ## GitHub 同步机制（2026-10-10 修订）
 - _github_sync.py 同步范围：核心脚本(gen_buqian_stats/_deploy3/_github_sync)、README/.gitignore、无头探针(_probe*)、口径诊断脚本(_diag/_check/_explore)、发布说明(*发布说明*.md)、docs/ 递归、T+1看板核心脚本、报表产物(HTML/xlsx)、attend_acc_data.json。
