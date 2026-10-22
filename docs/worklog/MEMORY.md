@@ -16,3 +16,8 @@
 - _github_sync.py 同步范围：核心脚本(gen_buqian_stats/_deploy3/_github_sync)、README/.gitignore、无头探针(_probe*)、口径诊断脚本(_diag/_check/_explore)、发布说明(*发布说明*.md)、docs/ 递归、T+1看板核心脚本、报表产物(HTML/xlsx)、attend_acc_data.json。
 - 日志路径分离：.workbuddy/memory/*.md 存 docs/worklog/；docs/devlog/*.md 为真实开发日志，两者同名不可混放(曾因去重被记忆日志覆盖，已修)。
 - 仓库公开(lanruoming463-cloud/fbu-buqian-attendance-report)；PAT 存 .github_token(gitignored)；发布联动 + 每日22:30兜底。
+
+## 劳务工补签剔除规则（2026-10-22 更新）
+- 新规则（参考正式工+区域特例）：补签原因=入职当天(含初次报道/首次报道)全剔除；西班牙区+其他剔除；日本区+提前打卡剔除；其余按备注客观因素(is_top_exclude)剔除。补签原因只存在于《劳务工-补签记录-*.xls》(OTWS-打卡数据,实为xlsx)——考勤表异常原因/修改原因不含补签原因。
+- 现状：仅 2026-09 用新口径（gen_buqian_stats.py 内 9月覆盖块）；6/7/8月暂无补签记录文件维持旧口径，月度趋势有台阶（西班牙区 8月44.0%→9月1.6%）。补齐 6-8月文件后在 gen 里把 BUQIAN_REC_LABOR 扩为月度映射即可统一。
+- 匹配口径：(工号,打卡时间→考勤日期) 匹配考勤表 且该行首/末打卡补签时间非空；按(工号,考勤日期)去重=补签人日。全量重跑后须重跑 _inject_1020.py 并手动 cp _injected_1020.html 覆盖主 HTML（脚本不自动 cp）。release 7699377540092431604。

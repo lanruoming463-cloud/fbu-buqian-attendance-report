@@ -1162,6 +1162,9 @@ def build_attend_payload_v2():
     untimely_details = []
     for p in LABOR_GS_FILES:
         _recs, _uts = _read_attend_detail_gs(p)
+        # 离职员工剔除（用户 2026-10-22）：西班牙区 ZHANG NAN / zt0021903 已于 2026-09 底离职，剔除其 2026-10 全部考勤确认率数据
+        _recs = [x for x in _recs if not (str(x['gong']).strip() == 'zt0021903' and str(x['date']).startswith('2026-10'))]
+        _uts = [u for u in _uts if not (str(u['row'][1]).strip() == 'zt0021903' and str(u['date']).startswith('2026-10'))]
         all_recs.extend(_recs)
         untimely_details.extend(_uts)
     if _UNMAPPED_REGIONS:
@@ -1229,7 +1232,7 @@ def build_attend_payload_v2():
                                 'wh': w, 'group': g, 'unc': a['yqr'] - a['sjqr']})
     topEmpIndex = {}
     for (m, rg), lst in top_by.items():
-        lst = [x for x in lst if x['unc'] > 0]
+        lst = [x for x in lst if x['unc'] > 3]
         lst.sort(key=lambda x: -x['unc'])
         topEmpIndex[f"{m}|{rg}"] = lst[:10]
 
@@ -1240,7 +1243,7 @@ def build_attend_payload_v2():
                                     'wh': w, 'group': g, 'ldk': a['ldk']})
     topEmpIndexLdk = {}
     for (m, rg), lst in top_by_ldk.items():
-        lst = [x for x in lst if x['ldk'] > 0]
+        lst = [x for x in lst if x['ldk'] > 3]
         lst.sort(key=lambda x: -x['ldk'])
         topEmpIndexLdk[f"{m}|{rg}"] = lst[:10]
 
@@ -1262,11 +1265,11 @@ def build_attend_payload_v2():
                                   'wh': w, 'group': g, 'ldk': a['ldk']})
         i1, i2 = {}, {}
         for (m, rg), lst in tb_m.items():
-            lst = [x for x in lst if x['unc'] > 0]
+            lst = [x for x in lst if x['unc'] > 3]
             lst.sort(key=lambda x: -x['unc'])
             i1[f"{m}|{rg}"] = lst[:10]
         for (m, rg), lst in tl_m.items():
-            lst = [x for x in lst if x['ldk'] > 0]
+            lst = [x for x in lst if x['ldk'] > 3]
             lst.sort(key=lambda x: -x['ldk'])
             i2[f"{m}|{rg}"] = lst[:10]
         topEmpIndexM[ym_] = i1
@@ -1426,11 +1429,13 @@ FORMAL_HRBP_EXCLUDE = {'国内HRBP组', '美洲支持HRBP组', '美洲支持bp�
 FORMAL_OTHER_MAJORS = {'海外销售部', '渠道管理部', 'LD 法务部', 'FBU技术部', '平台业务部', '品牌客户部'}
 # 正式工考勤确认「白名单」员工（用户 2026-10-16）：该员工会申请白名单，其考勤确认统一算 正常/及时，不计入异常与未及时确认
 FORMAL_ATT_WHITELIST = {'zt0022905'}
+# 正式工考勤确认「离职剔除」员工（用户 2026-10-22）：西班牙区 ZHANG NAN / zt0021903 已于 2026-09 底离职，剔除其 2026-10 全部考勤确认率数据（仅 10 月，6/7 月在职不受影响）
+FORMAL_ATT_EXCLUDE_OCT = {'zt0021903'}
 
 
 def _build_formal_recs():
     recs = []
-    excluded = {'财务部': 0, '四级部门为空': 0, 'HRBP剔除-国内/支持组': 0, '其他(非三大区/HRBP)': 0}
+    excluded = {'财务部': 0, '四级部门为空': 0, 'HRBP剔除-国内/支持组': 0, '其他(非三大区/HRBP)': 0, '离职剔除-10月': 0}
     for f in FORMAL_ATT_FILES:
         df = pd.read_excel(f, sheet_name=FORMAL_ATT_SHEET)
         df['_d'] = pd.to_datetime(df['考勤日期'], errors='coerce')
@@ -1467,6 +1472,10 @@ def _build_formal_recs():
             wh = r['五级部门'] if pd.notna(r['五级部门']) else '部门直属'
             grp = r['六级部门'] if pd.notna(r['六级部门']) else '部门直属'
             gong = str(r['工号']) if pd.notna(r['工号']) else ''
+            # 离职员工剔除（用户 2026-10-22）：西班牙区 ZHANG NAN / zt0021903 已于 2026-09 底离职，剔除其 2026-10 全部考勤确认率数据
+            if gong in FORMAL_ATT_EXCLUDE_OCT and d.strftime('%Y-%m') == '2026-10':
+                excluded['离职剔除-10月'] = excluded['离职剔除-10月'] + 1
+                continue
             status = str(r['考勤状态'])
             is_abn = (status == '异常')
             untimely = False
