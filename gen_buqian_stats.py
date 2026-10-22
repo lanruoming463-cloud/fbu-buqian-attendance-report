@@ -892,6 +892,18 @@ LABOR_GS_FILES = [
     r"D:/Documents/Desktop/AI做每月人力数据/T+1确认及时性/劳务工/劳务工-考勤记录-10.14-及时性.xlsx",
     r"D:/Documents/Desktop/AI做每月人力数据/T+1确认及时性/劳务工/劳务工-考勤记录-10.15-及时性.xlsx",
 ]
+# 劳务工考勤确认「指定日期剔除」（用户 2026-10-22）：法国区四位劳务工对应日期考勤数据剔除（仅剔除指定日期，不影响其他日期）
+LABOR_ATT_EXCLUDE_DATES = {
+    ('FR083014', '2026-10-19'), ('FR091493', '2026-10-18'),
+    ('FR086719', '2026-10-14'), ('FR092791', '2026-10-14'),
+}
+def _labor_att_excl(gong, date):
+    g = str(gong).strip()
+    if g == 'zt0021903' and str(date).startswith('2026-10'):   # 离职剔除（仅 10 月）
+        return True
+    if (g, str(date)[:10]) in LABOR_ATT_EXCLUDE_DATES:
+        return True
+    return False
 ATTEND_MAJOR_ORDER = ['美洲区', '欧洲区', '亚太区', 'FBU HRBP Dept.']
 # 考勤确认及时性 sheet 的「区域」口径与劳务工架构不同（如新泽西区/加州区/休斯顿区），按已知归属归入三大区
 REGION_TO_MAJOR = {
@@ -1163,8 +1175,9 @@ def build_attend_payload_v2():
     for p in LABOR_GS_FILES:
         _recs, _uts = _read_attend_detail_gs(p)
         # 离职员工剔除（用户 2026-10-22）：西班牙区 ZHANG NAN / zt0021903 已于 2026-09 底离职，剔除其 2026-10 全部考勤确认率数据
-        _recs = [x for x in _recs if not (str(x['gong']).strip() == 'zt0021903' and str(x['date']).startswith('2026-10'))]
-        _uts = [u for u in _uts if not (str(u['row'][1]).strip() == 'zt0021903' and str(u['date']).startswith('2026-10'))]
+        # 指定日期剔除（用户 2026-10-22）：法国区四位劳务工对应日期考勤数据剔除
+        _recs = [x for x in _recs if not _labor_att_excl(x['gong'], x['date'])]
+        _uts = [u for u in _uts if not _labor_att_excl(u['row'][1], u['date'])]
         all_recs.extend(_recs)
         untimely_details.extend(_uts)
     if _UNMAPPED_REGIONS:
@@ -1431,6 +1444,9 @@ FORMAL_OTHER_MAJORS = {'海外销售部', '渠道管理部', 'LD 法务部', 'FB
 FORMAL_ATT_WHITELIST = {'zt0022905'}
 # 正式工考勤确认「离职剔除」员工（用户 2026-10-22）：西班牙区 ZHANG NAN / zt0021903 已于 2026-09 底离职，剔除其 2026-10 全部考勤确认率数据（仅 10 月，6/7 月在职不受影响）
 FORMAL_ATT_EXCLUDE_OCT = {'zt0021903'}
+# 正式工考勤确认「指定日期白名单」（用户 2026-10-22）：特定员工特定日期考勤人工确认为及时（保留记录、计为正常/及时，不计未确认）。
+#   西班牙区 Chen Peng / zt0021580 于 2026-10-19 异常(缺少首打卡)经核实为及时确认。
+FORMAL_ATT_DATE_WHITELIST = {('zt0021580', '2026-10-19')}
 
 
 def _build_formal_recs():
@@ -1498,6 +1514,9 @@ def _build_formal_recs():
                         untimely = False
             # 白名单员工（用户 2026-10-16）：统一算 正常/及时，不计入异常与未及时确认
             if gong in FORMAL_ATT_WHITELIST:
+                status = '正常'; is_abn = False; untimely = False
+            # 指定日期白名单（用户 2026-10-22）：特定员工特定日期考勤算作及时确认（保留记录、计为正常）
+            if (gong, d.strftime('%Y-%m-%d')) in FORMAL_ATT_DATE_WHITELIST:
                 status = '正常'; is_abn = False; untimely = False
             recs.append({
                 'major': major, 'region': region, 'wh': str(wh), 'grp': str(grp),
