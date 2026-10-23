@@ -103,7 +103,7 @@ if p.returncode != 0:
 log('reset ok at', head[:9])
 
 # ---- 5. 覆盖 index.html + commit（commit 信息按需修改） ----
-COMMIT_MSG = 'feat: 西班牙正式工zt0021580(2026-10-19)算作及时确认;法国区FR083014/FR091493/FR086719/FR092791对应日期考勤剔除;维持zt0021903(10月离职)考勤确认率10月全剔除+Top10未确认数>3'
+COMMIT_MSG = 'feat: T+1增量注入10.21考勤确认及时率(正式工10月untimely 1632->1737;劳务工10.21未确认670);维持zt0021580/2026-10-19白名单+法国区四位日期剔除+zt0021903(10月离职)全剔除+Top10未确认数>3'
 shutil.copyfile(HTML, os.path.join(REPO, 'index.html'))
 run([GIT, 'add', '-A'], cwd=REPO)
 p = run([GIT, 'status', '--porcelain'], cwd=REPO)
