@@ -103,7 +103,7 @@ if p.returncode != 0:
 log('reset ok at', head[:9])
 
 # ---- 5. 覆盖 index.html + commit（commit 信息按需修改） ----
-COMMIT_MSG = 'feat: T+1增量注入10.21考勤确认及时率(正式工10月untimely 1632->1737;劳务工10.21未确认670);维持zt0021580/2026-10-19白名单+法国区四位日期剔除+zt0021903(10月离职)全剔除+Top10未确认数>3'
+COMMIT_MSG = 'fix: 考勤确认及时率显示保留两位小数(列/KPI/图例);未确认数>0时不再因1位小数四舍五入误显100%(如英国区27252/27255=99.99%);补签率维持1位小数'
 shutil.copyfile(HTML, os.path.join(REPO, 'index.html'))
 run([GIT, 'add', '-A'], cwd=REPO)
 p = run([GIT, 'status', '--porcelain'], cwd=REPO)

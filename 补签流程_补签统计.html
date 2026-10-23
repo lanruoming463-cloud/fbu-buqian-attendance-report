@@ -1469,7 +1469,7 @@ function renderGen(P) {
   updateActiveGenTab();
 }
 function genRate(r, c){ return c.pct ? (r[c.den] ? (r[c.num]/r[c.den]*100) : null) : (r[c.key]||0); }
-function genFmt(c, v){ return c.pct ? (v==null?'—':v.toFixed(1)+'%') : fmt(v); }
+function genFmt(c, v){ if(!c.pct) return fmt(v); if(v==null) return '—'; var dig=(c.label&&c.label.indexOf('及时确认率')>=0)?2:1; return v.toFixed(dig)+'%'; }
 function genCard(c, t){ var v=genRate(t,c); return '<div class="card"><div class="v">'+genFmt(c,v)+'</div><div class="l">'+c.label+'</div></div>'; }
 function genCells(r, parentTotal, P){
   var html='';
@@ -1481,7 +1481,7 @@ function genCells(r, parentTotal, P){
     var barKey = P.cols[0].key;
     pct = (parentTotal && parentTotal[barKey]) ? (r[barKey]/parentTotal[barKey]*100) : 0;
   }
-  html += '<td><div class="bar"><div class="bar-fill" style="width:'+pct.toFixed(1)+'%"></div></div><span class="bar-num">'+pct.toFixed(1)+'%</span></td>';
+  var barDigits=(P.type==='formalAtt')?2:1; html += '<td><div class="bar"><div class="bar-fill" style="width:'+pct.toFixed(barDigits)+'%"></div></div><span class="bar-num">'+pct.toFixed(barDigits)+'%</span></td>';
   return html;
 }
 function aggRangeGen(keys_arr, P){
@@ -1778,7 +1778,7 @@ let attendDayStart = '', attendDayEnd = '';
 let attendWeekSel = '';
 let attendRegionFilter = '';
 
-function attRate(v){ return v == null ? '—' : v.toFixed(1) + '%'; }
+function attRate(v){ return v == null ? '—' : v.toFixed(2) + '%'; }
 function attRange(){
   var AD = attendPayload.days;
   if (attendMode === 'month'){
@@ -1836,7 +1836,7 @@ function attCells(r, parentTotal){
   var total = r.yqr || 0, confirmed = r.sjqr || 0, unconfirmed = r.unconfirmed || 0;
   var rate = total ? (confirmed / total * 100) : null;
   var rateNum = rate == null ? 0 : rate;
-  var bar = '<div class="bar"><div class="bar-fill" style="width:' + rateNum.toFixed(1) + '%"></div></div><span class="bar-num">' + rateNum.toFixed(1) + '%</span>';
+  var bar = '<div class="bar"><div class="bar-fill" style="width:' + rateNum.toFixed(2) + '%"></div></div><span class="bar-num">' + rateNum.toFixed(2) + '%</span>';
   return '<td class="num">' + fmt(total) + '</td><td class="num">' + fmt(confirmed) + '</td><td class="num">' + fmt(unconfirmed) + '</td><td class="num">' + attRate(rate) + '</td><td>' + bar + '</td>';
 }
 function attCard(v, rate, label){
