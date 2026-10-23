@@ -103,7 +103,7 @@ if p.returncode != 0:
 log('reset ok at', head[:9])
 
 # ---- 5. 覆盖 index.html + commit（commit 信息按需修改） ----
-COMMIT_MSG = 'fix: 考勤确认及时率显示保留两位小数(列/KPI/图例);未确认数>0时不再因1位小数四舍五入误显100%(如英国区27252/27255=99.99%);补签率维持1位小数'
+COMMIT_MSG = 'fix: 补签率显示同步改为保留两位小数(列/KPI/图例与及时确认率一致);导出名单正式工职位+职级按工号取自截止10.23花名册,劳务工职位取自对应考勤记录工种'
 shutil.copyfile(HTML, os.path.join(REPO, 'index.html'))
 run([GIT, 'add', '-A'], cwd=REPO)
 p = run([GIT, 'status', '--porcelain'], cwd=REPO)

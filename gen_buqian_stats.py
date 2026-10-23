@@ -2151,17 +2151,17 @@ function aggRange(start, end) {{
     }});
   }});
   const majorArr = Object.values(majorMap).sort((a, b) => a.__order - b.__order);
-  majorArr.forEach(r => {{ r.pct = total ? parseFloat((r.total / total * 100).toFixed(1)) : 0; r.rate = r.total ? parseFloat((r['已完成'] / r.total * 100).toFixed(1)) : null; }});
+  majorArr.forEach(r => {{ r.pct = total ? parseFloat((r.total / total * 100).toFixed(1)) : 0; r.rate = r.total ? parseFloat((r['已完成'] / r.total * 100).toFixed(2)) : null; }});
   const majorTot = {{}}; majorArr.forEach(r => majorTot[r.name] = r.total);
   const detailArr = Object.values(detailMap).sort((a, b) => a.__order - b.__order);
-  detailArr.forEach(r => {{ r.pctMajor = majorTot[r.major] ? parseFloat((r.total / majorTot[r.major] * 100).toFixed(1)) : 0; r.rate = r.total ? parseFloat((r['已完成'] / r.total * 100).toFixed(1)) : null; }});
+  detailArr.forEach(r => {{ r.pctMajor = majorTot[r.major] ? parseFloat((r.total / majorTot[r.major] * 100).toFixed(1)) : 0; r.rate = r.total ? parseFloat((r['已完成'] / r.total * 100).toFixed(2)) : null; }});
   const regionTot = {{}}; detailArr.forEach(r => regionTot[r.major + '|' + r.region] = r.total);
   const whArr = Object.values(whMap).sort((a, b) => a.__order - b.__order);
-  whArr.forEach(r => {{ r.pctRegion = regionTot[r.major + '|' + r.region] ? parseFloat((r.total / regionTot[r.major + '|' + r.region] * 100).toFixed(1)) : 0; r.rate = r.total ? parseFloat((r['已完成'] / r.total * 100).toFixed(1)) : null; }});
+  whArr.forEach(r => {{ r.pctRegion = regionTot[r.major + '|' + r.region] ? parseFloat((r.total / regionTot[r.major + '|' + r.region] * 100).toFixed(1)) : 0; r.rate = r.total ? parseFloat((r['已完成'] / r.total * 100).toFixed(2)) : null; }});
   const whTot = {{}}; whArr.forEach(r => whTot[r.major + '|' + r.region + '|' + r.wh] = r.total);
   const grpArr = Object.values(grpMap).sort((a, b) => a.__order - b.__order);
-  grpArr.forEach(r => {{ r.pctWh = whTot[r.major + '|' + r.region + '|' + r.wh] ? parseFloat((r.total / whTot[r.major + '|' + r.region + '|' + r.wh] * 100).toFixed(1)) : 0; r.rate = r.total ? parseFloat((r['已完成'] / r.total * 100).toFixed(1)) : null; }});
-  return {{ total, done, ing, major: majorArr, detail: detailArr, warehouse: whArr, group: grpArr, rateTotal: total ? parseFloat((done / total * 100).toFixed(1)) : null, rate: total ? parseFloat((done / total * 100).toFixed(1)) : null, ydkTotal, ybqTotal }};
+  grpArr.forEach(r => {{ r.pctWh = whTot[r.major + '|' + r.region + '|' + r.wh] ? parseFloat((r.total / whTot[r.major + '|' + r.region + '|' + r.wh] * 100).toFixed(1)) : 0; r.rate = r.total ? parseFloat((r['已完成'] / r.total * 100).toFixed(2)) : null; }});
+  return {{ total, done, ing, major: majorArr, detail: detailArr, warehouse: whArr, group: grpArr, rateTotal: total ? parseFloat((done / total * 100).toFixed(2)) : null, rate: total ? parseFloat((done / total * 100).toFixed(2)) : null, ydkTotal, ybqTotal }};
 }}
 function currentData() {{ if (mode === 'day') return aggRange(daySel, daySel); if (mode === 'week') return aggRange(weekSel, addDaysStr(weekSel, 6)); return data[selected] || {{ total: 0, done: 0, ing: 0, major: [], detail: [], warehouse: [], group: [] }}; }}
 function dateInRange(ymd) {{ if (mode === 'month') return ymd.startsWith(selected); if (mode === 'week') return ymd >= weekSel && ymd <= addDaysStr(weekSel, 6); return ymd === daySel; }}
@@ -2257,7 +2257,7 @@ function render() {{
   const labelTotal = isAtt ? '考勤记录总数' : '补签合计';
   const labelDone = isAtt ? '已补签数' : '已完成';
   const ingLabel = '审批中';                  // showIng=false 时未使用
-  const rateCell = (r) => showRate ? `<td class='num rate'>${{r.rate != null ? r.rate + '%' : (r.total ? (r['已完成'] / r.total * 100).toFixed(1) + '%' : '—')}}</td>` : '';
+  const rateCell = (r) => showRate ? `<td class='num rate'>${{r.rate != null ? r.rate + '%' : (r.total ? (r['已完成'] / r.total * 100).toFixed(2) + '%' : '—')}}</td>` : '';
   const rateTh = showRate ? "<th>补签率</th>" : '';
   const ydkCell = (r) => showYdk ? `<td class='num ydk'>${{r.ydk != null ? fmt(r.ydk) : '—'}}</td>` : '';
   const ydkTh = showYdk ? "<th>应打卡合计</th>" : '';
@@ -3166,7 +3166,7 @@ function renderGen(P) {{
   updateActiveGenTab();
 }}
 function genRate(r, c){{ return c.pct ? (r[c.den] ? (r[c.num]/r[c.den]*100) : null) : (r[c.key]||0); }}
-function genFmt(c, v){{ if(!c.pct) return fmt(v); if(v==null) return '—'; var dig=(c.label&&c.label.indexOf('及时确认率')>=0)?2:1; return v.toFixed(dig)+'%'; }}
+function genFmt(c, v){{ if(!c.pct) return fmt(v); if(v==null) return '—'; var dig=(c.label&&(c.label.indexOf('及时确认率')>=0||c.label.indexOf('补签率')>=0))?2:1; return v.toFixed(dig)+'%'; }}
 function genCard(c, t){{ var v=genRate(t,c); return '<div class="card"><div class="v">'+genFmt(c,v)+'</div><div class="l">'+c.label+'</div></div>'; }}
 function genCells(r, parentTotal, P){{
   var html='';
@@ -3178,7 +3178,7 @@ function genCells(r, parentTotal, P){{
     var barKey = P.cols[0].key;
     pct = (parentTotal && parentTotal[barKey]) ? (r[barKey]/parentTotal[barKey]*100) : 0;
   }}
-  var barDigits=(P.type==='formalAtt')?2:1; html += '<td><div class="bar"><div class="bar-fill" style="width:'+pct.toFixed(barDigits)+'%"></div></div><span class="bar-num">'+pct.toFixed(barDigits)+'%</span></td>';
+  var barDigits=2; html += '<td><div class="bar"><div class="bar-fill" style="width:'+pct.toFixed(barDigits)+'%"></div></div><span class="bar-num">'+pct.toFixed(barDigits)+'%</span></td>';
   return html;
 }}
 function aggRangeGen(keys_arr, P){{
