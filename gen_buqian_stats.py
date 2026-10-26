@@ -896,6 +896,7 @@ LABOR_GS_FILES = [
 LABOR_ATT_EXCLUDE_DATES = {
     ('FR083014', '2026-10-19'), ('FR091493', '2026-10-18'),
     ('FR086719', '2026-10-14'), ('FR092791', '2026-10-14'),
+    ('FR093742', '2026-10-20'), ('FR092978', '2026-10-21'),
 }
 def _labor_att_excl(gong, date):
     g = str(gong).strip()
