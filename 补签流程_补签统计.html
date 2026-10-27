@@ -2272,7 +2272,17 @@ function __pruneRegionOrder(P){
 function applyUrlRegionFilter(){
   try {
     var q = new URLSearchParams(location.search);
+    var LS_KEY = 'zbkq_region_binding';
+    // 管理员逃生口：?admin=1 清除绑定看全量
+    if (q.get('admin') === '1'){ try { localStorage.removeItem(LS_KEY); } catch(e){} }
     var r = q.get('region');
+    if (r){
+      // 从卡片/带参链接进入：保存区域绑定（之后裸开链接也只看该区域）
+      try { localStorage.setItem(LS_KEY, r); } catch(e){}
+    } else {
+      // 无参数：读取持久化绑定
+      try { r = localStorage.getItem(LS_KEY) || ''; } catch(e){}
+    }
     if (r){
       GLOBAL_REGION_SET = r.split(',').map(function(s){ return s.trim(); }).filter(Boolean);
       [formalAttPayload, attendPayload, formalPayload, laborPayload].forEach(function(P){

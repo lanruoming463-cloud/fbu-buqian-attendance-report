@@ -103,7 +103,7 @@ if p.returncode != 0:
 log('reset ok at', head[:9])
 
 # ---- 5. 覆盖 index.html + commit（commit 信息按需修改） ----
-COMMIT_MSG = 'feat: ?region= 裁剪补签明细 allEmp(权限修复,7594->区域) + 新增「导出名单」按钮(未确认考勤/补签人员CSV,正式工+劳务工,随区域隔离联动)'
+COMMIT_MSG = 'feat: 区域绑定持久化(localStorage)——HRBP从卡片进入后裸开链接仍只见本区数据;?admin=1管理员逃生口清除绑定看全量;修复卡片跳转丢参数导致的全量暴露'
 shutil.copyfile(HTML, os.path.join(REPO, 'index.html'))
 run([GIT, 'add', '-A'], cwd=REPO)
 p = run([GIT, 'status', '--porcelain'], cwd=REPO)
