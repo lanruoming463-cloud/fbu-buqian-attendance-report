@@ -1673,14 +1673,16 @@ function showCell(wt, sec) {
   }
 }
 
-/* ===== 区域隔离推送 V5：身份绑定（sso_token JWT name → 区域）+ URL 参数兼容 + 默认拒绝 ===== */
-// 身份 → 区域集合 映射（飞书姓名精确匹配）。由 recipients.json 同步维护。
+/* ===== 区域隔离推送 V6：身份绑定（sso_token JWT user_id → 区域）+ URL 参数兼容 + 默认拒绝 + 手动选区域兜底 ===== */
+// 妙搭 sso_token JWT 仅含 user_id（数字工号），不含 name，故以 user_id 为主键匹配。
+// REGION_BIND_MAP 同时接受 user_id 与姓名键；REGION_ADMIN_IDS 为管理员 user_id 列表。
 var REGION_BIND_MAP = {
   "金美玲": ["亚太区|韩国区", "FBU HRBP Dept.|韩国区HRBP部"],
   "PENG NANCHUAN": ["欧洲区|意大利区", "FBU HRBP Dept.|意大利区HRBP部"],
   "Nandy": ["欧洲区|意大利区", "FBU HRBP Dept.|意大利区HRBP部"]
 };
-// 管理员名单（全量查看）
+// 管理员：user_id（蓝若铭=180544844）或姓名，命中即全量查看
+var REGION_ADMIN_IDS = ["180544844"];
 var REGION_ADMIN_NAMES = ["蓝若铭"];
 var GLOBAL_REGION_SET = [];
 function inRegionSet(major, region){
@@ -1742,6 +1744,54 @@ function __pruneRegionOrder(P){
   Object.keys(ro).forEach(function(mj){ if (!GLOBAL_REGION_SET.some(function(p){ return p.split('|')[0]===mj; })) return; var regs = ro[mj]; if (Array.isArray(regs)){ nro[mj]=regs.filter(function(rg){ return GLOBAL_REGION_SET.indexOf(mj+'|'+rg)>=0; }); } else { nro[mj]=regs; } });
   P.regionOrder = nro;
 }
+function __buildRegionPicker(){
+  try {
+    var wrap = document.createElement('div');
+    wrap.style.cssText = 'margin-top:14px;border-top:1px solid #e2e8f0;padding-top:14px;';
+    var lbl = document.createElement('div');
+    lbl.style.cssText = 'font-size:12px;color:#64748b;margin-bottom:8px;';
+    lbl.textContent = '未自动识别到您的区域？请手动选择（仅可查看所选区域）：';
+    var sel = document.createElement('select');
+    sel.style.cssText = 'width:100%;padding:8px;font-size:13px;border:1px solid #cbd5e1;border-radius:6px;';
+    sel.appendChild(new Option('— 选择区域 —', ''));
+    var opts = [];
+    __payloadList().forEach(function(P){
+      if (!P || !P.regionOrder) return;
+      Object.keys(P.regionOrder).forEach(function(mj){
+        var regs = P.regionOrder[mj];
+        if (Array.isArray(regs)) regs.forEach(function(rg){ opts.push(mj + '|' + rg); });
+      });
+    });
+    var seen = {}, uniq = [];
+    opts.forEach(function(o){ if(!seen[o]){ seen[o]=1; uniq.push(o); } });
+    uniq.sort().forEach(function(o){ sel.appendChild(new Option(o, o)); });
+    var btn = document.createElement('button');
+    btn.textContent = '确认查看';
+    btn.style.cssText = 'width:100%;margin-top:10px;padding:9px;background:#2563eb;color:#fff;border:none;border-radius:6px;font-size:14px;cursor:pointer;';
+    btn.onclick = function(){
+      var v = sel.value;
+      if (!v) return;
+      var rs = [v];
+      var p = v.split('|');
+      if (p[0] !== 'FBU HRBP Dept.') rs.push('FBU HRBP Dept.|' + p[1] + 'HRBP部');
+      GLOBAL_REGION_SET = rs;
+      __payloadList().forEach(function(P){
+        if (!P || !P.data) return;
+        Object.keys(P.data).forEach(function(k){ __pruneBlock(P.data[k]); });
+        __pruneTopIdx(P); __pruneRegionOrder(P);
+        if (Array.isArray(P.allEmp)) P.allEmp = P.allEmp.filter(function(e){ return inRegionSet(e.major, e.region); });
+      });
+      try { var lb = document.getElementById('regionAccessNotice'); if (lb) lb.remove(); } catch(e){}
+      try {
+        if (typeof curWt !== 'undefined' && curWt === 'labor'){ if (curSec==='att') showCell('labor','att'); else showCell('labor','sign'); }
+        else { if (typeof curSec !== 'undefined' && curSec==='sign') showCell('formal','sign'); else showCell('formal','att'); }
+      } catch(e){}
+      __showIdentityBadge(v, v.split('|').pop(), false);
+    };
+    wrap.appendChild(lbl); wrap.appendChild(sel); wrap.appendChild(btn);
+    return wrap;
+  } catch(e){ return null; }
+}
 function __showAccessNotice(){
   try {
     var d = document.createElement('div');
@@ -1757,7 +1807,7 @@ function __showAccessNotice(){
         __rp = (__sp.get('region') || __hp.get('region') || __sp.get('admin') || __hp.get('admin')) ? '有(' + ((__sp.get('region')||__hp.get('region')||'admin') + ')') : '无';
       } catch(e){ __rp = '解析失败'; }
       __diag = '<div style="margin-top:14px;padding:8px;background:#f1f5f9;border-radius:6px;font-size:11px;color:#94a3b8;text-align:left;line-height:1.6;word-break:break-all">'
-        + 'V5 · search=' + (location.search || '(空)')
+        + 'V6 · search=' + (location.search || '(空)')
         + ' · hash=' + (location.hash || '(空)')
         + ' · bind=' + ((function(){ try { return localStorage.getItem('zbkq_region_binding') ? '有' : '无'; } catch(e){ return '不可用'; } })())
         + ' · regionParam=' + __rp
@@ -1765,18 +1815,19 @@ function __showAccessNotice(){
       var d = window.__IDENTITY_DIAG;
       if (d && typeof d==='object'){
         var parts = [];
-        ['name','sub','preferred_username','email','employee_id','userid','uid','username'].forEach(function(k){ if (d[k]!=null && d[k]!=='') parts.push(k+'='+d[k]); });
+        ['user_id','name','sub','preferred_username','email','employee_id','userid','uid','username'].forEach(function(k){ if (d[k]!=null && d[k]!=='') parts.push(k+'='+d[k]); });
         __diag += '<div style="margin-top:6px;padding:8px;background:#f1f5f9;border-radius:6px;font-size:11px;color:#94a3b8;text-align:left;line-height:1.6;word-break:break-all">JWT身份: ' + (parts.length ? parts.join(' · ') : '(无声明)') + '</div>';
       } else {
         __diag += '<div style="margin-top:6px;padding:8px;background:#f1f5f9;border-radius:6px;font-size:11px;color:#94a3b8;text-align:left;line-height:1.6;word-break:break-all">JWT身份: (无 sso_token — 未从妙搭内打开 / 卡片在外部浏览器打开)</div>';
       }
     } catch(e){}
-    d.innerHTML = '<div style="max-width:440px;text-align:center;padding:32px;background:#fff;border:1px solid #e2e8f0;border-radius:12px;box-shadow:0 8px 30px rgba(15,23,42,0.08)">'
+    d.innerHTML = '<div id="regionModal" style="max-width:440px;text-align:center;padding:32px;background:#fff;border:1px solid #e2e8f0;border-radius:12px;box-shadow:0 8px 30px rgba(15,23,42,0.08)">'
       + '<div style="font-size:40px;margin-bottom:12px">🔒</div>'
       + '<div style="font-size:16px;font-weight:600;color:#0f172a;margin-bottom:8px">暂无访问权限</div>'
       + '<div style="font-size:13px;color:#64748b;line-height:1.8">请通过「考勤数据推送」飞书卡片中的<br><b>查看考勤看板</b> 按钮进入，系统将自动绑定您的区域。<br>管理员请使用带 <b>#admin=1</b> 参数的链接。</div>'
       + __diag
       + '</div>';
+      try { var __pk = __buildRegionPicker(); if (__pk) d.querySelector('#regionModal').appendChild(__pk); } catch(e){}
     (document.body || document.documentElement).appendChild(d);
   } catch(e){}
 }
@@ -1829,17 +1880,19 @@ function applyUrlRegionFilter(){
           }).join(''));
           try { window.__IDENTITY_DIAG = JSON.parse(json); } catch(e){ window.__IDENTITY_DIAG = {}; }
           var __c = window.__IDENTITY_DIAG || {};
-          who = __c.name || __c.preferred_username || (typeof __c.email==='string' ? __c.email.split('@')[0] : '') || __c.sub || __c.username || '';
+          who = __c.user_id || __c.name || __c.preferred_username || (typeof __c.email==='string' ? __c.email.split('@')[0] : '') || __c.sub || __c.username || '';
           if (who) window.__WHO = String(who);
         }
       } catch(e){}
       if (who){
-        var __whoL = who.trim().toLowerCase();
-        if ((typeof REGION_ADMIN_NAMES !== 'undefined') && REGION_ADMIN_NAMES.some(function(n){ return n.toLowerCase()===__whoL; })){
-          admin = true;  // 管理员：全量
+        var __whoL = String(who).trim().toLowerCase();
+        // 管理员：user_id 精确 或 姓名（大小写不敏感）
+        var __admin = (typeof REGION_ADMIN_IDS !== 'undefined' && REGION_ADMIN_IDS.indexOf(String(who)) >= 0)
+          || (typeof REGION_ADMIN_NAMES !== 'undefined' && REGION_ADMIN_NAMES.some(function(n){ return n.toLowerCase()===__whoL; }));
+        if (__admin){ admin = true;  // 管理员：全量
         } else if (typeof REGION_BIND_MAP !== 'undefined'){
-          var __found = null;
-          for (var __bk in REGION_BIND_MAP){ if (__bk.toLowerCase()===__whoL){ __found = REGION_BIND_MAP[__bk]; break; } }
+          var __found = REGION_BIND_MAP[String(who)] || null;
+          if (!__found){ for (var __bk in REGION_BIND_MAP){ if (__bk.toLowerCase()===__whoL){ __found = REGION_BIND_MAP[__bk]; break; } } }
           if (__found){ r = __found.join(','); try { localStorage.setItem(LS_KEY, r); } catch(e){} }
         }
       }
