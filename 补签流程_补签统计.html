@@ -1883,6 +1883,51 @@ function applyUrlRegionFilter(){
           return JSON.parse(json);
         } catch(e){ return null; }
       }
+      // 重新绑定（用于 postMessage 异步拿到身份后，重裁剪并渲染）
+      function __rebindFromDiag(){
+        try {
+          var d0 = window.__IDENTITY_DIAG || {};
+          var w = d0.user_id || d0.employee_id || d0.userid || d0.uid || d0.name || '';
+          if (!w) return;
+          window.__WHO = String(w);
+          var wl = String(w).toLowerCase();
+          var isAdmin = (typeof REGION_ADMIN_IDS !== 'undefined' && REGION_ADMIN_IDS.indexOf(String(w)) >= 0)
+            || (typeof REGION_ADMIN_NAMES !== 'undefined' && REGION_ADMIN_NAMES.some(function(n){ return n.toLowerCase()===wl; }));
+          var rg = '';
+          if (!isAdmin){
+            var f = (typeof REGION_BIND_MAP !== 'undefined') ? (REGION_BIND_MAP[String(w)] || null) : null;
+            if (!f){ var __uid = String(d0.user_id || ''); if (__uid && typeof REGION_BIND_MAP !== 'undefined') f = REGION_BIND_MAP[__uid] || null; }
+            if (!f){ for (var __bk in REGION_BIND_MAP){ if (__bk.toLowerCase()===wl){ f = REGION_BIND_MAP[__bk]; break; } } }
+            if (f) rg = f.join(',');
+          }
+          if (isAdmin){ GLOBAL_REGION_SET = []; }
+          else if (rg){ GLOBAL_REGION_SET = rg.split(',').map(function(s){ return s.trim(); }).filter(Boolean); try { localStorage.setItem(LS_KEY, rg); } catch(e){} }
+          else { return; } // 仍无法识别，保持锁屏
+          __payloadList().forEach(function(P){ if(!P||!P.data) return; Object.keys(P.data).forEach(function(k){ __pruneBlock(P.data[k]); }); __pruneTopIdx(P); __pruneRegionOrder(P); if(Array.isArray(P.allEmp)) P.allEmp=P.allEmp.filter(function(e){ return inRegionSet(e.major,e.region); }); });
+          try { var lb=document.getElementById('regionAccessNotice'); if(lb) lb.remove(); } catch(e){}
+          var __render = function(){
+            if (typeof curWt!=='undefined' && curWt==='labor'){ if (typeof curSec!=='undefined' && curSec==='sign') showCell('labor','sign'); else showCell('labor','att'); }
+            else { if (typeof curSec!=='undefined' && curSec==='sign') showCell('formal','sign'); else showCell('formal','att'); }
+          };
+          if (isAdmin){ __showIdentityBadge(w, '全量', true); } else { __showIdentityBadge(w, (GLOBAL_REGION_SET[GLOBAL_REGION_SET.length-1]||'').split('|').pop(), false); }
+          __render();
+        } catch(e){}
+      }
+      // 妙搭 iframe 可能通过 postMessage 把 sso_token 发给子页面（跨域 parent 无法直接读 location）
+      try {
+        window.addEventListener('message', function(ev){
+          try {
+            var dd = ev && ev.data; if (!dd) return;
+            var obj = (typeof dd === 'string') ? (function(){ try { return JSON.parse(dd); } catch(e){ return null; } })() : dd;
+            if (!obj) return;
+            var tok = obj.sso_token || obj.token || obj.jwt || (obj.data && (obj.data.sso_token || obj.data.token || obj.data.jwt));
+            if (!tok) return;
+            var pd = __parseJwt(tok); if (!pd) return;
+            window.__IDENTITY_DIAG = Object.assign(window.__IDENTITY_DIAG || {}, pd);
+            __rebindFromDiag();
+          } catch(e){}
+        });
+      } catch(e){}
       var __cands = [];
       function __grab(qs){ if (!qs) return; var qp = new URLSearchParams(qs);
         ['sso_token','token','id_token','jwt'].forEach(function(k){ var v = qp.get(k); if (v) __cands.push(v); }); }
