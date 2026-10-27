@@ -1811,11 +1811,12 @@ function __showAccessNotice(){
         + ' · hash=' + (location.hash || '(空)')
         + ' · bind=' + ((function(){ try { return localStorage.getItem('zbkq_region_binding') ? '有' : '无'; } catch(e){ return '不可用'; } })())
         + ' · regionParam=' + __rp
+        + ' · href=' + ((location.href || '(空)').slice(0, 180))
         + '</div>';
-      var d = window.__IDENTITY_DIAG;
-      if (d && typeof d==='object'){
+      var __idc = window.__IDENTITY_DIAG;
+      if (__idc && typeof __idc==='object'){
         var parts = [];
-        ['user_id','name','sub','preferred_username','email','employee_id','userid','uid','username'].forEach(function(k){ if (d[k]!=null && d[k]!=='') parts.push(k+'='+d[k]); });
+        ['user_id','name','sub','preferred_username','email','employee_id','userid','uid','username'].forEach(function(k){ if (__idc[k]!=null && __idc[k]!=='') parts.push(k+'='+__idc[k]); });
         __diag += '<div style="margin-top:6px;padding:8px;background:#f1f5f9;border-radius:6px;font-size:11px;color:#94a3b8;text-align:left;line-height:1.6;word-break:break-all">JWT身份: ' + (parts.length ? parts.join(' · ') : '(无声明)') + '</div>';
       } else {
         __diag += '<div style="margin-top:6px;padding:8px;background:#f1f5f9;border-radius:6px;font-size:11px;color:#94a3b8;text-align:left;line-height:1.6;word-break:break-all">JWT身份: (无 sso_token — 未从妙搭内打开 / 卡片在外部浏览器打开)</div>';
@@ -1868,30 +1869,46 @@ function applyUrlRegionFilter(){
       var aa = qq.get('admin') === '1';
       if (rr || aa){ r = rr || ''; admin = aa; break; }
     }
-    // 1) 身份绑定：从内层 sso_token JWT 解出用户名，查 REGION_BIND_MAP / REGION_ADMIN_NAMES
+    // 1) 身份绑定：从 sso_token JWT 解出 user_id（工号）。妙搭可能把 token 放在 search 或 hash，均尝试。
     if (!r && !admin && typeof REGION_BIND_MAP !== 'undefined'){
-      try {
-        var m2 = (location.search || '').match(/[?&]sso_token=([^&]+)/);
-        if (m2){
-          var b64 = m2[1].split('.')[1].replace(/-/g,'+').replace(/_/g,'/');
+      window.__IDENTITY_DIAG = window.__IDENTITY_DIAG || {};
+      try { window.__IDENTITY_DIAG.__href = (location.href || '').slice(0, 500); } catch(e){}
+      function __parseJwt(tok){
+        try {
+          var b64 = tok.split('.')[1].replace(/-/g,'+').replace(/_/g,'/');
           while (b64.length % 4) b64 += '=';
           var json = decodeURIComponent(Array.prototype.map.call(atob(b64), function(c){
             return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
           }).join(''));
-          try { window.__IDENTITY_DIAG = JSON.parse(json); } catch(e){ window.__IDENTITY_DIAG = {}; }
-          var __c = window.__IDENTITY_DIAG || {};
-          who = __c.user_id || __c.name || __c.preferred_username || (typeof __c.email==='string' ? __c.email.split('@')[0] : '') || __c.sub || __c.username || '';
-          if (who) window.__WHO = String(who);
-        }
-      } catch(e){}
+          return JSON.parse(json);
+        } catch(e){ return null; }
+      }
+      var __cands = [];
+      function __grab(qs){ if (!qs) return; var qp = new URLSearchParams(qs);
+        ['sso_token','token','id_token','jwt'].forEach(function(k){ var v = qp.get(k); if (v) __cands.push(v); }); }
+      __grab(location.search || '');
+      if (location.hash && location.hash.length > 1) __grab(location.hash.slice(1));
+      var __mAll = (location.search + ' ' + location.hash).match(/sso_token=([^&\s#]+)/g);
+      if (__mAll){ __mAll.forEach(function(s){ __cands.push(s.replace(/^sso_token=/,'')); }); }
+      for (var __ti=0; __ti<__cands.length && !who; __ti++){
+        var __pd = __parseJwt(__cands[__ti]);
+        if (__pd){ window.__IDENTITY_DIAG = Object.assign(window.__IDENTITY_DIAG, __pd); break; }
+      }
+      var __c = window.__IDENTITY_DIAG || {};
+      who = __c.user_id || __c.employee_id || __c.userid || __c.uid
+          || __c.name || __c.preferred_username || (typeof __c.email==='string' ? __c.email.split('@')[0] : '')
+          || __c.sub || __c.username || '';
+      if (who) window.__WHO = String(who);
       if (who){
         var __whoL = String(who).trim().toLowerCase();
-        // 管理员：user_id 精确 或 姓名（大小写不敏感）
+        // 管理员：user_id（工号）精确匹配；姓名仅作兜底
         var __admin = (typeof REGION_ADMIN_IDS !== 'undefined' && REGION_ADMIN_IDS.indexOf(String(who)) >= 0)
           || (typeof REGION_ADMIN_NAMES !== 'undefined' && REGION_ADMIN_NAMES.some(function(n){ return n.toLowerCase()===__whoL; }));
         if (__admin){ admin = true;  // 管理员：全量
         } else if (typeof REGION_BIND_MAP !== 'undefined'){
+          // 优先按工号(user_id)匹配，其次按姓名兜底
           var __found = REGION_BIND_MAP[String(who)] || null;
+          if (!__found){ var __uid = String(__c.user_id || ''); if (__uid) __found = REGION_BIND_MAP[__uid] || null; }
           if (!__found){ for (var __bk in REGION_BIND_MAP){ if (__bk.toLowerCase()===__whoL){ __found = REGION_BIND_MAP[__bk]; break; } } }
           if (__found){ r = __found.join(','); try { localStorage.setItem(LS_KEY, r); } catch(e){} }
         }
@@ -1939,7 +1956,6 @@ function applyUrlRegionFilter(){
 }
 
 applyUrlRegionFilter();
-if (GLOBAL_REGION_SET[0] === '__NO_ACCESS__') { document.documentElement.innerHTML = ''; }
 showCell('formal', 'att');
 function setupStickyHeaders() {
   destroyStickyHeaders();
