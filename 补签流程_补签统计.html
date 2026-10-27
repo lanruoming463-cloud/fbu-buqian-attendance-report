@@ -1676,7 +1676,9 @@ function showCell(wt, sec) {
 /* ===== 区域隔离推送 V5：身份绑定（sso_token JWT name → 区域）+ URL 参数兼容 + 默认拒绝 ===== */
 // 身份 → 区域集合 映射（飞书姓名精确匹配）。由 recipients.json 同步维护。
 var REGION_BIND_MAP = {
-  "金美玲": ["亚太区|韩国区", "FBU HRBP Dept.|韩国区HRBP部"]
+  "金美玲": ["亚太区|韩国区", "FBU HRBP Dept.|韩国区HRBP部"],
+  "PENG NANCHUAN": ["欧洲区|意大利区", "FBU HRBP Dept.|意大利区HRBP部"],
+  "Nandy": ["欧洲区|意大利区", "FBU HRBP Dept.|意大利区HRBP部"]
 };
 // 管理员名单（全量查看）
 var REGION_ADMIN_NAMES = ["蓝若铭"];
@@ -1802,11 +1804,13 @@ function applyUrlRegionFilter(){
         }
       } catch(e){}
       if (who){
-        if ((typeof REGION_ADMIN_NAMES !== 'undefined') && REGION_ADMIN_NAMES.indexOf(who) >= 0){
+        var __whoL = who.trim().toLowerCase();
+        if ((typeof REGION_ADMIN_NAMES !== 'undefined') && REGION_ADMIN_NAMES.some(function(n){ return n.toLowerCase()===__whoL; })){
           admin = true;  // 管理员：全量
-        } else if (REGION_BIND_MAP[who]){
-          r = REGION_BIND_MAP[who].join(',');
-          try { localStorage.setItem(LS_KEY, r); } catch(e){}
+        } else if (typeof REGION_BIND_MAP !== 'undefined'){
+          var __found = null;
+          for (var __bk in REGION_BIND_MAP){ if (__bk.toLowerCase()===__whoL){ __found = REGION_BIND_MAP[__bk]; break; } }
+          if (__found){ r = __found.join(','); try { localStorage.setItem(LS_KEY, r); } catch(e){} }
         }
       }
     }
