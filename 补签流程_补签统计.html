@@ -1786,7 +1786,9 @@ function __buildRegionPicker(pre){
       });
       try { var lb = document.getElementById('regionAccessNotice'); if (lb) lb.remove(); } catch(e){}
       try {
-        if (typeof curWt !== 'undefined' && curWt === 'labor'){ if (curSec==='att') showCell('labor','att'); else showCell('labor','sign'); }
+        // 优先用卡片推送的 wt/sec（与管理员分支一致），否则按当前视图族回落
+        if (window.__pushWt && window.__pushSec) showCell(window.__pushWt, window.__pushSec);
+        else if (typeof curWt !== 'undefined' && curWt === 'labor'){ if (curSec==='att') showCell('labor','att'); else showCell('labor','sign'); }
         else { if (typeof curSec !== 'undefined' && curSec==='sign') showCell('formal','sign'); else showCell('formal','att'); }
       } catch(e){}
       __showIdentityBadge(v, v.split('|').pop(), false);

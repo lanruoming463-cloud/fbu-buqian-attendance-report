@@ -103,7 +103,7 @@ if p.returncode != 0:
 log('reset ok at', head[:9])
 
 # ---- 5. 覆盖 index.html + commit（commit 信息按需修改） ----
-COMMIT_MSG = 'V7c 修正管理员识别:REGION_ADMIN_IDS 补齐真实JWT user_id(1805448442446875)+保留短号兼容,确保蓝若铭(管理员)直接全量不弹窗;弹窗下拉仅业务区域+无诊断乱码'
+COMMIT_MSG = 'V7d 选区域弹窗确认后也按卡片推送wt/sec跳视图(与管理员一致),HRBP点劳务工卡不再回落正式工;管理员长号兼容+弹窗无HRBP部项/无诊断乱码'
 shutil.copyfile(HTML, os.path.join(REPO, 'index.html'))
 run([GIT, 'add', '-A'], cwd=REPO)
 p = run([GIT, 'status', '--porcelain'], cwd=REPO)
