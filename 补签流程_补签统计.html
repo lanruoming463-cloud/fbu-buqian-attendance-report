@@ -1739,10 +1739,20 @@ function __showAccessNotice(){
     var d = document.createElement('div');
     d.id = 'regionAccessNotice';
     d.style.cssText = 'position:fixed;inset:0;background:rgba(248,250,252,0.98);z-index:99999;display:flex;align-items:center;justify-content:center;';
-    d.innerHTML = '<div style="max-width:420px;text-align:center;padding:32px;background:#fff;border:1px solid #e2e8f0;border-radius:12px;box-shadow:0 8px 30px rgba(15,23,42,0.08)">'
+    // 诊断信息：帮助确认线上版本与参数可达性
+    var __diag = '';
+    try {
+      __diag = '<div style="margin-top:14px;padding:8px;background:#f1f5f9;border-radius:6px;font-size:11px;color:#94a3b8;text-align:left;line-height:1.6;word-break:break-all">'
+        + 'V4 · search=' + (location.search || '(空)')
+        + ' · hash=' + (location.hash || '(空)')
+        + ' · bind=' + ((function(){ try { return localStorage.getItem('zbkq_region_binding') ? '有' : '无'; } catch(e){ return '不可用'; } })())
+        + '</div>';
+    } catch(e){}
+    d.innerHTML = '<div style="max-width:440px;text-align:center;padding:32px;background:#fff;border:1px solid #e2e8f0;border-radius:12px;box-shadow:0 8px 30px rgba(15,23,42,0.08)">'
       + '<div style="font-size:40px;margin-bottom:12px">🔒</div>'
       + '<div style="font-size:16px;font-weight:600;color:#0f172a;margin-bottom:8px">暂无访问权限</div>'
-      + '<div style="font-size:13px;color:#64748b;line-height:1.8">请通过「考勤数据推送」飞书卡片中的<br><b>查看考勤看板</b> 按钮进入，系统将自动绑定您的区域。<br>管理员请使用带 <b>?admin=1</b> 参数的链接。</div>'
+      + '<div style="font-size:13px;color:#64748b;line-height:1.8">请通过「考勤数据推送」飞书卡片中的<br><b>查看考勤看板</b> 按钮进入，系统将自动绑定您的区域。<br>管理员请使用带 <b>#admin=1</b> 参数的链接。</div>'
+      + __diag
       + '</div>';
     (document.body || document.documentElement).appendChild(d);
   } catch(e){}
