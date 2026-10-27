@@ -103,7 +103,7 @@ if p.returncode != 0:
 log('reset ok at', head[:9])
 
 # ---- 5. 覆盖 index.html + commit（commit 信息按需修改） ----
-COMMIT_MSG = 'feat: 区域绑定持久化(localStorage)——HRBP从卡片进入后裸开链接仍只见本区数据;?admin=1管理员逃生口清除绑定看全量;修复卡片跳转丢参数导致的全量暴露'
+COMMIT_MSG = 'feat: 区域隔离安全加固——裁剪提前到初始渲染前(修复全量闪现),无绑定裸开默认拒绝(锁定页提示从卡片进入),?admin=1管理员逃生口'
 shutil.copyfile(HTML, os.path.join(REPO, 'index.html'))
 run([GIT, 'add', '-A'], cwd=REPO)
 p = run([GIT, 'status', '--porcelain'], cwd=REPO)
