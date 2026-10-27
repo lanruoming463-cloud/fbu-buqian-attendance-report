@@ -103,7 +103,7 @@ if p.returncode != 0:
 log('reset ok at', head[:9])
 
 # ---- 5. 覆盖 index.html + commit（commit 信息按需修改） ----
-COMMIT_MSG = 'chore: 锁屏加V4版本号+search/hash/bind诊断信息,判定线上实际加载版本'
+COMMIT_MSG = 'feat: V5身份绑定——sso_token JWT name映射区域(REGION_BIND_MAP金美玲→韩国区/ADMIN蓝若铭),URL参数仍兼容,默认拒绝保留;彻底解决iframe剥参'
 shutil.copyfile(HTML, os.path.join(REPO, 'index.html'))
 run([GIT, 'add', '-A'], cwd=REPO)
 p = run([GIT, 'status', '--porcelain'], cwd=REPO)

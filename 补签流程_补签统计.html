@@ -1673,7 +1673,13 @@ function showCell(wt, sec) {
   }
 }
 
-/* ===== 区域隔离推送：?region= 参数（逗号分隔 "大区|区域" 对）+ 绑定持久化 + 默认拒绝 ===== */
+/* ===== 区域隔离推送 V5：身份绑定（sso_token JWT name → 区域）+ URL 参数兼容 + 默认拒绝 ===== */
+// 身份 → 区域集合 映射（飞书姓名精确匹配）。由 recipients.json 同步维护。
+var REGION_BIND_MAP = {
+  "金美玲": ["亚太区|韩国区", "FBU HRBP Dept.|韩国区HRBP部"]
+};
+// 管理员名单（全量查看）
+var REGION_ADMIN_NAMES = ["蓝若铭"];
 var GLOBAL_REGION_SET = [];
 function inRegionSet(major, region){
   if (!GLOBAL_REGION_SET.length) return true;
@@ -1767,32 +1773,51 @@ function __payloadList(){
 }
 function applyUrlRegionFilter(){
   try {
-    // 参数来源优先级：本层 search（卡片 open_url 若直达内层）→ 顶层/父层 search → 本层 hash（#region=...&admin=1，跨 iframe 最可靠）
-    function __getParamSources(){
-      var arr = [location.search || ''];
-      try { if (window.top && window.top !== window && window.top.location && window.top.location.search) arr.push(window.top.location.search); } catch(e){}
-      try { if (window.parent && window.parent !== window && window.parent.location && window.parent.location.search) arr.push(window.parent.location.search); } catch(e){}
-      if (location.hash && location.hash.length > 1) arr.push(location.hash.slice(1));
-      return arr;
-    }
+    // ===== V5：身份优先绑定（妙搭 iframe 剥掉外层 query/hash，唯一可靠的是内层 sso_token JWT 里的 name） =====
+    // 优先级：URL region 参数（若可达） > sso 身份映射 > localStorage 绑定 > 默认拒绝
     var LS_KEY = 'zbkq_region_binding';
-    var q = null, admin = false, r = '', srcUsed = '';
-    var sources = __getParamSources();
+    var r = '', admin = false, who = '';
+    // 0) 读 URL 参数（search 逐层 + hash，历史兼容）
+    var sources = [location.search || ''];
+    try { if (window.top && window.top !== window && window.top.location && window.top.location.search) sources.push(window.top.location.search); } catch(e){}
+    try { if (window.parent && window.parent !== window && window.parent.location && window.parent.location.search) sources.push(window.parent.location.search); } catch(e){}
+    if (location.hash && location.hash.length > 1) sources.push(location.hash.slice(1));
     for (var si = 0; si < sources.length; si++){
       var qq = new URLSearchParams(sources[si]);
       var rr = qq.get('region');
       var aa = qq.get('admin') === '1';
-      if (rr || aa){ q = qq; r = rr || ''; admin = aa; srcUsed = sources[si]; break; }
+      if (rr || aa){ r = rr || ''; admin = aa; break; }
+    }
+    // 1) 身份绑定：从内层 sso_token JWT 解出用户名，查 REGION_BIND_MAP / REGION_ADMIN_NAMES
+    if (!r && !admin && typeof REGION_BIND_MAP !== 'undefined'){
+      try {
+        var m2 = (location.search || '').match(/[?&]sso_token=([^&]+)/);
+        if (m2){
+          var b64 = m2[1].split('.')[1].replace(/-/g,'+').replace(/_/g,'/');
+          while (b64.length % 4) b64 += '=';
+          var json = decodeURIComponent(Array.prototype.map.call(atob(b64), function(c){
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+          }).join(''));
+          who = (JSON.parse(json).name) || '';
+        }
+      } catch(e){}
+      if (who){
+        if ((typeof REGION_ADMIN_NAMES !== 'undefined') && REGION_ADMIN_NAMES.indexOf(who) >= 0){
+          admin = true;  // 管理员：全量
+        } else if (REGION_BIND_MAP[who]){
+          r = REGION_BIND_MAP[who].join(',');
+          try { localStorage.setItem(LS_KEY, r); } catch(e){}
+        }
+      }
     }
     if (admin){ try { localStorage.removeItem(LS_KEY); } catch(e){} }
     if (r){
-      // 从卡片/带参链接进入：保存区域绑定（之后裸开链接也只看该区域）
       try { localStorage.setItem(LS_KEY, r); } catch(e){}
     } else if (!admin) {
-      // 无参数：读取持久化绑定
+      // 2) 无身份映射：读持久化绑定
       try { r = localStorage.getItem(LS_KEY) || ''; } catch(e){}
       if (!r){
-        // 默认拒绝：无绑定、无参数、非管理员 → 锁定页面
+        // 默认拒绝
         GLOBAL_REGION_SET = ['__NO_ACCESS__'];
         if (document.readyState === 'loading'){
           document.addEventListener('DOMContentLoaded', __showAccessNotice);
@@ -1813,9 +1838,13 @@ function applyUrlRegionFilter(){
       var btn = document.getElementById('btnRegion');
       if (btn) btn.textContent = (GLOBAL_REGION_SET[GLOBAL_REGION_SET.length-1]||'').split('|').pop() || '区域';
     }
-    if (q){
-      var wt = q.get('wt'), sec = q.get('sec');
-      if (wt && sec){ window.__pushWt = wt; window.__pushSec = sec; }
+    if (admin || r){
+      // URL 直达时支持视图预选
+      for (var si2 = 0; si2 < sources.length; si2++){
+        var q2 = new URLSearchParams(sources[si2]);
+        var wt = q2.get('wt'), sec = q2.get('sec');
+        if (wt && sec){ window.__pushWt = wt; window.__pushSec = sec; break; }
+      }
     }
   } catch(e){ if (window.console) console.error('region filter err', e); }
 }
