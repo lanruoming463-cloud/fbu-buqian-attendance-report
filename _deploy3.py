@@ -103,7 +103,7 @@ if p.returncode != 0:
 log('reset ok at', head[:9])
 
 # ---- 5. 覆盖 index.html + commit（commit 信息按需修改） ----
-COMMIT_MSG = 'V7d 选区域弹窗确认后也按卡片推送wt/sec跳视图(与管理员一致),HRBP点劳务工卡不再回落正式工;管理员长号兼容+弹窗无HRBP部项/无诊断乱码'
+COMMIT_MSG = 'V7e 加测试开关#picker=1:URL带此参数时即便管理员也强制走选区域浮层(预选#region),用于演示/验收弹窗效果;不影响正常逻辑(仅带参触发)'
 shutil.copyfile(HTML, os.path.join(REPO, 'index.html'))
 run([GIT, 'add', '-A'], cwd=REPO)
 p = run([GIT, 'status', '--porcelain'], cwd=REPO)

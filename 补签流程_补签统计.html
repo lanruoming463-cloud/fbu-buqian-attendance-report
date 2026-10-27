@@ -1865,7 +1865,7 @@ function applyUrlRegionFilter(){
     // ===== V5：身份优先绑定（妙搭 iframe 剥掉外层 query/hash，唯一可靠的是内层 sso_token JWT 里的 name） =====
     // 优先级：URL region 参数（若可达） > sso 身份映射 > localStorage 绑定 > 默认拒绝
     var LS_KEY = 'zbkq_region_binding';
-    var r = '', admin = false, who = '', paramRegion = '';
+    var r = '', admin = false, who = '', paramRegion = '', paramPicker = '';
     // 0) 读 URL 参数（search 逐层 + hash，历史兼容）
     var sources = [location.search || ''];
     try { if (window.top && window.top !== window && window.top.location && window.top.location.search) sources.push(window.top.location.search); } catch(e){}
@@ -1875,6 +1875,8 @@ function applyUrlRegionFilter(){
       var qq = new URLSearchParams(sources[si]);
       var rr = qq.get('region');
       var aa = qq.get('admin') === '1';
+      var pp = qq.get('picker');
+      if (pp) paramPicker = pp;
       if (rr || aa){ paramRegion = rr || ''; admin = aa; break; }
     }
     // 1) 身份绑定：从 sso_token JWT 解出 user_id（工号）。妙搭可能把 token 放在 search 或 hash，均尝试。
@@ -1967,6 +1969,8 @@ function applyUrlRegionFilter(){
         }
       }
     }
+    // 强制弹窗预览（演示/测试用）：URL 带 picker=1 时，即便管理员也走选区域浮层(预选 #region)
+    if (paramPicker === '1' || paramPicker === 'true') admin = false;
     if (admin){
       // 管理员：全量数据，不弹窗
       try { localStorage.removeItem(LS_KEY); } catch(e){}
