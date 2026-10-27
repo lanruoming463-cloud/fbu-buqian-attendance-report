@@ -103,7 +103,7 @@ if p.returncode != 0:
 log('reset ok at', head[:9])
 
 # ---- 5. 覆盖 index.html + commit（commit 信息按需修改） ----
-COMMIT_MSG = 'fix: 正式工张剑卫(David)/zt0022056 整体考勤数据剔除(6/7/10月全期),不计入考勤确认及时率分母及未及时确认名单;真源FORMAL_ATT_EXCLUDE_EMPS已固化'
+COMMIT_MSG = 'feat: T+1考勤确认及时率 增量注入10.23-10.25(正式工+劳务工),并修正劳务工洛杉矶19号仓(TT)10.1-10.22夜班考勤(专用晚班文件替换,未确认归零);数据范围扩至10.1-10.25'
 shutil.copyfile(HTML, os.path.join(REPO, 'index.html'))
 run([GIT, 'add', '-A'], cwd=REPO)
 p = run([GIT, 'status', '--porcelain'], cwd=REPO)
