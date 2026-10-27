@@ -1757,23 +1757,31 @@ function __payloadList(){
 }
 function applyUrlRegionFilter(){
   try {
-    // 兼容妙搭 iframe 嵌套：优先取顶层窗口的 search（外层 URL 的参数），取不到再用本层
-    function __getSearch(){
-      try { if (window.top && window.top !== window && window.top.location && window.top.location.search) return window.top.location.search; } catch(e){}
-      try { if (window.parent && window.parent !== window && window.parent.location && window.parent.location.search) return window.parent.location.search; } catch(e){}
-      return location.search || '';
+    // 参数来源优先级：本层 search（卡片 open_url 若直达内层）→ 顶层/父层 search → 本层 hash（#region=...&admin=1，跨 iframe 最可靠）
+    function __getParamSources(){
+      var arr = [location.search || ''];
+      try { if (window.top && window.top !== window && window.top.location && window.top.location.search) arr.push(window.top.location.search); } catch(e){}
+      try { if (window.parent && window.parent !== window && window.parent.location && window.parent.location.search) arr.push(window.parent.location.search); } catch(e){}
+      if (location.hash && location.hash.length > 1) arr.push(location.hash.slice(1));
+      return arr;
     }
-    var q = new URLSearchParams(__getSearch());
     var LS_KEY = 'zbkq_region_binding';
-    if (q.get('admin') === '1'){ try { localStorage.removeItem(LS_KEY); } catch(e){} }
-    var r = q.get('region');
+    var q = null, admin = false, r = '', srcUsed = '';
+    var sources = __getParamSources();
+    for (var si = 0; si < sources.length; si++){
+      var qq = new URLSearchParams(sources[si]);
+      var rr = qq.get('region');
+      var aa = qq.get('admin') === '1';
+      if (rr || aa){ q = qq; r = rr || ''; admin = aa; srcUsed = sources[si]; break; }
+    }
+    if (admin){ try { localStorage.removeItem(LS_KEY); } catch(e){} }
     if (r){
       // 从卡片/带参链接进入：保存区域绑定（之后裸开链接也只看该区域）
       try { localStorage.setItem(LS_KEY, r); } catch(e){}
-    } else {
+    } else if (!admin) {
       // 无参数：读取持久化绑定
       try { r = localStorage.getItem(LS_KEY) || ''; } catch(e){}
-      if (!r && q.get('admin') !== '1'){
+      if (!r){
         // 默认拒绝：无绑定、无参数、非管理员 → 锁定页面
         GLOBAL_REGION_SET = ['__NO_ACCESS__'];
         if (document.readyState === 'loading'){
@@ -1795,8 +1803,10 @@ function applyUrlRegionFilter(){
       var btn = document.getElementById('btnRegion');
       if (btn) btn.textContent = (GLOBAL_REGION_SET[GLOBAL_REGION_SET.length-1]||'').split('|').pop() || '区域';
     }
-    var wt = q.get('wt'), sec = q.get('sec');
-    if (wt && sec){ window.__pushWt = wt; window.__pushSec = sec; }
+    if (q){
+      var wt = q.get('wt'), sec = q.get('sec');
+      if (wt && sec){ window.__pushWt = wt; window.__pushSec = sec; }
+    }
   } catch(e){ if (window.console) console.error('region filter err', e); }
 }
 

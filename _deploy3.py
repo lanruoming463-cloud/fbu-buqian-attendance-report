@@ -103,7 +103,7 @@ if p.returncode != 0:
 log('reset ok at', head[:9])
 
 # ---- 5. 覆盖 index.html + commit（commit 信息按需修改） ----
-COMMIT_MSG = 'fix: 兼容妙搭iframe嵌套取参(优先顶层窗口search,修复?admin=1与?region=在内层丢失导致误锁);重发区域隔离加固'
+COMMIT_MSG = 'fix: 参数源扩展为本层search+顶层search+hash(#admin=1/#region=),query经iframe链路丢失时hash仍可达;管理员改用#admin=1'
 shutil.copyfile(HTML, os.path.join(REPO, 'index.html'))
 run([GIT, 'add', '-A'], cwd=REPO)
 p = run([GIT, 'status', '--porcelain'], cwd=REPO)
