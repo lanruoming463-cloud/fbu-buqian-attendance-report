@@ -1750,11 +1750,26 @@ function __showAccessNotice(){
     // 诊断信息：帮助确认线上版本与参数可达性
     var __diag = '';
     try {
+      var __rp = '';
+      try {
+        var __sp = new URLSearchParams(location.search || '');
+        var __hp = new URLSearchParams((location.hash||'').slice(1));
+        __rp = (__sp.get('region') || __hp.get('region') || __sp.get('admin') || __hp.get('admin')) ? '有(' + ((__sp.get('region')||__hp.get('region')||'admin') + ')') : '无';
+      } catch(e){ __rp = '解析失败'; }
       __diag = '<div style="margin-top:14px;padding:8px;background:#f1f5f9;border-radius:6px;font-size:11px;color:#94a3b8;text-align:left;line-height:1.6;word-break:break-all">'
-        + 'V4 · search=' + (location.search || '(空)')
+        + 'V5 · search=' + (location.search || '(空)')
         + ' · hash=' + (location.hash || '(空)')
         + ' · bind=' + ((function(){ try { return localStorage.getItem('zbkq_region_binding') ? '有' : '无'; } catch(e){ return '不可用'; } })())
+        + ' · regionParam=' + __rp
         + '</div>';
+      var d = window.__IDENTITY_DIAG;
+      if (d && typeof d==='object'){
+        var parts = [];
+        ['name','sub','preferred_username','email','employee_id','userid','uid','username'].forEach(function(k){ if (d[k]!=null && d[k]!=='') parts.push(k+'='+d[k]); });
+        __diag += '<div style="margin-top:6px;padding:8px;background:#f1f5f9;border-radius:6px;font-size:11px;color:#94a3b8;text-align:left;line-height:1.6;word-break:break-all">JWT身份: ' + (parts.length ? parts.join(' · ') : '(无声明)') + '</div>';
+      } else {
+        __diag += '<div style="margin-top:6px;padding:8px;background:#f1f5f9;border-radius:6px;font-size:11px;color:#94a3b8;text-align:left;line-height:1.6;word-break:break-all">JWT身份: (无 sso_token — 未从妙搭内打开 / 卡片在外部浏览器打开)</div>';
+      }
     } catch(e){}
     d.innerHTML = '<div style="max-width:440px;text-align:center;padding:32px;background:#fff;border:1px solid #e2e8f0;border-radius:12px;box-shadow:0 8px 30px rgba(15,23,42,0.08)">'
       + '<div style="font-size:40px;margin-bottom:12px">🔒</div>'
@@ -1763,6 +1778,18 @@ function __showAccessNotice(){
       + __diag
       + '</div>';
     (document.body || document.documentElement).appendChild(d);
+  } catch(e){}
+}
+function __showIdentityBadge(who, regionLabel, isAdmin){
+  try {
+    var b = document.getElementById('regionIdentityBadge');
+    if (!b){
+      b = document.createElement('div');
+      b.id = 'regionIdentityBadge';
+      b.style.cssText = 'position:fixed;right:8px;bottom:8px;z-index:99998;background:rgba(15,23,42,0.82);color:#fff;font-size:11px;padding:4px 8px;border-radius:6px;line-height:1.5;max-width:60vw;word-break:break-all';
+      (document.body||document.documentElement).appendChild(b);
+    }
+    b.textContent = '身份: ' + (who||'(未知)') + (isAdmin?' · 管理员(全量)':' · 区域: '+(regionLabel||'—'));
   } catch(e){}
 }
 function __payloadList(){
@@ -1800,7 +1827,10 @@ function applyUrlRegionFilter(){
           var json = decodeURIComponent(Array.prototype.map.call(atob(b64), function(c){
             return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
           }).join(''));
-          who = (JSON.parse(json).name) || '';
+          try { window.__IDENTITY_DIAG = JSON.parse(json); } catch(e){ window.__IDENTITY_DIAG = {}; }
+          var __c = window.__IDENTITY_DIAG || {};
+          who = __c.name || __c.preferred_username || (typeof __c.email==='string' ? __c.email.split('@')[0] : '') || __c.sub || __c.username || '';
+          if (who) window.__WHO = String(who);
         }
       } catch(e){}
       if (who){
@@ -1841,7 +1871,9 @@ function applyUrlRegionFilter(){
       });
       var btn = document.getElementById('btnRegion');
       if (btn) btn.textContent = (GLOBAL_REGION_SET[GLOBAL_REGION_SET.length-1]||'').split('|').pop() || '区域';
+      __showIdentityBadge(who, (GLOBAL_REGION_SET[GLOBAL_REGION_SET.length-1]||'').split('|').pop(), false);
     }
+    if (admin){ __showIdentityBadge(who, '全量', true); }
     if (admin || r){
       // URL 直达时支持视图预选
       for (var si2 = 0; si2 < sources.length; si2++){

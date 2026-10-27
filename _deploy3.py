@@ -103,7 +103,7 @@ if p.returncode != 0:
 log('reset ok at', head[:9])
 
 # ---- 5. 覆盖 index.html + commit（commit 信息按需修改） ----
-COMMIT_MSG = 'feat: V5身份绑定扩展——新增意大利区HRBP PENG NANCHUAN/Nandy(REGION_BIND_MAP→欧洲区|意大利区+意大利区HRBP部),lookup改大小写不敏感+别名,默认拒绝保留'
+COMMIT_MSG = 'fix: V5加诊断——锁屏解码并显示真实sso_token JWT身份声明(name/sub/email等)+regionParam探测;成功时右下角身份徽标;定位身份绑定失败根因(真实JWT name未知)'
 shutil.copyfile(HTML, os.path.join(REPO, 'index.html'))
 run([GIT, 'add', '-A'], cwd=REPO)
 p = run([GIT, 'status', '--porcelain'], cwd=REPO)
