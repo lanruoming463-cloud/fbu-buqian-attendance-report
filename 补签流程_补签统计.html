@@ -1685,7 +1685,7 @@ var REGION_BIND_MAP = {
 var REGION_ADMIN_IDS = ["180544844"];
 var REGION_ADMIN_NAMES = ["蓝若铭"];
 var GLOBAL_REGION_SET = [];
-var REGION_CONTROL_ENABLED = false; // 废除权限管控：false=始终全量、不裁剪、不锁屏（需恢复区域隔离时改 true）
+var REGION_CONTROL_ENABLED = true; // 区域隔离开关：true=进入弹「选择区域」浮层、按区域裁剪；false=始终全量、不锁屏
 function inRegionSet(major, region){
   if (!GLOBAL_REGION_SET.length) return true;
   for (var i=0;i<GLOBAL_REGION_SET.length;i++){ if (GLOBAL_REGION_SET[i]===major+'|'+region) return true; }
@@ -1745,13 +1745,13 @@ function __pruneRegionOrder(P){
   Object.keys(ro).forEach(function(mj){ if (!GLOBAL_REGION_SET.some(function(p){ return p.split('|')[0]===mj; })) return; var regs = ro[mj]; if (Array.isArray(regs)){ nro[mj]=regs.filter(function(rg){ return GLOBAL_REGION_SET.indexOf(mj+'|'+rg)>=0; }); } else { nro[mj]=regs; } });
   P.regionOrder = nro;
 }
-function __buildRegionPicker(){
+function __buildRegionPicker(pre){
   try {
     var wrap = document.createElement('div');
     wrap.style.cssText = 'margin-top:14px;border-top:1px solid #e2e8f0;padding-top:14px;';
     var lbl = document.createElement('div');
     lbl.style.cssText = 'font-size:12px;color:#64748b;margin-bottom:8px;';
-    lbl.textContent = '未自动识别到您的区域？请手动选择（仅可查看所选区域）：';
+    lbl.textContent = '选择区域（仅展示所选区域及其 HRBP 部门的数据）：';
     var sel = document.createElement('select');
     sel.style.cssText = 'width:100%;padding:8px;font-size:13px;border:1px solid #cbd5e1;border-radius:6px;';
     sel.appendChild(new Option('— 选择区域 —', ''));
@@ -1766,6 +1766,7 @@ function __buildRegionPicker(){
     var seen = {}, uniq = [];
     opts.forEach(function(o){ if(!seen[o]){ seen[o]=1; uniq.push(o); } });
     uniq.sort().forEach(function(o){ sel.appendChild(new Option(o, o)); });
+    if (pre){ try { sel.value = pre.split(',')[0]; } catch(e){} }
     var btn = document.createElement('button');
     btn.textContent = '确认查看';
     btn.style.cssText = 'width:100%;margin-top:10px;padding:9px;background:#2563eb;color:#fff;border:none;border-radius:6px;font-size:14px;cursor:pointer;';
@@ -1793,7 +1794,7 @@ function __buildRegionPicker(){
     return wrap;
   } catch(e){ return null; }
 }
-function __showAccessNotice(){
+function __showRegionPickerModal(pre){
   try {
     var d = document.createElement('div');
     d.id = 'regionAccessNotice';
@@ -1808,7 +1809,7 @@ function __showAccessNotice(){
         __rp = (__sp.get('region') || __hp.get('region') || __sp.get('admin') || __hp.get('admin')) ? '有(' + ((__sp.get('region')||__hp.get('region')||'admin') + ')') : '无';
       } catch(e){ __rp = '解析失败'; }
       __diag = '<div style="margin-top:14px;padding:8px;background:#f1f5f9;border-radius:6px;font-size:11px;color:#94a3b8;text-align:left;line-height:1.6;word-break:break-all">'
-        + 'V6 · search=' + (location.search || '(空)')
+        + 'V7 · search=' + (location.search || '(空)')
         + ' · hash=' + (location.hash || '(空)')
         + ' · bind=' + ((function(){ try { return localStorage.getItem('zbkq_region_binding') ? '有' : '无'; } catch(e){ return '不可用'; } })())
         + ' · regionParam=' + __rp
@@ -1823,13 +1824,13 @@ function __showAccessNotice(){
         __diag += '<div style="margin-top:6px;padding:8px;background:#f1f5f9;border-radius:6px;font-size:11px;color:#94a3b8;text-align:left;line-height:1.6;word-break:break-all">JWT身份: (无 sso_token — 未从妙搭内打开 / 卡片在外部浏览器打开)</div>';
       }
     } catch(e){}
-    d.innerHTML = '<div id="regionModal" style="max-width:440px;text-align:center;padding:32px;background:#fff;border:1px solid #e2e8f0;border-radius:12px;box-shadow:0 8px 30px rgba(15,23,42,0.08)">'
-      + '<div style="font-size:40px;margin-bottom:12px">🔒</div>'
-      + '<div style="font-size:16px;font-weight:600;color:#0f172a;margin-bottom:8px">暂无访问权限</div>'
-      + '<div style="font-size:13px;color:#64748b;line-height:1.8">请通过「考勤数据推送」飞书卡片中的<br><b>查看考勤看板</b> 按钮进入，系统将自动绑定您的区域。<br>管理员请使用带 <b>#admin=1</b> 参数的链接。</div>'
+    d.innerHTML = '<div id="regionModal" style="max-width:460px;text-align:center;padding:32px;background:#fff;border:1px solid #e2e8f0;border-radius:12px;box-shadow:0 8px 30px rgba(15,23,42,0.08)">'
+      + '<div style="font-size:38px;margin-bottom:12px">🗺️</div>'
+      + '<div style="font-size:17px;font-weight:600;color:#0f172a;margin-bottom:8px">请选择区域查看数据</div>'
+      + '<div style="font-size:13px;color:#64748b;line-height:1.8">选择您负责的区域后，将仅展示该区域<br>（含对应 HRBP 部门）的数据。<br>管理员请联系蓝若铭获取全量查看链接。</div>'
       + __diag
       + '</div>';
-      try { var __pk = __buildRegionPicker(); if (__pk) d.querySelector('#regionModal').appendChild(__pk); } catch(e){}
+      try { var __pk = __buildRegionPicker(pre); if (__pk) d.querySelector('#regionModal').appendChild(__pk); } catch(e){}
     (document.body || document.documentElement).appendChild(d);
   } catch(e){}
 }
@@ -1862,7 +1863,7 @@ function applyUrlRegionFilter(){
     // ===== V5：身份优先绑定（妙搭 iframe 剥掉外层 query/hash，唯一可靠的是内层 sso_token JWT 里的 name） =====
     // 优先级：URL region 参数（若可达） > sso 身份映射 > localStorage 绑定 > 默认拒绝
     var LS_KEY = 'zbkq_region_binding';
-    var r = '', admin = false, who = '';
+    var r = '', admin = false, who = '', paramRegion = '';
     // 0) 读 URL 参数（search 逐层 + hash，历史兼容）
     var sources = [location.search || ''];
     try { if (window.top && window.top !== window && window.top.location && window.top.location.search) sources.push(window.top.location.search); } catch(e){}
@@ -1872,7 +1873,7 @@ function applyUrlRegionFilter(){
       var qq = new URLSearchParams(sources[si]);
       var rr = qq.get('region');
       var aa = qq.get('admin') === '1';
-      if (rr || aa){ r = rr || ''; admin = aa; break; }
+      if (rr || aa){ paramRegion = rr || ''; admin = aa; break; }
     }
     // 1) 身份绑定：从 sso_token JWT 解出 user_id（工号）。妙搭可能把 token 放在 search 或 hash，均尝试。
     if (!r && !admin && typeof REGION_BIND_MAP !== 'undefined'){
@@ -1964,44 +1965,26 @@ function applyUrlRegionFilter(){
         }
       }
     }
-    if (admin){ try { localStorage.removeItem(LS_KEY); } catch(e){} }
-    if (r){
-      try { localStorage.setItem(LS_KEY, r); } catch(e){}
-    } else if (!admin) {
-      // 2) 无身份映射：读持久化绑定
-      try { r = localStorage.getItem(LS_KEY) || ''; } catch(e){}
-      if (!r){
-        // 默认拒绝
-        GLOBAL_REGION_SET = ['__NO_ACCESS__'];
-        if (document.readyState === 'loading'){
-          document.addEventListener('DOMContentLoaded', __showAccessNotice);
-        } else { __showAccessNotice(); }
-      }
-    }
-    if (r){
-      GLOBAL_REGION_SET = r.split(',').map(function(s){ return s.trim(); }).filter(Boolean);
-    }
-    if (GLOBAL_REGION_SET.length && GLOBAL_REGION_SET[0] !== '__NO_ACCESS__'){
-      __payloadList().forEach(function(P){
-        if (!P || !P.data) return;
-        Object.keys(P.data).forEach(function(k){ __pruneBlock(P.data[k]); });
-        __pruneTopIdx(P);
-        __pruneRegionOrder(P);
-        if (Array.isArray(P.allEmp)) P.allEmp = P.allEmp.filter(function(e){ return inRegionSet(e.major, e.region); });
-      });
-      var btn = document.getElementById('btnRegion');
-      if (btn) btn.textContent = (GLOBAL_REGION_SET[GLOBAL_REGION_SET.length-1]||'').split('|').pop() || '区域';
-      __showIdentityBadge(who, (GLOBAL_REGION_SET[GLOBAL_REGION_SET.length-1]||'').split('|').pop(), false);
-    }
-    if (admin){ __showIdentityBadge(who, '全量', true); }
-    if (admin || r){
-      // URL 直达时支持视图预选
+    if (admin){
+      // 管理员：全量数据，不弹窗
+      try { localStorage.removeItem(LS_KEY); } catch(e){}
+      GLOBAL_REGION_SET = [];
+      __showIdentityBadge(who || '管理员', '全量', true);
       for (var si2 = 0; si2 < sources.length; si2++){
         var q2 = new URLSearchParams(sources[si2]);
         var wt = q2.get('wt'), sec = q2.get('sec');
         if (wt && sec){ window.__pushWt = wt; window.__pushSec = sec; break; }
       }
+      return;
     }
+    // 非管理员：每次进入都弹出「选择区域」浮层（预选：持久化绑定 > 卡片推送区域 > 身份区域）
+    GLOBAL_REGION_SET = ['__NO_ACCESS__'];
+    var __pre = '';
+    try { __pre = localStorage.getItem(LS_KEY) || ''; } catch(e){}
+    if (!__pre) __pre = paramRegion || (r || '');
+    if (document.readyState === 'loading'){
+      document.addEventListener('DOMContentLoaded', function(){ __showRegionPickerModal(__pre); });
+    } else { __showRegionPickerModal(__pre); }
   } catch(e){ if (window.console) console.error('region filter err', e); }
 }
 

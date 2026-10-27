@@ -103,7 +103,7 @@ if p.returncode != 0:
 log('reset ok at', head[:9])
 
 # ---- 5. 覆盖 index.html + commit（commit 信息按需修改） ----
-COMMIT_MSG = '废除权限管控: REGION_CONTROL_ENABLED=false, 裸开链接始终全量、不裁剪、不锁屏(恢复隔离改true即可);V6空白页修复+postMessage兜底保留'
+COMMIT_MSG = 'V7 进入弹「选择区域」浮层(非管理员每次进入都弹,预选推送/绑定区域);管理员全量;锁屏改友好选区域弹窗;卡片链接改#region=哈希预选;空白页修复保留'
 shutil.copyfile(HTML, os.path.join(REPO, 'index.html'))
 run([GIT, 'add', '-A'], cwd=REPO)
 p = run([GIT, 'status', '--porcelain'], cwd=REPO)
