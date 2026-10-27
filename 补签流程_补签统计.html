@@ -2280,6 +2280,7 @@ function applyUrlRegionFilter(){
         Object.keys(P.data).forEach(function(k){ __pruneBlock(P.data[k]); });
         __pruneTopIdx(P);
         __pruneRegionOrder(P);
+        if (Array.isArray(P.allEmp)) P.allEmp = P.allEmp.filter(function(e){ return inRegionSet(e.major, e.region); });
       });
       var btn = document.getElementById('btnRegion'); if (btn) btn.textContent = (GLOBAL_REGION_SET[GLOBAL_REGION_SET.length-1]||'').split('|').pop() || '区域';
     }
@@ -2287,6 +2288,96 @@ function applyUrlRegionFilter(){
     if (wt && sec){ window.__pushWt = wt; window.__pushSec = sec; }
   } catch(e){ if (window.console) console.error('region filter err', e); }
 }
+
+/* ===== 名单导出：未确认考勤 / 补签人员（随区域隔离与当前筛选联动） ===== */
+function __dlCsv(name, headers, rows){
+  var lines = ['\uFEFF' + headers.join(',')];
+  rows.forEach(function(r){
+    lines.push(r.map(function(v){
+      v = (v == null ? '' : String(v));
+      return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
+    }).join(','));
+  });
+  var blob = new Blob([lines.join('\r\n')], {type: 'text/csv;charset=utf-8'});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  document.body.appendChild(a); a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 800);
+}
+function __empRowsFromIndex(idx, headers){
+  // empIndex 行 = [...headers字段..., ym, ymd]
+  var out = [];
+  Object.keys(idx).forEach(function(k){
+    idx[k].forEach(function(e){
+      var row = e.slice(0, headers.length).slice();
+      row.push(k.split('|')[0], k.split('|')[1]); // 附大区/区域
+      out.push(row);
+    });
+  });
+  return out;
+}
+function exportUnconfirmed(){
+  var headers, rows;
+  if (curWt === 'formal'){
+    var P = formalAttPayload;
+    headers = P.empHeaders.concat(['大区','区域']);
+    rows = __empRowsFromIndex(genEmpIdx, P.empHeaders);
+    var seen = {}, dedup = [];
+    rows.forEach(function(r){ var key = r[1] + '|' + r[5] + '|' + r[2]; if (!seen[key]) { seen[key] = 1; dedup.push(r); } });
+    rows = dedup;
+    __dlCsv('正式工_未及时确认考勤名单_' + (genSel || genDayStart || '') + '.csv', headers, rows);
+  } else {
+    var P2 = attendPayload;
+    headers = P2.empHeaders.concat(['大区','区域']);
+    buildAttEmpIndex();
+    rows = __empRowsFromIndex(attEmpIdx, P2.empHeaders);
+    __dlCsv('劳务工_未确认考勤名单_' + (attendSel || attendDayStart || '') + '.csv', headers, rows);
+  }
+}
+function exportBuqian(){
+  var ym = selected || '';
+  if (curWt === 'formal'){
+    var P = formalPayload;
+    var headers = P.empHeaders.concat(['大区','区域','仓','组']);
+    var rows = (P.allEmp || []).filter(function(e){ return !ym || e.ym === ym; }).map(function(e){
+      return [e['姓名'], e['工号'], e['职位'], e['补签日期'], e['补签事由'], e['备注'], e['审批状态'], e.major, e.region, e.wh, e.group];
+    });
+    __dlCsv('正式工_补签人员名单_' + (ym || '全期') + '.csv', headers, rows);
+  } else {
+    var P2 = laborPayload;
+    var headers2 = P2.empHeaders.concat(['大区','区域']);
+    var idx = P2.empIndex || {};
+    var rows2 = [];
+    Object.keys(idx).forEach(function(k){
+      idx[k].forEach(function(e){
+        // labor empIndex 行无 ym 后缀：考勤日期在 empHeaders 第4列（下标3），取前7位为月份
+        var ymv = (e[3] || '').slice(0, 7);
+        if (ymv !== ym) return;
+        var row = e.slice(0, P2.empHeaders.length).slice();
+        var kp = k.split('|');
+        row.push(kp[0], kp[1]);
+        rows2.push(row);
+      });
+    });
+    __dlCsv('劳务工_补签人员名单_' + (ym || '全期') + '.csv', headers2, rows2);
+  }
+}
+function exportCurrentList(){
+  if (curSec === 'att') exportUnconfirmed();
+  else exportBuqian();
+}
+// 注入导出按钮到全局控件（btnRegion 包裹层之后）
+(function(){
+  var wrap = document.querySelector('#globalControls');
+  if (!wrap || document.getElementById('btnExportList')) return;
+  var b = document.createElement('button');
+  b.id = 'btnExportList';
+  b.textContent = '导出名单';
+  b.style.marginLeft = '8px';
+  b.onclick = function(){ if (typeof exportCurrentList === 'function') exportCurrentList(); };
+  wrap.appendChild(b);
+})();
 
 applyUrlRegionFilter();
 if (window.__pushWt && window.__pushSec) showCell(window.__pushWt, window.__pushSec);

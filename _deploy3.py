@@ -103,7 +103,7 @@ if p.returncode != 0:
 log('reset ok at', head[:9])
 
 # ---- 5. 覆盖 index.html + commit（commit 信息按需修改） ----
-COMMIT_MSG = 'feat: 新增 ?region= 区域隔离推送能力(按"大区|区域"集合裁剪4个数据集含total重算/topEmpIndex/empIndex/regionOrder,支持?wt=&sec=预选视图);供区域HRBP看板推送使用'
+COMMIT_MSG = 'feat: ?region= 裁剪补签明细 allEmp(权限修复,7594->区域) + 新增「导出名单」按钮(未确认考勤/补签人员CSV,正式工+劳务工,随区域隔离联动)'
 shutil.copyfile(HTML, os.path.join(REPO, 'index.html'))
 run([GIT, 'add', '-A'], cwd=REPO)
 p = run([GIT, 'status', '--porcelain'], cwd=REPO)
