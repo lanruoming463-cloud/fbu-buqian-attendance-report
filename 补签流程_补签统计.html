@@ -1695,16 +1695,22 @@ function __pruneRows(arr){
   if (!Array.isArray(arr)) return arr;
   return arr.filter(function(r){ return inRegionSet(r.major, r.region); });
 }
+function __round2(v){ return Math.round(v*100)/100; }
 function __pruneBlock(blk){
   if (!blk || typeof blk!=='object') return;
   var det = __pruneRows(blk.detail);
+  // detail 行 rate 统一重算保留2位（源数据可能只有1位）
+  det.forEach(function(r){ if (typeof r.total==='number' && r.total) r.rate = __round2((r['已完成']||0)/r.total*100); });
   if (blk.warehouse) blk.warehouse = __pruneRows(blk.warehouse);
   if (blk.group) blk.group = __pruneRows(blk.group);
   if (blk.major){
     var origMaj = blk.major;
     blk.major = origMaj.filter(function(m){ return GLOBAL_REGION_SET.some(function(p){ return p.split('|')[0]===m.name; }); }).map(function(m){
       var sum = { name: m.name };
-      det.filter(function(r){ return r.major===m.name; }).forEach(function(r){ Object.keys(r).forEach(function(f){ if (f==='major'||f==='region') return; if (typeof r[f]==='number') sum[f]=(sum[f]||0)+r[f]; }); });
+      det.filter(function(r){ return r.major===m.name; }).forEach(function(r){ Object.keys(r).forEach(function(f){ if (f==='major'||f==='region'||f==='rate'||f==='pct') return; if (typeof r[f]==='number') sum[f]=(sum[f]||0)+r[f]; }); });
+      // 比率类字段重算并保留2位小数，避免浮点累加出长小数（乱码观感）
+      if (typeof sum.total === 'number' && sum.total){ sum.rate = __round2((sum['已完成']||0)/sum.total*100); sum.pct = sum.rate; }
+      else { sum.rate = 0; sum.pct = 0; }
       return sum;
     });
   }
@@ -1714,7 +1720,7 @@ function __pruneBlock(blk){
       blk.total = det.reduce(function(s,r){ return s+(r.total||0); },0);
       blk.done  = det.reduce(function(s,r){ return s+(r['已完成']||0); },0);
       if ('ing' in blk) blk.ing = det.reduce(function(s,r){ return s+(r['审批中']||0); },0);
-      if ('rate' in blk) blk.rate = blk.total ? (blk.done/blk.total*100) : 0;
+      if ('rate' in blk) blk.rate = blk.total ? __round2(blk.done/blk.total*100) : 0;
     } else {
       var agg = {};
       det.forEach(function(r){ Object.keys(r).forEach(function(f){ if (f==='major'||f==='region') return; if (typeof r[f]==='number') agg[f]=(agg[f]||0)+r[f]; }); });
@@ -1790,6 +1796,13 @@ function __buildRegionPicker(pre){
         if (window.__pushWt && window.__pushSec) showCell(window.__pushWt, window.__pushSec);
         else if (typeof curWt !== 'undefined' && curWt === 'labor'){ if (curSec==='att') showCell('labor','att'); else showCell('labor','sign'); }
         else { if (typeof curSec !== 'undefined' && curSec==='sign') showCell('formal','sign'); else showCell('formal','att'); }
+      } catch(e){}
+      // KPI 双保险：补签率大卡显示强制 2 位小数（防裁剪外路径出现长浮点）
+      try {
+        var __ci = document.getElementById('cIng');
+        if (__ci && /%$/.test(__ci.textContent) && __ci.textContent.indexOf('.') < 0) {
+          var __nv = parseFloat(__ci.textContent); if (!isNaN(__nv)) __ci.textContent = __nv.toFixed(2) + '%';
+        }
       } catch(e){}
       __showIdentityBadge(v, v.split('|').pop(), false);
     };
