@@ -1759,6 +1759,7 @@ function __buildRegionPicker(pre){
     __payloadList().forEach(function(P){
       if (!P || !P.regionOrder) return;
       Object.keys(P.regionOrder).forEach(function(mj){
+        if (mj === 'FBU HRBP Dept.') return;  // 下拉只列业务区域；HRBP 部门随业务区域自动附带
         var regs = P.regionOrder[mj];
         if (Array.isArray(regs)) regs.forEach(function(rg){ opts.push(mj + '|' + rg); });
       });
@@ -1828,7 +1829,6 @@ function __showRegionPickerModal(pre){
       + '<div style="font-size:38px;margin-bottom:12px">🗺️</div>'
       + '<div style="font-size:17px;font-weight:600;color:#0f172a;margin-bottom:8px">请选择区域查看数据</div>'
       + '<div style="font-size:13px;color:#64748b;line-height:1.8">选择您负责的区域后，将仅展示该区域<br>（含对应 HRBP 部门）的数据。<br>管理员请联系蓝若铭获取全量查看链接。</div>'
-      + __diag
       + '</div>';
       try { var __pk = __buildRegionPicker(pre); if (__pk) d.querySelector('#regionModal').appendChild(__pk); } catch(e){}
     (document.body || document.documentElement).appendChild(d);

@@ -103,7 +103,7 @@ if p.returncode != 0:
 log('reset ok at', head[:9])
 
 # ---- 5. 覆盖 index.html + commit（commit 信息按需修改） ----
-COMMIT_MSG = 'V7 进入弹「选择区域」浮层(非管理员每次进入都弹,预选推送/绑定区域);管理员全量;锁屏改友好选区域弹窗;卡片链接改#region=哈希预选;空白页修复保留'
+COMMIT_MSG = 'V7b 选区域弹窗优化:下拉仅列业务区域(不再列FBU HRBP Dept.|xxHRBP部,HRBP随区域自动附带);移除弹窗底部诊断乱码块;其余V7逻辑(管理员全量/非管理员弹窗/#region=预选/空白页修复)不变'
 shutil.copyfile(HTML, os.path.join(REPO, 'index.html'))
 run([GIT, 'add', '-A'], cwd=REPO)
 p = run([GIT, 'status', '--porcelain'], cwd=REPO)
