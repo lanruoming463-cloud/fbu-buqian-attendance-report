@@ -103,7 +103,7 @@ if p.returncode != 0:
 log('reset ok at', head[:9])
 
 # ---- 5. 覆盖 index.html + commit（commit 信息按需修改） ----
-COMMIT_MSG = 'V7e 加测试开关#picker=1:URL带此参数时即便管理员也强制走选区域浮层(预选#region),用于演示/验收弹窗效果;不影响正常逻辑(仅带参触发)'
+COMMIT_MSG = 'V8 导出名单部门全链路:部门列改 大区/区域/仓/组 四级链路(正式工+劳务工,考勤确认率+补签率4口径),行尾加大区/区域/仓/组独立列便于Excel筛选;劳务工表尾加部门(全链路)列'
 shutil.copyfile(HTML, os.path.join(REPO, 'index.html'))
 run([GIT, 'add', '-A'], cwd=REPO)
 p = run([GIT, 'status', '--porcelain'], cwd=REPO)

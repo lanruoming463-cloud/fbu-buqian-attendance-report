@@ -2547,13 +2547,21 @@ function __dlCsv(name, headers, rows){
   document.body.appendChild(a); a.click();
   setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 800);
 }
-function __empRowsFromIndex(idx, headers){
-  // empIndex 行 = [...headers字段..., ym, ymd]
+function __empRowsFromIndex(idx, headers, opts){
+  // empIndex 行 = [...headers字段..., ym, ymd]；key = 大区|区域|仓|组（四级全链路）
+  // 有"部门"列时将其值替换为全链路"大区/区域/仓/组"；行尾追加 大区/区域/仓/组 独立列便于筛选
+  // opts.addChain=true 且无"部门"列时（劳务工表），行尾再加一列"部门(全链路)"
+  var deptIdx = headers.indexOf('部门');
   var out = [];
   Object.keys(idx).forEach(function(k){
+    var kp = k.split('|');
+    var maj = kp[0]||'', reg = kp[1]||'', wh = kp[2]||'', gp = kp[3]||'';
+    var chain = [maj, reg, wh, gp].join('/');
     idx[k].forEach(function(e){
       var row = e.slice(0, headers.length).slice();
-      row.push(k.split('|')[0], k.split('|')[1]); // 附大区/区域
+      if (deptIdx >= 0) row[deptIdx] = chain;
+      row.push(maj, reg, wh, gp);
+      if (opts && opts.addChain && deptIdx < 0) row.push(chain);
       out.push(row);
     });
   });
@@ -2563,7 +2571,7 @@ function exportUnconfirmed(){
   var headers, rows;
   if (curWt === 'formal'){
     var P = formalAttPayload;
-    headers = P.empHeaders.concat(['大区','区域']);
+    headers = P.empHeaders.concat(['大区','区域','仓','组']);
     rows = __empRowsFromIndex(genEmpIdx, P.empHeaders);
     var seen = {}, dedup = [];
     rows.forEach(function(r){ var key = r[1] + '|' + r[5] + '|' + r[2]; if (!seen[key]) { seen[key] = 1; dedup.push(r); } });
@@ -2571,9 +2579,9 @@ function exportUnconfirmed(){
     __dlCsv('正式工_未及时确认考勤名单_' + (genSel || genDayStart || '') + '.csv', headers, rows);
   } else {
     var P2 = attendPayload;
-    headers = P2.empHeaders.concat(['大区','区域']);
+    headers = P2.empHeaders.concat(['大区','区域','仓','组','部门(全链路)']);
     buildAttEmpIndex();
-    rows = __empRowsFromIndex(attEmpIdx, P2.empHeaders);
+    rows = __empRowsFromIndex(attEmpIdx, P2.empHeaders, {addChain:true});
     __dlCsv('劳务工_未确认考勤名单_' + (attendSel || attendDayStart || '') + '.csv', headers, rows);
   }
 }
@@ -2581,24 +2589,26 @@ function exportBuqian(){
   var ym = selected || '';
   if (curWt === 'formal'){
     var P = formalPayload;
-    var headers = P.empHeaders.concat(['大区','区域','仓','组']);
+    var headers = P.empHeaders.concat(['大区','区域','仓','组','部门(全链路)']);
     var rows = (P.allEmp || []).filter(function(e){ return !ym || e.ym === ym; }).map(function(e){
-      return [e['姓名'], e['工号'], e['职位'], e['补签日期'], e['补签事由'], e['备注'], e['审批状态'], e.major, e.region, e.wh, e.group];
+      var chain = [e.major, e.region, e.wh, e.group].join('/');
+      return [e['姓名'], e['工号'], e['职位'], e['补签日期'], e['补签事由'], e['备注'], e['审批状态'], chain, e.major, e.region, e.wh, e.group];
     });
     __dlCsv('正式工_补签人员名单_' + (ym || '全期') + '.csv', headers, rows);
   } else {
     var P2 = laborPayload;
-    var headers2 = P2.empHeaders.concat(['大区','区域']);
+    var headers2 = P2.empHeaders.concat(['大区','区域','仓','组','部门(全链路)']);
     var idx = P2.empIndex || {};
     var rows2 = [];
     Object.keys(idx).forEach(function(k){
+      var kp = k.split('|');
+      var chain = [kp[0],kp[1],kp[2],kp[3]].join('/');
       idx[k].forEach(function(e){
         // labor empIndex 行无 ym 后缀：考勤日期在 empHeaders 第4列（下标3），取前7位为月份
         var ymv = (e[3] || '').slice(0, 7);
         if (ymv !== ym) return;
         var row = e.slice(0, P2.empHeaders.length).slice();
-        var kp = k.split('|');
-        row.push(kp[0], kp[1]);
+        row.push(kp[0], kp[1], kp[2], kp[3], chain);
         rows2.push(row);
       });
     });
