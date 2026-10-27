@@ -103,7 +103,7 @@ if p.returncode != 0:
 log('reset ok at', head[:9])
 
 # ---- 5. 覆盖 index.html + commit（commit 信息按需修改） ----
-COMMIT_MSG = 'feat: 区域隔离安全加固——裁剪提前到初始渲染前(修复全量闪现),无绑定裸开默认拒绝(锁定页提示从卡片进入),?admin=1管理员逃生口'
+COMMIT_MSG = 'fix: 兼容妙搭iframe嵌套取参(优先顶层窗口search,修复?admin=1与?region=在内层丢失导致误锁);重发区域隔离加固'
 shutil.copyfile(HTML, os.path.join(REPO, 'index.html'))
 run([GIT, 'add', '-A'], cwd=REPO)
 p = run([GIT, 'status', '--porcelain'], cwd=REPO)

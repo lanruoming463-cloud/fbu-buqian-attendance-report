@@ -1757,7 +1757,13 @@ function __payloadList(){
 }
 function applyUrlRegionFilter(){
   try {
-    var q = new URLSearchParams(location.search);
+    // 兼容妙搭 iframe 嵌套：优先取顶层窗口的 search（外层 URL 的参数），取不到再用本层
+    function __getSearch(){
+      try { if (window.top && window.top !== window && window.top.location && window.top.location.search) return window.top.location.search; } catch(e){}
+      try { if (window.parent && window.parent !== window && window.parent.location && window.parent.location.search) return window.parent.location.search; } catch(e){}
+      return location.search || '';
+    }
+    var q = new URLSearchParams(__getSearch());
     var LS_KEY = 'zbkq_region_binding';
     if (q.get('admin') === '1'){ try { localStorage.removeItem(LS_KEY); } catch(e){} }
     var r = q.get('region');
@@ -1778,7 +1784,7 @@ function applyUrlRegionFilter(){
     if (r){
       GLOBAL_REGION_SET = r.split(',').map(function(s){ return s.trim(); }).filter(Boolean);
     }
-    if (GLOBAL_REGION_SET.length){
+    if (GLOBAL_REGION_SET.length && GLOBAL_REGION_SET[0] !== '__NO_ACCESS__'){
       __payloadList().forEach(function(P){
         if (!P || !P.data) return;
         Object.keys(P.data).forEach(function(k){ __pruneBlock(P.data[k]); });
@@ -1787,7 +1793,7 @@ function applyUrlRegionFilter(){
         if (Array.isArray(P.allEmp)) P.allEmp = P.allEmp.filter(function(e){ return inRegionSet(e.major, e.region); });
       });
       var btn = document.getElementById('btnRegion');
-      if (btn && GLOBAL_REGION_SET[0] !== '__NO_ACCESS__') btn.textContent = (GLOBAL_REGION_SET[GLOBAL_REGION_SET.length-1]||'').split('|').pop() || '区域';
+      if (btn) btn.textContent = (GLOBAL_REGION_SET[GLOBAL_REGION_SET.length-1]||'').split('|').pop() || '区域';
     }
     var wt = q.get('wt'), sec = q.get('sec');
     if (wt && sec){ window.__pushWt = wt; window.__pushSec = sec; }
