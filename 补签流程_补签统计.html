@@ -2207,6 +2207,90 @@ attendSectionTabs.addEventListener('click', function(e){
   attendTabBtns.forEach(function(x){ x.classList.toggle('active', x === b); });
 });
 renderAttend();
+
+/* ===== 区域隔离推送：?region= 参数（逗号分隔 "大区|区域" 对） ===== */
+var GLOBAL_REGION_SET = [];
+function inRegionSet(major, region){
+  if (!GLOBAL_REGION_SET.length) return true;
+  for (var i=0;i<GLOBAL_REGION_SET.length;i++){ if (GLOBAL_REGION_SET[i]===major+'|'+region) return true; }
+  return false;
+}
+function __pruneRows(arr){
+  if (!Array.isArray(arr)) return arr;
+  return arr.filter(function(r){ return inRegionSet(r.major, r.region); });
+}
+function __pruneBlock(blk){
+  if (!blk || typeof blk!=='object') return;
+  var det = __pruneRows(blk.detail);
+  if (blk.warehouse) blk.warehouse = __pruneRows(blk.warehouse);
+  if (blk.group) blk.group = __pruneRows(blk.group);
+  if (blk.major){
+    var origMaj = blk.major;
+    blk.major = origMaj.filter(function(m){ return GLOBAL_REGION_SET.some(function(p){ return p.split('|')[0]===m.name; }); }).map(function(m){
+      var sum = { name: m.name };
+      det.filter(function(r){ return r.major===m.name; }).forEach(function(r){ Object.keys(r).forEach(function(f){ if (f==='major'||f==='region') return; if (typeof r[f]==='number') sum[f]=(sum[f]||0)+r[f]; }); });
+      return sum;
+    });
+  }
+  blk.detail = det;
+  if (det.length){
+    if (typeof blk.total === 'number'){
+      blk.total = det.reduce(function(s,r){ return s+(r.total||0); },0);
+      blk.done  = det.reduce(function(s,r){ return s+(r['已完成']||0); },0);
+      if ('ing' in blk) blk.ing = det.reduce(function(s,r){ return s+(r['审批中']||0); },0);
+      if ('rate' in blk) blk.rate = blk.total ? (blk.done/blk.total*100) : 0;
+    } else {
+      var agg = {};
+      det.forEach(function(r){ Object.keys(r).forEach(function(f){ if (f==='major'||f==='region') return; if (typeof r[f]==='number') agg[f]=(agg[f]||0)+r[f]; }); });
+      blk.total = agg;
+    }
+  } else {
+    if (typeof blk.total === 'number'){ blk.total=0; blk.done=0; if('ing' in blk) blk.ing=0; if('rate' in blk) blk.rate=0; }
+    else { blk.total = {}; }
+  }
+}
+function __pruneTopIdx(P){
+  ['topEmpIndex','topEmpIndexM'].forEach(function(fk){
+    var obj = P[fk]; if (!obj || typeof obj!=='object') return;
+    if (fk==='topEmpIndexM'){
+      Object.keys(obj).forEach(function(ym){ var m=obj[ym]; if(m&&typeof m==='object'){ var nm={}; Object.keys(m).forEach(function(k){ if (GLOBAL_REGION_SET.indexOf(k)>=0) nm[k]=m[k]; }); obj[ym]=nm; } });
+    } else {
+      var nm={}; Object.keys(obj).forEach(function(k){ if (GLOBAL_REGION_SET.indexOf(k)>=0) nm[k]=obj[k]; }); P[fk]=nm;
+    }
+  });
+  if (P.empIndex && typeof P.empIndex==='object'){
+    var ne={}; Object.keys(P.empIndex).forEach(function(k){ if (GLOBAL_REGION_SET.some(function(p){ return k===p || k.indexOf(p+'|')===0; })) ne[k]=P.empIndex[k]; });
+    P.empIndex=ne;
+  }
+}
+function __pruneRegionOrder(P){
+  if (!P.regionOrder) return;
+  var ro = P.regionOrder, nro = {};
+  Object.keys(ro).forEach(function(mj){ if (!GLOBAL_REGION_SET.some(function(p){ return p.split('|')[0]===mj; })) return; var regs = ro[mj]; if (Array.isArray(regs)){ nro[mj]=regs.filter(function(rg){ return GLOBAL_REGION_SET.indexOf(mj+'|'+rg)>=0; }); } else { nro[mj]=regs; } });
+  P.regionOrder = nro;
+}
+function applyUrlRegionFilter(){
+  try {
+    var q = new URLSearchParams(location.search);
+    var r = q.get('region');
+    if (r){
+      GLOBAL_REGION_SET = r.split(',').map(function(s){ return s.trim(); }).filter(Boolean);
+      [formalAttPayload, attendPayload, formalPayload, laborPayload].forEach(function(P){
+        if (!P || !P.data) return;
+        Object.keys(P.data).forEach(function(k){ __pruneBlock(P.data[k]); });
+        __pruneTopIdx(P);
+        __pruneRegionOrder(P);
+      });
+      var btn = document.getElementById('btnRegion'); if (btn) btn.textContent = (GLOBAL_REGION_SET[GLOBAL_REGION_SET.length-1]||'').split('|').pop() || '区域';
+    }
+    var wt = q.get('wt'), sec = q.get('sec');
+    if (wt && sec){ window.__pushWt = wt; window.__pushSec = sec; }
+  } catch(e){ if (window.console) console.error('region filter err', e); }
+}
+
+applyUrlRegionFilter();
+if (window.__pushWt && window.__pushSec) showCell(window.__pushWt, window.__pushSec);
+else if (GLOBAL_REGION_SET.length) showCell('formal','att');
 </script>
 </div>
 

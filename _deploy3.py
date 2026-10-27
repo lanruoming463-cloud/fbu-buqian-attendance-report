@@ -103,7 +103,7 @@ if p.returncode != 0:
 log('reset ok at', head[:9])
 
 # ---- 5. 覆盖 index.html + commit（commit 信息按需修改） ----
-COMMIT_MSG = 'feat: T+1考勤确认及时率 增量注入10.23-10.25(正式工+劳务工),并修正劳务工洛杉矶19号仓(TT)10.1-10.22夜班考勤(专用晚班文件替换,未确认归零);数据范围扩至10.1-10.25'
+COMMIT_MSG = 'feat: 新增 ?region= 区域隔离推送能力(按"大区|区域"集合裁剪4个数据集含total重算/topEmpIndex/empIndex/regionOrder,支持?wt=&sec=预选视图);供区域HRBP看板推送使用'
 shutil.copyfile(HTML, os.path.join(REPO, 'index.html'))
 run([GIT, 'add', '-A'], cwd=REPO)
 p = run([GIT, 'status', '--porcelain'], cwd=REPO)
