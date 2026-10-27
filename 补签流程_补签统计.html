@@ -1685,6 +1685,7 @@ var REGION_BIND_MAP = {
 var REGION_ADMIN_IDS = ["180544844"];
 var REGION_ADMIN_NAMES = ["蓝若铭"];
 var GLOBAL_REGION_SET = [];
+var REGION_CONTROL_ENABLED = false; // 废除权限管控：false=始终全量、不裁剪、不锁屏（需恢复区域隔离时改 true）
 function inRegionSet(major, region){
   if (!GLOBAL_REGION_SET.length) return true;
   for (var i=0;i<GLOBAL_REGION_SET.length;i++){ if (GLOBAL_REGION_SET[i]===major+'|'+region) return true; }
@@ -1854,6 +1855,10 @@ function __payloadList(){
 }
 function applyUrlRegionFilter(){
   try {
+    if (typeof REGION_CONTROL_ENABLED !== 'undefined' && !REGION_CONTROL_ENABLED){
+      GLOBAL_REGION_SET = []; // 废除权限管控：不做区域裁剪、不锁屏，始终展示全量数据
+      return;
+    }
     // ===== V5：身份优先绑定（妙搭 iframe 剥掉外层 query/hash，唯一可靠的是内层 sso_token JWT 里的 name） =====
     // 优先级：URL region 参数（若可达） > sso 身份映射 > localStorage 绑定 > 默认拒绝
     var LS_KEY = 'zbkq_region_binding';
