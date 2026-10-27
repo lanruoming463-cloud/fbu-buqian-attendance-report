@@ -1681,8 +1681,8 @@ var REGION_BIND_MAP = {
   "PENG NANCHUAN": ["欧洲区|意大利区", "FBU HRBP Dept.|意大利区HRBP部"],
   "Nandy": ["欧洲区|意大利区", "FBU HRBP Dept.|意大利区HRBP部"]
 };
-// 管理员：user_id（蓝若铭=180544844）或姓名，命中即全量查看
-var REGION_ADMIN_IDS = ["180544844"];
+// 管理员：user_id（蓝若铭，实测 JWT user_id=1805448442446875；同时保留短号兼容）或姓名，命中即全量查看
+var REGION_ADMIN_IDS = ["1805448442446875", "180544844"];
 var REGION_ADMIN_NAMES = ["蓝若铭"];
 var GLOBAL_REGION_SET = [];
 var REGION_CONTROL_ENABLED = true; // 区域隔离开关：true=进入弹「选择区域」浮层、按区域裁剪；false=始终全量、不锁屏
