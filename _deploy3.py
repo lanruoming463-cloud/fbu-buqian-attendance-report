@@ -103,7 +103,7 @@ if p.returncode != 0:
 log('reset ok at', head[:9])
 
 # ---- 5. 覆盖 index.html + commit（commit 信息按需修改） ----
-COMMIT_MSG = 'V8b 补签率/考勤确认率统一保留2位小数:裁剪重算 blk.rate/major.rate/detail.rate 全部round2(修HR区域裁剪后KPI出现1.530967292971468长浮点乱码);KPI显示双保险toFixed(2)'
+COMMIT_MSG = 'V9 增量注入T+1考勤确认率:正式工+劳务工10.26日块、劳务工LA19 10.23-10.25补齐(1029条已复核全确认);6/7/8/9月及10.1-10.25数据零丢失(保真校验0不一致);noteHtml补10.26来源'
 shutil.copyfile(HTML, os.path.join(REPO, 'index.html'))
 run([GIT, 'add', '-A'], cwd=REPO)
 p = run([GIT, 'status', '--porcelain'], cwd=REPO)
