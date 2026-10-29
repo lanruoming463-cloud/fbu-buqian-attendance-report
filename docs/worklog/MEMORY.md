@@ -1,5 +1,6 @@
 
 ## 补签/考勤报表口径（2026-10-10）
+- **异常表每日机制（2026-10-28 固化）**：`_scrape_exception_table.py`（抓飞书 wiki P6ZAwuZweihDHDkBhONcLpLsnAb，正式工 sheet=002f25/劳务工 OSWWWl → att_exceptions.json；EXCLUDE=无故缺勤等【含繁体 無故缺勤/沒開門】/CONFIRM=未及时审批等）+ `_apply_exceptions.py`（幂等应用：以 empIndex (工号,日期) 行存在为判据；EXCLUDE 扣 total/abnormal/untimely 或 yqr/unconfirmed，CONFIRM untimely→timely 或 unconfirmed→sjqr；同步日块/月块/四级维度/top 索引/删 empIndex 行）。退出码 0=需部署 2=跳过。每日 09:30 自动化 id ca859c49 自动跑全链路。首次应用正式工 13+劳务工 2 条，release 7701551181788892399。
 - 正式工考勤确认及时率：捷克区特殊口径——首打卡与末打卡均为空的缺卡记录视为及时确认，不计入未及时（_build_formal_recs 白名单，FORMAL_NOTE 已注明）。
 - 主体报表数据范围 2026-06/07/10；8-9月仅在独立 T+1 日更看板（T1_DATA 不在 gen_buqian_stats.py）。
 - 部署链路：_deploy3.py（妙搭 app_17cg3t4mvjm + 自动 _github_sync.py 同步公开仓库 lanruoming463-cloud/fbu-buqian-attendance-report）。

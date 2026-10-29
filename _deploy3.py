@@ -103,7 +103,7 @@ if p.returncode != 0:
 log('reset ok at', head[:9])
 
 # ---- 5. 覆盖 index.html + commit（commit 信息按需修改） ----
-COMMIT_MSG = 'V10 考勤确认及时率异常表应用:正式工13条(11剔除无故缺勤+2转及时确认)+劳务工2条(转及时确认);幂等设计可每日重复执行不二次扣减;6/7/8/9月数据零丢失(保真校验0不一致)'
+COMMIT_MSG = 'V11 T+1增量(10.27正式工+10.26LA19+10.27劳务工):劳务工日块87→88(含LA19夜班);正式工86→87;月块2026-10累加(劳务工yqr8578含LA19/正式工total52891);重跑异常表应用zt0018175 10.27剔除;新泽西区+2推送者;6/7/8/9月零丢失'
 shutil.copyfile(HTML, os.path.join(REPO, 'index.html'))
 run([GIT, 'add', '-A'], cwd=REPO)
 p = run([GIT, 'status', '--porcelain'], cwd=REPO)
