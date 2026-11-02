@@ -103,7 +103,7 @@ if p.returncode != 0:
 log('reset ok at', head[:9])
 
 # ---- 5. 覆盖 index.html + commit（commit 信息按需修改） ----
-COMMIT_MSG = 'V12 T+1增量(10.27LA19夜班+10.28劳务工+10.28正式工):劳务工日块88→89(10.27并LA19 356行全确认/10.28新增8388行994未确认);正式工87→88(10.28新增2006行83未及时);月块2026-10累加(劳务工yqr8561/正式工total54891);zt0023229全10月剔除(-5);重跑异常表应用含Gursewak Singh/zt0018175 10.28;萨凡纳区+2(张玮琛/施文)加州区+1(Xinrui Wang)推送者;6/7/8/9月零丢失'
+COMMIT_MSG = 'V13 T+1增量(10.29正式工+10.28劳务工LA19修正+10.29劳务工):正式工日块88→89(10.29新增1998行67未及时);劳务工日块89→90(10.28并LA19 377行全确认yqr8765/10.29新增3737行137未确认);月块2026-10累加(正式工total56888/劳务工yqr按日);重跑异常表应用zt0018758/zt0018175 10.29 EXCLUDE(zt0022420/zt21146 10.29 CONFIRM记录已正常跳过);zt0023229全10月保持0行;6/7/8/9月零丢失'
 shutil.copyfile(HTML, os.path.join(REPO, 'index.html'))
 run([GIT, 'add', '-A'], cwd=REPO)
 p = run([GIT, 'status', '--porcelain'], cwd=REPO)
