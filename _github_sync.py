@@ -22,6 +22,13 @@ INCLUDE_FILES = [
     'gen_buqian_stats.py',
     '_deploy3.py',
     '_github_sync.py',
+    '_inject_buqian10.py',   # V15 补签率（考勤为基）注入器
+    '_gen_formal_attend_rate.py',  # 正式工补签率（考勤为基）生成器
+    '_apply_exceptions.py',  # 飞书异常表剔除/确认应用器
+    '_scrape_exception_table.py',  # 飞书异常表抓取器
+    '_inject_1020.py', '_inject_1021.py', '_inject_1022.py',  # T+1 注入器（历史可复用）
+    '_inject_1025.py', '_inject_1027.py', '_inject_1029.py', '_inject_1030.py',
+    '_export_france.py',     # 法国区导出脚本（可复用）
     'README.md', '.gitignore',
     # T+1 日更看板模块（独立模块，整体性同步）
     'tplus1_trial.py', 'tplus1_state.json',
