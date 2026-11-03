@@ -103,7 +103,7 @@ if p.returncode != 0:
 log('reset ok at', head[:9])
 
 # ---- 5. 覆盖 index.html + commit（commit 信息按需修改） ----
-COMMIT_MSG = 'V14 T+1增量(10.30-10.31正式工+10.29劳务工LA19修正+10.30-10.31劳务工):正式工日块89→91(10.30-10.31新增3980行123未及时);劳务工日块90→92(10.29并LA19 397行全确认yqr4134 ldk10/10.30-10.31新增15095行97未确认);月块2026-10累加(正式工total60864 untimely2439/劳务工yqr按日);重跑异常表应用zt0018758/zt0018175 10.30 EXCLUDE(2026-11-01 zt0018175 SKIP-RANGE未注入);zt0023229全10月保持0行;6/7/8/9月零丢失'
+COMMIT_MSG = 'V15 补签率注入2026-10(考勤为基):正式工月块新增2026-10(den60529 done2247 rate3.7%,6-9+10全量重算且6-9与线上逐字段一致);劳务工月块新增2026-10(den243138 done56142 rate23.1%,全量重算6-9+10 empIndex/topEmpIndex累计重建);源文件=补签-正式工/劳务工-10月+正式工/劳务工10月考勤;劳务工10月按《补签-劳务工-10月.xls》OTWS剔除入职当天/西班牙区-其他/日本区-提前打卡/备注客观因素;时效看板(V14 日块91/92)零改动;Excel 13个补签率sheet重写(3个考勤确认及时性sheet保留)'
 shutil.copyfile(HTML, os.path.join(REPO, 'index.html'))
 run([GIT, 'add', '-A'], cwd=REPO)
 p = run([GIT, 'status', '--porcelain'], cwd=REPO)
