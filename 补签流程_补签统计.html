@@ -1468,8 +1468,10 @@ function renderGen(P) {
   renderGenTop10(P);
   updateActiveGenTab();
 }
+/* V17: 及时确认率 / 补签率 一律保留 2 位小数（看板与妙搭线上统一口径） */
+var RATE_DIGITS = 2;
 function genRate(r, c){ return c.pct ? (r[c.den] ? (r[c.num]/r[c.den]*100) : null) : (r[c.key]||0); }
-function genFmt(c, v){ if(!c.pct) return fmt(v); if(v==null) return '—'; var dig=(c.label&&(c.label.indexOf('及时确认率')>=0||c.label.indexOf('补签率')>=0))?2:1; return v.toFixed(dig)+'%'; }
+function genFmt(c, v){ if(!c.pct) return fmt(v); if(v==null) return '—'; var dig=(c.label&&(c.label.indexOf('及时确认率')>=0||c.label.indexOf('补签率')>=0))?RATE_DIGITS:1; return v.toFixed(dig)+'%'; }
 function genCard(c, t){ var v=genRate(t,c); return '<div class="card"><div class="v">'+genFmt(c,v)+'</div><div class="l">'+c.label+'</div></div>'; }
 function genCells(r, parentTotal, P){
   var html='';
@@ -2116,7 +2118,7 @@ let attendDayStart = '', attendDayEnd = '';
 let attendWeekSel = '';
 let attendRegionFilter = '';
 
-function attRate(v){ return v == null ? '—' : v.toFixed(2) + '%'; }
+function attRate(v){ return v == null ? '—' : v.toFixed(RATE_DIGITS) + '%'; }
 function attRange(){
   var AD = attendPayload.days;
   if (attendMode === 'month'){

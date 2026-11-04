@@ -1,0 +1,259 @@
+{
+  "_说明": "区域HRBP接收人映射(全量推送名单)。regions 每项=大区|区域 + FBU HRBP Dept.|区域HRBP部；open_id 为飞书用户 open_id(ou_开头)。",
+  "recipients": [
+    {
+      "name": "Lijun Dong（Nicole）",
+      "employee_id": "zt0018133",
+      "open_id": "ou_2aa7266aa54233a9fafa2df341a100df",
+      "regions": [
+        "亚太区|澳洲区",
+        "FBU HRBP Dept.|澳洲区HRBP部"
+      ]
+    },
+    {
+      "name": "李璐",
+      "employee_id": "zt0019557",
+      "open_id": "ou_85e7a40075179cf30eecaba981fdb431",
+      "regions": [
+        "亚太区|日本区",
+        "FBU HRBP Dept.|日本区HRBP部"
+      ]
+    },
+    {
+      "name": "金美玲",
+      "employee_id": "zt0021090",
+      "open_id": "ou_ecfef906ca0698c024fdfc7ea80e7121",
+      "regions": [
+        "亚太区|韩国区",
+        "FBU HRBP Dept.|韩国区HRBP部"
+      ]
+    },
+    {
+      "name": "Suet Fa Tsoi / Erica",
+      "employee_id": "zt17448",
+      "open_id": "ou_da7f810bed20a7908fbec36dd155bcc2",
+      "regions": [
+        "欧洲区|英国区",
+        "FBU HRBP Dept.|英国区HRBP部"
+      ]
+    },
+    {
+      "name": "Echo Wang",
+      "employee_id": "zt25577",
+      "open_id": "ou_a6205c2bad6c990a28f54ab34b32c864",
+      "regions": [
+        "欧洲区|德国区",
+        "FBU HRBP Dept.|德国区HRBP部"
+      ]
+    },
+    {
+      "name": "Wang Ya（王亚）",
+      "employee_id": "zt18666",
+      "open_id": "ou_d15c36d434f41d351521d2ec1cdfc56e",
+      "regions": [
+        "欧洲区|捷克区",
+        "FBU HRBP Dept.|捷克区HRBP部"
+      ]
+    },
+    {
+      "name": "Yulin LI（李雨霖）",
+      "employee_id": "zt0022438",
+      "open_id": "ou_8ecbf4a62578ae4d13b58feefde1bcf4",
+      "regions": [
+        "欧洲区|法国区",
+        "FBU HRBP Dept.|法国区HRBP部"
+      ]
+    },
+    {
+      "name": "XIAO XI",
+      "employee_id": "zt0017596",
+      "open_id": "ou_b1dcacf21c6af3958546789cac21fe37",
+      "regions": [
+        "欧洲区|波兰区",
+        "FBU HRBP Dept.|波兰区HRBP部"
+      ]
+    },
+    {
+      "name": "PENG NANCHUAN（Nandy）",
+      "employee_id": "zt0019429",
+      "open_id": "ou_416ec4deae031e06615d684b076484c0",
+      "regions": [
+        "欧洲区|意大利区",
+        "FBU HRBP Dept.|意大利区HRBP部"
+      ]
+    },
+    {
+      "name": "CHEN XINZE",
+      "employee_id": "zt0021614",
+      "open_id": "ou_d3df00877453135e5baa05f49937467f",
+      "regions": [
+        "欧洲区|西班牙区",
+        "FBU HRBP Dept.|西班牙区HRBP部"
+      ]
+    },
+    {
+      "name": "孙冠懿（Rebecca）",
+      "employee_id": "zt0022009",
+      "open_id": "ou_70786158d1b7b1a4253f50d2f1cb9711",
+      "regions": [
+        "美洲区|新泽西区",
+        "FBU HRBP Dept.|新泽西区HRBP部"
+      ]
+    },
+    {
+      "name": "Joanne (殷孝萍)",
+      "employee_id": "zt13022",
+      "open_id": "ou_922cdbaa9b337b56901c2d67244dc78e",
+      "regions": [
+        "美洲区|加州区",
+        "FBU HRBP Dept.|加州区HRBP部"
+      ]
+    },
+    {
+      "name": "房千千",
+      "employee_id": "zt0021965",
+      "open_id": "ou_200f5207814e1c0186369fa7a9c5f3c6",
+      "regions": [
+        "美洲区|亚特兰大区",
+        "FBU HRBP Dept.|亚特兰大区HRBP部"
+      ]
+    },
+    {
+      "name": "Frank Wang（王飛）",
+      "employee_id": "zt0021434",
+      "open_id": "ou_d04aa1c591c9352a169d8cddcb0b67ce",
+      "regions": [
+        "美洲区|芝加哥区",
+        "FBU HRBP Dept.|芝加哥区HRBP部"
+      ]
+    },
+    {
+      "name": "Jing Yang（Sandy）",
+      "employee_id": "zt0018081",
+      "open_id": "ou_3f29b567da6567babf0391c9897d24bb",
+      "regions": [
+        "美洲区|达拉斯区",
+        "FBU HRBP Dept.|达拉斯区HRBP部"
+      ]
+    },
+    {
+      "name": "Nancy Zhang Nan",
+      "employee_id": "zt0018408",
+      "open_id": "ou_aa6fc6b702d2a68606d7e9f850833cd4",
+      "regions": [
+        "美洲区|迈阿密区",
+        "FBU HRBP Dept.|迈阿密区HRBP部",
+        "美洲区|印第安纳区",
+        "FBU HRBP Dept.|印第安纳区HRBP部"
+      ]
+    },
+    {
+      "name": "WANG NA（Joy）",
+      "employee_id": "zt0022345",
+      "open_id": "ou_388e685c17664251190d6c4a2013a72d",
+      "regions": [
+        "美洲区|休斯顿区",
+        "FBU HRBP Dept.|休斯顿区HRBP部"
+      ]
+    },
+    {
+      "name": "Di FARNWALT (Julia)",
+      "employee_id": "zt0021208",
+      "open_id": "ou_efb54379ea322f3bc767b5adfddf13bb",
+      "regions": [
+        "美洲区|西雅图区",
+        "FBU HRBP Dept.|西雅图区HRBP部"
+      ]
+    },
+    {
+      "name": "陈俊劼（JJ）",
+      "employee_id": "zt0017468",
+      "open_id": "ou_b4916376dfb9ac1140923544a192a72b",
+      "regions": [
+        "美洲区|萨凡纳区",
+        "FBU HRBP Dept.|萨凡纳区HRBP部"
+      ]
+    },
+    {
+      "name": "Tracy Hu (胡蓉)",
+      "employee_id": "zt0023054",
+      "open_id": "ou_5b4365b87c56dc88cd7e37c730147740",
+      "regions": [
+        "美洲区|加拿大区",
+        "FBU HRBP Dept.|加拿大区HRBP部"
+      ]
+    },
+    {
+      "name": "Yuchen Cheng（程羽晨）",
+      "employee_id": "zt20598",
+      "open_id": "ou_7b5402bf63bda7a4c0943cc89293d1c9",
+      "regions": [
+        "美洲区|墨西哥区",
+        "FBU HRBP Dept.|墨西哥区HRBP部"
+      ]
+    },
+    {
+      "name": "Bingyi Li（Elaine）",
+      "employee_id": "zt0022286",
+      "open_id": "ou_d8ce4f44b2182e746f4e42a26786681a",
+      "regions": [
+        "美洲区|亚特兰大区",
+        "FBU HRBP Dept.|亚特兰大区HRBP部"
+      ]
+    },
+    {
+      "name": "Reglore Hermione B ADJOVI（艾米尔）",
+      "employee_id": "zt0017484",
+      "open_id": "ou_050445ee624a46a6408ae5e68abccca2",
+      "regions": [
+        "欧洲区|法国区",
+        "FBU HRBP Dept.|法国区HRBP部"
+      ]
+    },
+    {
+      "name": "Jeremy Zhang",
+      "employee_id": "zt0018592",
+      "open_id": "ou_01b8ed84729ba10ba8e69c368d797d6d",
+      "regions": [
+        "美洲区|新泽西区",
+        "FBU HRBP Dept.|新泽西区HRBP部"
+      ]
+    },
+    {
+      "name": "张惠(Hui)",
+      "employee_id": "zt12907",
+      "open_id": "ou_3c3a40626da1d0d5579e48f5d5fc7e58",
+      "regions": [
+        "美洲区|新泽西区",
+        "FBU HRBP Dept.|新泽西区HRBP部"
+      ]
+    },
+    {
+      "name": "张玮琛（Stella）",
+      "employee_id": "zt0021994",
+      "open_id": "ou_69d51af30f2447239ee9888bf1acde8b",
+      "regions": [
+        "美洲区|萨凡纳区",
+        "FBU HRBP Dept.|萨凡纳区HRBP部"
+      ]
+    },
+    {
+      "name": "施文（Eva）",
+      "employee_id": "zt0020969",
+      "open_id": "ou_86bfbcb6fc3288b18121e5b49ca7cc27",
+      "regions": [
+        "美洲区|萨凡纳区",
+        "FBU HRBP Dept.|萨凡纳区HRBP部"
+      ]
+    },
+    {
+      "name": "Xinrui Wang（Stella）",
+      "employee_id": "zt20490",
+      "open_id": "ou_1128eaa50a620fa7299aff72562b24c7",
+      "regions": [
+        "美洲区|加州区",
+        "FBU HRBP Dept.|加州区HRBP部"
+      ]
+    }
+  ]
+}

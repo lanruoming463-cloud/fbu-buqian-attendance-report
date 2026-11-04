@@ -29,6 +29,9 @@ INCLUDE_FILES = [
     '_inject_1020.py', '_inject_1021.py', '_inject_1022.py',  # T+1 注入器（历史可复用）
     '_inject_1025.py', '_inject_1027.py', '_inject_1029.py', '_inject_1030.py',
     '_inject_1104.py',       # V16 注入器（劳务工LA19增量 + 正式工上级休假豁免）
+    '_push_generator.py',    # 区域HRBP 定时推送生成器（考勤确认率/补签率卡片）
+    '_push_ext.py',          # V2 合并卡片（考勤确认率+补签率+双Top10）
+    'recipients.json',       # 全量推送名单
     '_export_france.py',     # 法国区导出脚本（可复用）
     'README.md', '.gitignore',
     # T+1 日更看板模块（独立模块，整体性同步）
