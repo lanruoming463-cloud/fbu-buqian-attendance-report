@@ -103,7 +103,7 @@ if p.returncode != 0:
 log('reset ok at', head[:9])
 
 # ---- 5. 覆盖 index.html + commit（commit 信息按需修改） ----
-COMMIT_MSG = 'V18 整体指标(2026-11-04):看板页面一开始新增「整体考勤确认率」「整体补签率」两张卡(口径=(正式工+劳务工)/2,随当前月份自动更新,副标注两类分项);探针验证2026-10 整体考勤确认率95.20%(正式96.11%/劳务94.29%)、整体补签率13.40%(正式3.71%/劳务23.09%),0 JS异常。推送卡片 _push_ext.py 亦在开头新增区域级整体指标块(澳洲区样例:整体考勤99.34%/整体补签2.85%)。V17格式统一与V16数据零改动'
+COMMIT_MSG = 'V19 调整(2026-11-04):(1)妙搭网页版移除顶部整体指标条(整体考勤确认率/整体补签率),仅保留在推送卡片(看板)中;(2)recipients.json 新增4位推送人 YANG BINGJIE(Arianna,意大利区) 袁晋炜(Jin,亚特兰大区) 吴慧轩(WU,达拉斯区) Jen Jiaen Li(英国区),名单共32人;V16/V17/V18 数据零改动'
 shutil.copyfile(HTML, os.path.join(REPO, 'index.html'))
 run([GIT, 'add', '-A'], cwd=REPO)
 p = run([GIT, 'status', '--porcelain'], cwd=REPO)

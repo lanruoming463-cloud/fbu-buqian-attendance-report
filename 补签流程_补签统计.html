@@ -226,13 +226,6 @@ caption{caption-side:top;text-align:left;font-weight:700;font-size:15px;padding:
   </div>
 </div>
 
-<!-- V18 整体指标：页面一开始展示，= (正式工 + 劳务工) / 2 算术平均 -->
-<div class="cards" id="overallBar" style="margin:0 0 14px">
-  <div class="card" style="background:#eff6ff;border-color:#bfdbfe"><div class="v" id="ovAttV" style="color:#1d4ed8">—</div><div class="l">整体考勤确认率 <small id="ovAttSub" style="display:block;font-weight:400;color:#64748b"></small></div></div>
-  <div class="card" style="background:#f0fdf4;border-color:#bbf7d0"><div class="v" id="ovSignV" style="color:#15803d">—</div><div class="l">整体补签率 <small id="ovSignSub" style="display:block;font-weight:400;color:#64748b"></small></div></div>
-  <div class="card" style="background:#f8fafc"><div class="v" style="font-size:15px;line-height:1.5;color:#475569">=（正式工 + 劳务工）÷ 2</div><div class="l">整体口径 · 随当前月份自动更新</div></div>
-</div>
-
 <div class="controls" id="globalControls" style="margin:0 0 16px">
 <div class="nav">
 <button id="btnDay">按天</button>
@@ -2656,48 +2649,6 @@ function exportCurrentList(){
 if (window.__pushWt && window.__pushSec) showCell(window.__pushWt, window.__pushSec);
 else if (GLOBAL_REGION_SET.length && GLOBAL_REGION_SET[0] !== '__NO_ACCESS__') showCell('formal','att');
 
-/* ===== V18 整体指标（页面一开始）= (正式工 + 劳务工) / 2 算术平均 ===== */
-function ovCurrentYM(){
-  var ym = null;
-  try {
-    var sec = (typeof curSec !== 'undefined') ? curSec : 'att';
-    var wt  = (typeof curWt  !== 'undefined') ? curWt  : 'formal';
-    if (sec === 'sign')      ym = (typeof selected  !== 'undefined') ? selected  : null;
-    else if (wt === 'labor') ym = (typeof attendSel !== 'undefined') ? attendSel : null;
-    else                     ym = (typeof genSel    !== 'undefined') ? genSel    : null;
-  } catch(e){}
-  if (!ym) { try { ym = formalPayload.months[formalPayload.months.length - 1]; } catch(e){} }
-  return ym ? String(ym).slice(0, 7) : null;
-}
-function updateOverall(){
-  try {
-    var ym = ovCurrentYM(); if (!ym) return;
-    var d = (typeof RATE_DIGITS !== 'undefined') ? RATE_DIGITS : 2;
-    /* 考勤确认及时率：正式工取月块；劳务工仅日块，按选中月份逐日聚合 */
-    var f = formalAttPayload.data[ym], ft = null;
-    if (f && f.total && f.total.total) ft = f.total.timely / f.total.total * 100;
-    var yqr = 0, sjqr = 0;
-    Object.keys(attendPayload.data).forEach(function(k){
-      if (k.indexOf(ym + '-') === 0) { var t = attendPayload.data[k].total; if (t) { yqr += t.yqr || 0; sjqr += t.sjqr || 0; } }
-    });
-    var lt = yqr ? sjqr / yqr * 100 : null;
-    var att = (ft != null && lt != null) ? (ft + lt) / 2 : null;
-    /* 补签率（考勤为基）：正式工/劳务工月块 */
-    var fp = formalPayload.data[ym], lp = laborPayload.data[ym], fr = null, lr = null;
-    if (fp) { if (fp.total) fr = (fp.done || 0) / fp.total * 100; else if (fp.rate != null) fr = fp.rate; }
-    if (lp) { if (lp.total) lr = (lp.done || 0) / lp.total * 100; else if (lp.rate != null) lr = lp.rate; }
-    var sign = (fr != null && lr != null) ? (fr + lr) / 2 : null;
-    var e1 = document.getElementById('ovAttV'), e2 = document.getElementById('ovSignV');
-    if (e1) e1.textContent = (att  != null) ? att.toFixed(d)  + '%' : '—';
-    if (e2) e2.textContent = (sign != null) ? sign.toFixed(d) + '%' : '—';
-    var s1 = document.getElementById('ovAttSub'), s2 = document.getElementById('ovSignSub');
-    if (s1) s1.textContent = ym + ' · 正式工 ' + (ft != null ? ft.toFixed(2) : '—') + '% / 劳务工 ' + (lt != null ? lt.toFixed(2) : '—') + '%';
-    if (s2) s2.textContent = ym + ' · 正式工 ' + (fr != null ? fr.toFixed(2) : '—') + '% / 劳务工 ' + (lr != null ? lr.toFixed(2) : '—') + '%';
-  } catch(e){}
-}
-updateOverall();
-window.addEventListener('load', updateOverall);
-setInterval(updateOverall, 700);   /* 跟随视图/月份切换自动更新 */
 </script>
 </div>
 

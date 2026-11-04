@@ -254,6 +254,42 @@
         "美洲区|加州区",
         "FBU HRBP Dept.|加州区HRBP部"
       ]
+    },
+    {
+      "name": "YANG BINGJIE（Arianna）",
+      "employee_id": "zt0021287",
+      "open_id": "ou_cfbe47f30bcd97520c80bd1916bee4ad",
+      "regions": [
+        "欧洲区|意大利区",
+        "FBU HRBP Dept.|意大利区HRBP部"
+      ]
+    },
+    {
+      "name": "袁晋炜（Jin）",
+      "employee_id": "zt19942",
+      "open_id": "ou_e9cd48f2c9c849235489a15c3f362d6a",
+      "regions": [
+        "美洲区|亚特兰大区",
+        "FBU HRBP Dept.|亚特兰大区HRBP部"
+      ]
+    },
+    {
+      "name": "吴慧轩（WU）",
+      "employee_id": "zt0017585",
+      "open_id": "ou_07d64bfe8647bc606c82055be2048bb1",
+      "regions": [
+        "美洲区|达拉斯区",
+        "FBU HRBP Dept.|达拉斯区HRBP部"
+      ]
+    },
+    {
+      "name": "Jen Jiaen Li",
+      "employee_id": "zt17649",
+      "open_id": "ou_71bebe6ad4b2442bf45540dbeafc30b8",
+      "regions": [
+        "欧洲区|英国区",
+        "FBU HRBP Dept.|英国区HRBP部"
+      ]
     }
   ]
 }
