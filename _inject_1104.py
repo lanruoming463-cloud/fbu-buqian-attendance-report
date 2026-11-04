@@ -4,7 +4,7 @@
     重建 10.30/10.31 日块 = 现有非LA19(已发布) + LA19; 累加 2026-10 月块;
     LA19 全部 已复核/正常 => 无新增 unconfirmed/ldk => empIndex/top 不变。
 (B) 正式工考勤确认及时率: 新增「直接上级当天休假豁免」规则。
-    根据 休假流程(已完成, 1h<=时长<=24h) + 花名册(直接上级工号) 匹配：
+    根据 休假流程(已完成或审批中, 1h<=时长<=24h) + 花名册(直接上级工号) 匹配：
     若正式工某日考勤异常(untimely)且其直接上级当日休假 => 该异常不计(仅正式工)。
     从 empIndex 移除对应行, 并同步扣减 日块/月块/Top 的 untimely, 重算 timely。
 
@@ -133,7 +133,7 @@ def main():
     df_l['_st'] = pd.to_datetime(df_l['开始时间'], errors='coerce')
     df_l['_dur'] = pd.to_numeric(df_l['时长'].astype(str).str.replace('小时','',regex=False).str.strip(), errors='coerce')
     df_l['工号'] = df_l['工号'].astype(str).str.strip()
-    ok = (df_l['审批状态']=='已完成') & (df_l['_dur']>=1) & (df_l['_dur']<=24) & df_l['_st'].notna()
+    ok = (df_l['审批状态'].isin(['已完成','审批中'])) & (df_l['_dur']>=1) & (df_l['_dur']<=24) & df_l['_st'].notna()
     leave_set = set()
     for _, r in df_l[ok].iterrows():
         leave_set.add((str(r['工号']).strip(), r['_st'].strftime('%Y-%m-%d')))
