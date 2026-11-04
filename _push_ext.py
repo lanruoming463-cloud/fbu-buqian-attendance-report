@@ -105,11 +105,13 @@ def send_to_region_ext(payloads, open_id, regions, dry_run=False):
     lp = payloads['laborPayload']
 
     blocks = []
+    r_att_f = r_att_l = r_sign_f = r_sign_l = None
     # ---- 考勤确认及时率：正式工(含HRBP) ----
     fday = max(fa.keys()); fym = fday[:7]
     m1 = region_metrics_month(fa, region_set, fym)
     if m1:
         tot, conf, unt, rate = fmt_att_rate(m1)
+        r_att_f = rate
         b = f"**正式工 考勤确认及时率（{fym}，含HRBP）**\n- 考勤总数：**{tot} 人日**\n- 已确认：**{conf} 人日**\n- 未及时确认：**{unt} 人日**\n- 及时确认率：**{rate:.2f}%**"
         if hbp_keys and biz_keys:
             mh = region_metrics_month(fa, hbp_keys, fym)
@@ -122,13 +124,15 @@ def send_to_region_ext(payloads, open_id, regions, dry_run=False):
     m2 = region_metrics_month(la, region_set, lym)
     if m2:
         tot, conf, unc, rate = fmt_labor_rate(m2)
+        r_att_l = rate
         blocks.append(f"**劳务工 考勤确认及时率（{lym}）**\n- 考勤总数：**{tot} 人日**\n- 已确认：**{conf} 人日**\n- 未确认：**{unc} 人日**\n- 及时确认率：**{rate:.2f}%**")
     # ---- 补签率：正式工 ----
     fmon = max(fp['data'].keys())
     m3 = region_metrics(fp['data'], region_set, fmon)
     if m3 and m3.get('total'):
         tot = m3['total']; done = m3.get('已完成', 0)
-        b = f"**正式工 补签率（{fmon}，考勤为基，含HRBP）**\n- 考勤记录总数：**{tot} 人日**\n- 已补签数：**{done} 人日**\n- 补签率：**{done/tot*100:.2f}%**"
+        r_sign_f = done / tot * 100
+        b = f"**正式工 补签率（{fmon}，考勤为基，含HRBP）**\n- 考勤记录总数：**{tot} 人日**\n- 已补签数：**{done} 人日**\n- 补签率：**{r_sign_f:.2f}%**"
         if hbp_keys and biz_keys:
             mh = region_metrics(fp['data'], hbp_keys, fmon)
             if mh and mh.get('total'):
@@ -139,7 +143,8 @@ def send_to_region_ext(payloads, open_id, regions, dry_run=False):
     m4 = region_metrics(lp['data'], region_set, lmon)
     if m4 and m4.get('total'):
         tot = m4['total']; done = m4.get('已完成', 0)
-        blocks.append(f"**劳务工 补签率（{lmon}，考勤为基）**\n- 考勤记录总数：**{tot} 人日**\n- 已补签数：**{done} 人日**\n- 补签率：**{done/tot*100:.2f}%**")
+        r_sign_l = done / tot * 100
+        blocks.append(f"**劳务工 补签率（{lmon}，考勤为基）**\n- 考勤记录总数：**{tot} 人日**\n- 已补签数：**{done} 人日**\n- 补签率：**{r_sign_l:.2f}%**")
     # ---- Top10 补签员工：正式工 ----
     html = open('补签流程_补签统计.html', encoding='utf-8').read()
     fobj = grab_payload(html, 'formalPayload')
@@ -151,6 +156,17 @@ def send_to_region_ext(payloads, open_id, regions, dry_run=False):
     topM = json.loads(find_key(lobj, 'topEmpIndexM'))
     t10l = top10_labor(topM, region_set_pairs)
     blocks.append(md_top_block(f'劳务工 补签Top10（{lmon}）', t10l))
+
+    # ---- 最前面：整体指标（正式工+劳务工 算术平均，与"整体及时率"同口径） ----
+    ov_att = (r_att_f + r_att_l) / 2 if (r_att_f is not None and r_att_l is not None) else None
+    ov_sign = (r_sign_f + r_sign_l) / 2 if (r_sign_f is not None and r_sign_l is not None) else None
+    ov = [f"**整体指标（{fym}）=（正式工 + 劳务工）÷ 2**"]
+    if ov_att is not None:
+        ov.append(f"- 整体考勤确认率：**{ov_att:.2f}%**（正式工 {r_att_f:.2f}% / 劳务工 {r_att_l:.2f}%）")
+    if ov_sign is not None:
+        ov.append(f"- 整体补签率：**{ov_sign:.2f}%**（正式工 {r_sign_f:.2f}% / 劳务工 {r_sign_l:.2f}%）")
+    if len(ov) > 1:
+        blocks.insert(0, '\n'.join(ov))
 
     card = build_ext_card(region_label, blocks, dash('att', 'formal', region_str))
     if dry_run:

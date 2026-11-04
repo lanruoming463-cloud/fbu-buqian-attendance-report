@@ -27,6 +27,8 @@ const sleep = ms => new Promise(r=>setTimeout(r,ms));
   console.log('attendSel:', await ev("typeof attendSel!=='undefined'?attendSel:'N/A'"));
   console.log('正式工 KPI:', await ev("Array.from(document.querySelectorAll('#genCards .card')).map(c=>c.querySelector('.v').textContent+' | '+c.querySelector('.l').textContent).join(' /// ')"));
   console.log('劳务工 KPI:', await ev("Array.from(document.querySelectorAll('#attendCards .card')).map(c=>c.querySelector('.v').textContent+' | '+c.querySelector('.l').textContent).join(' /// ')"));
+  console.log('整体考勤确认率:', await ev("document.getElementById('ovAttV').textContent + ' | ' + document.getElementById('ovAttSub').textContent"));
+  console.log('整体补签率:', await ev("document.getElementById('ovSignV').textContent + ' | ' + document.getElementById('ovSignSub').textContent"));
   console.log('JS异常:', errs.length);
   ws.close(); chrome.kill('SIGKILL'); process.exit(0);
 })().catch(e=>{console.error('FAIL',e);process.exit(1);});

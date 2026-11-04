@@ -103,7 +103,7 @@ if p.returncode != 0:
 log('reset ok at', head[:9])
 
 # ---- 5. 覆盖 index.html + commit（commit 信息按需修改） ----
-COMMIT_MSG = 'V17 格式统一(2026-11-04):及时确认率/补签率全部保留2位小数(仅10月数据口径不变,未改6-9月历史数据)。看板HTML:genFmt/attRate 显式固化 RATE_DIGITS=2(CDP探针验证正式工96.11%/劳务工94.29%,0 JS异常);推送卡片:_push_generator.py 与 _push_ext.py 考勤确认率由1位小数改2位(96.80%/81.50%),补签率原已2位;V16数据(LA19增量+上级休假豁免含审批中)零改动'
+COMMIT_MSG = 'V18 整体指标(2026-11-04):看板页面一开始新增「整体考勤确认率」「整体补签率」两张卡(口径=(正式工+劳务工)/2,随当前月份自动更新,副标注两类分项);探针验证2026-10 整体考勤确认率95.20%(正式96.11%/劳务94.29%)、整体补签率13.40%(正式3.71%/劳务23.09%),0 JS异常。推送卡片 _push_ext.py 亦在开头新增区域级整体指标块(澳洲区样例:整体考勤99.34%/整体补签2.85%)。V17格式统一与V16数据零改动'
 shutil.copyfile(HTML, os.path.join(REPO, 'index.html'))
 run([GIT, 'add', '-A'], cwd=REPO)
 p = run([GIT, 'status', '--porcelain'], cwd=REPO)
