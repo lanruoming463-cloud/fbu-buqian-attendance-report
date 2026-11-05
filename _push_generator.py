@@ -238,9 +238,12 @@ def build_card(region_label, card_type, period_label, stats, url):
             lines.append('- ' + k + '：**' + str(v) + '**')
         md += '\n'.join(lines)
         blocks.append({'tag': 'markdown', 'content': md})
-    # 简洁版：单 markdown 拼两块 + hr + 按钮
+    # 简洁版：单 markdown 拼多段(段间加分割线) + hr + 按钮
     body_md = []
-    for title, fields in stats:
+    for si, (title, fields) in enumerate(stats):
+        if si > 0:
+            body_md.append('---')          # 分段分割线
+            body_md.append('')
         body_md.append('**' + title + '**')
         for k, v in fields:
             body_md.append('- ' + k + '：**' + str(v) + '**')
@@ -306,9 +309,12 @@ def send_to_region(payloads, open_id, regions, is_daily, dry_run=False):
     if is_daily:
         fa = payloads['formalAttPayload']['data']
         la = payloads['attendPayload']['data']
-        # 月累计口径：取最新一天所属月份，整月聚合
+        # 月累计口径：取最新一天所属月份，整月聚合（正式工 + 劳务工 合并为一张卡）
         fday = max(fa.keys())
         fym = fday[:7]
+        lday = max(la.keys())
+        lym = lday[:7]
+        stats = []
         m1 = region_metrics_month(fa, region_set, fym)
         if m1:
             tot, conf, unt, rate = fmt_att_rate(m1)
@@ -319,16 +325,13 @@ def send_to_region(payloads, open_id, regions, is_daily, dry_run=False):
                 if mh:
                     ht, hc, hu, hr = fmt_att_rate(mh)
                     fields.insert(3, ('　· 其中 HRBP', f'{ht} 人日 / 未及时 {hu}'))
-            cards.append(build_card(region_label, '正式工 考勤确认及时率（含HRBP）', fym,
-                [('考勤确认及时率', fields)], _dash('att', 'formal')))
-        lday = max(la.keys())
-        lym = lday[:7]
+            stats.append(('正式工 考勤确认及时率（含HRBP）', fields))
         m2 = region_metrics_month(la, region_set, lym)
         if m2:
             tot, conf, unc, rate = fmt_labor_rate(m2)
-            cards.append(build_card(region_label, '劳务工 考勤确认及时率', lym,
-                [('考勤确认及时率', [('考勤总数', f'{tot} 人日'), ('已确认', f'{conf} 人日'), ('未确认', f'{unc} 人日'), ('及时确认率', f'{rate:.2f}%')])],
-                _dash('att', 'labor')))
+            stats.append(('劳务工 考勤确认及时率', [('考勤总数', f'{tot} 人日'), ('已确认', f'{conf} 人日'), ('未确认', f'{unc} 人日'), ('及时确认率', f'{rate:.2f}%')]))
+        if stats:
+            cards.append(build_card(region_label, '考勤确认及时率', fym, stats, _dash('att', 'formal')))
     else:
         fp = payloads['formalPayload']['data']
         lp = payloads['laborPayload']['data']
