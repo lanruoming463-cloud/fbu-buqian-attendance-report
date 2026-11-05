@@ -87,7 +87,7 @@ def build_ext_card(region_label, blocks, url):
         'body': {'direction': 'vertical', 'padding': '12px 12px 16px 12px', 'elements': elements},
     }
 
-def send_to_region_ext(payloads, open_id, regions, dry_run=False):
+def send_to_region_ext(payloads, open_id, regions, dry_run=False, quiet=False):
     region_str = ','.join(regions)
     region_set = set(regions)                      # "major|region" 字符串，供 region_metrics 用
     region_set_pairs = set()
@@ -170,7 +170,10 @@ def send_to_region_ext(payloads, open_id, regions, dry_run=False):
 
     card = build_ext_card(region_label, blocks, dash('att', 'formal', region_str))
     if dry_run:
-        print(json.dumps(card, ensure_ascii=False, indent=1))
+        if quiet:
+            print(f'  [{region_label}] 块数={len(blocks)} ov_att={ov_att and "%.2f" % ov_att} ov_sign={ov_sign and "%.2f" % ov_sign}')
+        else:
+            print(json.dumps(card, ensure_ascii=False, indent=1))
         return 0
     p = send_card(open_id, card)
     print(f'rc={p.returncode}')
@@ -180,9 +183,25 @@ def send_to_region_ext(payloads, open_id, regions, dry_run=False):
 
 if __name__ == '__main__':
     ap = argparse.ArgumentParser()
-    ap.add_argument('--to', required=True)
-    ap.add_argument('--region', required=True, help='逗号分隔 大区|区域')
+    ap.add_argument('--to', help='接收人 open_id（配合单发）')
+    ap.add_argument('--region', help='逗号分隔 大区|区域（配合单发）')
+    ap.add_argument('--all', action='store_true', help='按 recipients.json 群发（每接收人一张合并卡片）')
     ap.add_argument('--dry-run', action='store_true')
     a = ap.parse_args()
     P = load_payloads()
-    send_to_region_ext(P, a.to, [x.strip() for x in a.region.split(',')], dry_run=a.dry_run)
+    if a.all:
+        recs = json.load(open('recipients.json', encoding='utf-8'))['recipients']
+        sent = failed = skipped = 0
+        for r in recs:
+            oid = r.get('open_id'); regions = r.get('regions', [])
+            if not oid or not regions:
+                print('SKIP(缺 open_id/regions):', r.get('name')); skipped += 1; continue
+            print('=== %s (%s) ===' % (r.get('name'), oid))
+            rc = send_to_region_ext(P, oid, regions, dry_run=a.dry_run, quiet=a.dry_run)
+            if rc == 0: sent += 1
+            else: failed += 1
+        print(f'done: sent={sent} skipped={skipped} failed={failed}')
+    else:
+        if not (a.to and a.region):
+            print('ERROR: 单发需 --to + --region，或改用 --all 群发'); sys.exit(1)
+        send_to_region_ext(P, a.to, [x.strip() for x in a.region.split(',')], dry_run=a.dry_run)

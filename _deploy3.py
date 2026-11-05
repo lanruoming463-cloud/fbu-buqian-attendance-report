@@ -103,7 +103,7 @@ if p.returncode != 0:
 log('reset ok at', head[:9])
 
 # ---- 5. 覆盖 index.html + commit（commit 信息按需修改） ----
-COMMIT_MSG = 'V19 调整(2026-11-04):(1)妙搭网页版移除顶部整体指标条(整体考勤确认率/整体补签率),仅保留在推送卡片(看板)中;(2)recipients.json 新增4位推送人 YANG BINGJIE(Arianna,意大利区) 袁晋炜(Jin,亚特兰大区) 吴慧轩(WU,达拉斯区) Jen Jiaen Li(英国区),名单共32人;V16/V17/V18 数据零改动'
+COMMIT_MSG = 'V20 调整(2026-11-05):法国区4条正式工缺卡异常手动剔除(不算异常):Huaiyue ZHANG zt0022449/2026-10-18,Qianyi ZHU zt0022048/2026-10-27&2026-10-28,Yuqi LIU zt0022580/2026-10-30(均巴黎5号仓);正式工 empIndex 移除4行,日块10-18/27/28/30 各 untimely-1,月块2026-10 总 untimely 2369->2365,法国区及时率 96.90%->97.11%;劳务工/补签率数据零改动,V16/V17/V18/V19 其余特性不变'
 shutil.copyfile(HTML, os.path.join(REPO, 'index.html'))
 run([GIT, 'add', '-A'], cwd=REPO)
 p = run([GIT, 'status', '--porcelain'], cwd=REPO)
