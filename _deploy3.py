@@ -103,7 +103,7 @@ if p.returncode != 0:
 log('reset ok at', head[:9])
 
 # ---- 5. 覆盖 index.html + commit（commit 信息按需修改） ----
-COMMIT_MSG = 'V20 调整(2026-11-05):法国区4条正式工缺卡异常手动剔除(不算异常):Huaiyue ZHANG zt0022449/2026-10-18,Qianyi ZHU zt0022048/2026-10-27&2026-10-28,Yuqi LIU zt0022580/2026-10-30(均巴黎5号仓);正式工 empIndex 移除4行,日块10-18/27/28/30 各 untimely-1,月块2026-10 总 untimely 2369->2365,法国区及时率 96.90%->97.11%;劳务工/补签率数据零改动,V16/V17/V18/V19 其余特性不变'
+COMMIT_MSG = 'V21 增量(2026-11-05):新增2026-11考勤确认及时率(正式工+劳务工).正式工11.1-11.3共5921人日,未及时247,及时率95.83%,建data[2026-11]月块并加入months;劳务工11.1-11.3(LA19 11.1-11.2 read_only=False+非LA19 11.1-11.3),日块聚合yqr=20834/已确认18831/未确认2003/及时率90.39%(LA19未确认2),加入months;每日推送自动改推最新月(2026-11).V16-V20 其余数据零改动'
 shutil.copyfile(HTML, os.path.join(REPO, 'index.html'))
 run([GIT, 'add', '-A'], cwd=REPO)
 p = run([GIT, 'status', '--porcelain'], cwd=REPO)
