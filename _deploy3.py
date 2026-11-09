@@ -103,7 +103,7 @@ if p.returncode != 0:
 log('reset ok at', head[:9])
 
 # ---- 5. 覆盖 index.html + commit（commit 信息按需修改） ----
-COMMIT_MSG = 'V22 增量(2026-11-06):补 11月3号(劳务工洛杉矶19号仓LA19,unconfirmed=0仅增总量yqr 7263→7628/ldk 21→23)+11月4号(正式工日块2001/未及时94,月块2026-11累计7917/未及时334;劳务工非LA19日块8430/未确认2053).外科手术式新增/重建,6/7/8/9月劳务工日块(61)与10月数据零改动;线上HTML 13.07MB'
+COMMIT_MSG = 'V23 增量(2026-11-09):补 11月5号(正式工日块2002/未及时100,月块2026-11累计9917/未及时431;劳务工非LA19日块7634/未确认833)+11月4号劳务工洛杉矶19号仓LA19重建(日块yqr 8430→8809,unconfirmed 2053→2054).外科手术式新增/重建,6/7/8/9月劳务工日块(61)与10月数据零改动;线上HTML 13.15MB'
 shutil.copyfile(HTML, os.path.join(REPO, 'index.html'))
 run([GIT, 'add', '-A'], cwd=REPO)
 p = run([GIT, 'status', '--porcelain'], cwd=REPO)
