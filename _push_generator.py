@@ -399,6 +399,28 @@ def main():
             print('ERROR: recipients.json 不存在，先 --gen-template 生成并填写')
             sys.exit(1)
         recs = json.load(open(RECIPIENTS_FILE, encoding='utf-8'))['recipients']
+        # 变更检测为「整份报表」级别：报表数据有更新 -> 全量名单一起推送；
+        # 报表无更新 -> 全员跳过。历史实现按「区域集合」存签名，既会让
+        # 同区域第二/第三人因第一人已写入 state 而被误判无更新，也会让
+        # 不同区域的人收到情况不一致。
+        def _global_sig():
+            h = hashlib.md5()
+            names = (('formalAttPayload', 'attendPayload') if mode == 'daily'
+                     else ('formalPayload', 'laborPayload'))
+            for pn in names:
+                h.update(pn.encode())
+                h.update(json.dumps(payloads[pn]['data'], sort_keys=True,
+                                    ensure_ascii=False).encode())
+            return h.hexdigest()
+
+        gk = '_global_' + mode
+        sig = None
+        if not args.force:
+            sig = _global_sig()
+            if load_state().get(gk) == sig:
+                print('SKIP (报表数据无更新): 全员跳过')
+                print(f'done: sent=0 skipped={len(recs)} failed=0')
+                return
         sent = skipped = failed = 0
         for r in recs:
             oid = r.get('open_id', ''); regions = r.get('regions', [])
@@ -406,43 +428,16 @@ def main():
                 print('SKIP (缺 open_id/regions):', r.get('name'))
                 skipped += 1
                 continue
-            changed = True
-            if not args.force:
-                # 变更检测：该接收人区域集任一签名相对 state 变化则推送
-                rs = set(regions)
-                state = load_state()
-                sigs = {}
-                if mode == 'daily':
-                    for pname in ('formalAttPayload', 'attendPayload'):
-                        d = payloads[pname]['data']
-                        days = sorted(set(list(d.keys())))
-                        for p in days[-2:]:
-                            s = metrics_signature(d, rs, p)
-                            if s:
-                                sigs[pname + '@' + p] = s
-                else:
-                    for pname in ('formalPayload', 'laborPayload'):
-                        d = payloads[pname]['data']
-                        mons = sorted(set(list(d.keys())))
-                        for p in mons[-1:]:
-                            s = metrics_signature(d, rs, p)
-                            if s:
-                                sigs[pname + '@' + p] = s
-                old = state.get(mode, {}).get('|'.join(regions))
-                changed = (old != sigs)
-                if changed:
-                    st = load_state()
-                    st.setdefault(mode, {})['|'.join(regions)] = sigs
-                    save_state(st)
-            if not changed:
-                print('SKIP (无更新):', r.get('name'))
-                skipped += 1
-                continue
             rc = send_to_region(payloads, oid, regions, args.send_daily)
             if rc == 0:
                 sent += 1
             else:
                 failed += 1
+        # 全员发送成功才记录签名；有失败则下次自动重试
+        if sig is not None and failed == 0 and skipped == 0:
+            st = load_state()
+            st[gk] = sig
+            save_state(st)
         print(f'done: sent={sent} skipped={skipped} failed={failed}')
         return
 
