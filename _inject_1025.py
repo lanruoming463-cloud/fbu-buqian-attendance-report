@@ -124,6 +124,8 @@ def build_formal_recs(path):
                 _fc = r['首打卡'] if pd.notna(r['首打卡']) else ''
                 _lc = r['末打卡'] if pd.notna(r['末打卡']) else ''
                 if not str(_fc).strip() and not str(_lc).strip(): untimely = False
+            if (region == '捷克区' or region == '捷克区HRBP部') and str(r['异常备注']).strip() == '缺少首打卡和末打卡':
+                status = '正常'; is_abn = False; untimely = False
             if untimely:
                 _fc2 = _fs(r['首打卡']); _lc2 = _fs(r['末打卡']); _yc2 = _fs(r['异常备注'])
                 if _fc2 and _lc2 and (_yc2 == '' or _yc2 == '空白'): untimely = False

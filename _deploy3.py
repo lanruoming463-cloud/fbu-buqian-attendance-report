@@ -103,7 +103,7 @@ if p.returncode != 0:
 log('reset ok at', head[:9])
 
 # ---- 5. 覆盖 index.html + commit（commit 信息按需修改） ----
-COMMIT_MSG = 'V24.3 修正(2026-11-10):截图3位意大利区员工(米兰1号仓|入库组)对应日期考勤确认率不计异常(计正常/及时,保留总数).zt0023226 SIMONE FICARRA 2026-10-23与2026-10-22(姓名拼写为FICCARA同号)、zt0021018 LI YUE 2026-10-01:日块10.22/10.23/10.01各untimely/abnormal-1,empIndex移除3行,Top[欧洲区|意大利区]-3(2个工号组合).月块2026-10 abnormal 10323->10320(-3),untimely 2356->2353(-3),total 60864不变.已固化3条进FORMAL_ATT_DATE_WHITELIST(共26条)供后续注入自动生效.HTML 13.8MB'
+COMMIT_MSG = 'V24.4 修正(2026-11-10):捷克区(含捷克区HRBP部)考勤确认不及时名单中,异常备注=缺少首打卡和末打卡 的16条记录(跨6/7/10/11月,均FBU HRBP Dept.|捷克区HRBP部|部门直属|部门直属)未完全剔除(根因:旧规则只判region==捷克区且查首末打卡字段,HRBP捷克区region=捷克区HRBP部且字段非空仅备注标明缺失).外科手术式计为正常/及时(保留总数,异常-1/未及时-1/正常+1):月块2026-06 abn 6936->6935/unt 771->764、2026-07 6955->6950/781->776、2026-10 10320->10317/2353->2350、2026-11 2073->2072/455->454,total 均不变;empIndex移除16行,Top[FBU HRBP Dept.|捷克区HRBP部]-16.已硬化_inject_1025.build_formal_recs:region in(捷克区,捷克区HRBP部)&备注=缺少首打卡和末打卡->计正常/及时.HTML 13.8MB'
 shutil.copyfile(HTML, os.path.join(REPO, 'index.html'))
 run([GIT, 'add', '-A'], cwd=REPO)
 p = run([GIT, 'status', '--porcelain'], cwd=REPO)
