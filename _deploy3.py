@@ -103,7 +103,7 @@ if p.returncode != 0:
 log('reset ok at', head[:9])
 
 # ---- 5. 覆盖 index.html + commit（commit 信息按需修改） ----
-COMMIT_MSG = 'V24.2 修正(2026-11-10):(A)法国区表《考勤记录-2026-11-10T095919》中19名员工(巴黎2号仓,11.04-11.09)考勤确认率不计异常(计正常/及时,保留总数),报表内17条已外科手术式修正(日块+月块+empIndex移除+Top delta -17),2条11.09尚未注入已固化进FORMAL_ATT_DATE_WHITELIST供后续自动生效;(B)西班牙11.05正式工区域级不计异常(马德里1号仓2+部门直属1=3异常/3未及时->0,empIndex移除zt0019658/zt0021269/zt0021093),劳务工11.05西班牙区已为0(unconfirmed=0)本就满足.月块2026-11 abnormal 2093->2073(-20),untimely 475->455(-20),total 11918不变.HTML 13.8MB'
+COMMIT_MSG = 'V24.3 修正(2026-11-10):截图3位意大利区员工(米兰1号仓|入库组)对应日期考勤确认率不计异常(计正常/及时,保留总数).zt0023226 SIMONE FICARRA 2026-10-23与2026-10-22(姓名拼写为FICCARA同号)、zt0021018 LI YUE 2026-10-01:日块10.22/10.23/10.01各untimely/abnormal-1,empIndex移除3行,Top[欧洲区|意大利区]-3(2个工号组合).月块2026-10 abnormal 10323->10320(-3),untimely 2356->2353(-3),total 60864不变.已固化3条进FORMAL_ATT_DATE_WHITELIST(共26条)供后续注入自动生效.HTML 13.8MB'
 shutil.copyfile(HTML, os.path.join(REPO, 'index.html'))
 run([GIT, 'add', '-A'], cwd=REPO)
 p = run([GIT, 'status', '--porcelain'], cwd=REPO)
