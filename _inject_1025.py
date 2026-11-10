@@ -49,6 +49,11 @@ FORMAL_ATT_WHITELIST = {'zt0022905'}
 FORMAL_ATT_EXCLUDE_OCT = {'zt0021903'}
 FORMAL_ATT_EXCLUDE_EMPS = {'zt0022056'}
 FORMAL_ATT_DATE_WHITELIST = {('zt0021580', '2026-10-19')}
+# 加拿大区 3 仓(卡尔加里1号仓/温哥华2号仓/温哥华3号仓) 11月1-8日 考勤不算异常(计为正常/及时,保留在总数)
+FORMAL_ATT_WH_EXCL = {'卡尔加里1号仓', '温哥华2号仓', '温哥华3号仓'}
+FORMAL_ATT_WH_EXCL_REGION = '加拿大区'
+FORMAL_ATT_WH_EXCL_FROM = '2026-11-01'
+FORMAL_ATT_WH_EXCL_TO = '2026-11-08'
 LABOR_ATT_EXCLUDE_DATES = {
     ('FR083014', '2026-10-19'), ('FR091493', '2026-10-18'),
     ('FR086719', '2026-10-14'), ('FR092791', '2026-10-14'),
@@ -125,6 +130,8 @@ def build_formal_recs(path):
         if gong in FORMAL_ATT_WHITELIST:
             status = '正常'; is_abn = False; untimely = False
         if (gong, d.strftime('%Y-%m-%d')) in FORMAL_ATT_DATE_WHITELIST:
+            status = '正常'; is_abn = False; untimely = False
+        if region == FORMAL_ATT_WH_EXCL_REGION and wh in FORMAL_ATT_WH_EXCL and FORMAL_ATT_WH_EXCL_FROM <= d.strftime('%Y-%m-%d') <= FORMAL_ATT_WH_EXCL_TO:
             status = '正常'; is_abn = False; untimely = False
         ds = d.strftime('%Y-%m-%d'); ym = d.strftime('%Y-%m')
         recs.append({'major': major, 'region': region, 'wh': str(wh), 'grp': str(grp),
