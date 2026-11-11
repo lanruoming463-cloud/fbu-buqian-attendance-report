@@ -103,7 +103,7 @@ if p.returncode != 0:
 log('reset ok at', head[:9])
 
 # ---- 5. 覆盖 index.html + commit（commit 信息按需修改） ----
-COMMIT_MSG = 'V24.4 修正(2026-11-10):捷克区(含捷克区HRBP部)考勤确认不及时名单中,异常备注=缺少首打卡和末打卡 的16条记录(跨6/7/10/11月,均FBU HRBP Dept.|捷克区HRBP部|部门直属|部门直属)未完全剔除(根因:旧规则只判region==捷克区且查首末打卡字段,HRBP捷克区region=捷克区HRBP部且字段非空仅备注标明缺失).外科手术式计为正常/及时(保留总数,异常-1/未及时-1/正常+1):月块2026-06 abn 6936->6935/unt 771->764、2026-07 6955->6950/781->776、2026-10 10320->10317/2353->2350、2026-11 2073->2072/455->454,total 均不变;empIndex移除16行,Top[FBU HRBP Dept.|捷克区HRBP部]-16.已硬化_inject_1025.build_formal_recs:region in(捷克区,捷克区HRBP部)&备注=缺少首打卡和末打卡->计正常/及时.HTML 13.8MB'
+COMMIT_MSG = 'V24.5 T+1增量注入(2026-11-11):正式工新增11.7-11.9三日日块(合计total 6016、untimely 176),2026-11月块total 17932/untimely 627;劳务工11.6洛杉矶19号仓(LA19)叠加(非LA19 7764+LA19 426=8190,yqr/sjqr同增,unconfirmed不变),劳务工新增11.7-11.9三日日块(合计16247条、未确认737);6/7/8/9/10月及既有11.1-11.5日块零改动,劳务工6/7/8/9共61个日块保留.延续V24.x口径(加拿大3仓11.1-11.8不计异常、法国11.4-11.9白名单、捷克区缺首末打卡备注不计异常).HTML 13.25MB'
 shutil.copyfile(HTML, os.path.join(REPO, 'index.html'))
 run([GIT, 'add', '-A'], cwd=REPO)
 p = run([GIT, 'status', '--porcelain'], cwd=REPO)
