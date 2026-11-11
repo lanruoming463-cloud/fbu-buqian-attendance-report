@@ -1,36 +1,26 @@
-import pandas as pd, openpyxl
-from collections import Counter
-
-BASE = r'D:/Documents/Desktop/AI做每月人力数据/T+1确认及时性'
-
-print("=== 正式工10月 日期解析 ===")
-for f in [BASE + r'/正式工-考勤记录-10.1-10.6-及时性.xlsx',
-          BASE + r'/正式工-考勤记录-10.7-及时性.xlsx']:
-    df = pd.read_excel(f, sheet_name='考勤记录')
-    d = pd.to_datetime(df['考勤日期'], errors='coerce')
-    c = Counter(d.dropna().dt.strftime('%Y-%m'))
-    print(f.split('/')[-1], '总行=', len(df), 'ym分布=', dict(c))
-
-print("=== 劳务工10月 日期解析 ===")
-for f in [BASE + r'/劳务工-考勤记录-10.1-10.6-及时性.xlsx',
-          BASE + r'/劳务工-考勤记录-10.7-及时性.xlsx']:
-    wb = openpyxl.load_workbook(f, read_only=True, data_only=True)
-    ws = wb['考勤']
-    c = Counter()
-    for row in ws.iter_rows(values_only=True):
-        dd = row[10]
-        if isinstance(dd, str) and len(dd) >= 10 and dd[:4] == '2026':
-            c[dd[:7]] += 1
-        elif hasattr(dd, 'strftime'):
-            c[dd.strftime('%Y-%m')] += 1
-    print(f.split('/')[-1], 'ym分布=', dict(c))
-    wb.close()
-
-print("=== 正式工旧6/7月 日期分布（确认5月来源）===")
-for f in [r'D:/Documents/Downloads/正式工-7月考勤记录.xlsx',
-          r'D:/Documents/Downloads/正式工-6月考勤记录.xlsx']:
-    df = pd.read_excel(f, sheet_name='考勤记录')
-    d = pd.to_datetime(df['考勤日期'], errors='coerce')
-    c = Counter(d.dropna().dt.strftime('%Y-%m'))
-    print(f.split('/')[-1], 'ym分布=', dict(c))
-print("DONE")
+# -*- coding: utf-8 -*-
+import json, re
+PREFIX='const formalAttPayload = '
+def extract(h,n):
+    i=h.find(n);j=h.find('\n',i);return json.loads(h[i+len(n):j].rstrip(';'))
+def load(p):return extract(open(p,encoding='utf-8').read(),PREFIX)
+new=load('补签流程_补签统计.html')
+def wh_match(a,b):
+    a=re.sub(r'[（(].*?[)）]','',a or '').strip();b=re.sub(r'[（(].*?[)）]','',b or '').strip()
+    if not a or not b:return False
+    return a==b or a in b or b in a
+# 在 day 2026-10-30 的 warehouse 中，哪些条目会被 wh_match('伯明翰23号仓') 命中？
+day=new['data']['2026-10-30']
+print("day 2026-10-30 warehouse entries matched by '伯明翰23号仓':")
+for e in day.get('warehouse',[]):
+    if wh_match('伯明翰23号仓', e.get('wh','')):
+        print("   MATCH wh=%r maj=%r reg=%r untimely=%s"%(e.get('wh'),e.get('major'),e.get('region'),e.get('untimely')))
+# group: 在 day 2026-10-30 中，gmap 会纳入哪些 group（按 wh_day_contrib 逻辑）
+w_entries=[e for e in day.get('warehouse',[]) if wh_match('伯明翰23号仓',e.get('wh',''))]
+print("\n对应 gmap 将纳入的 group (wh,group):")
+seen=set()
+for g in day.get('group',[]):
+    if any(e.get('major')==g.get('major') and e.get('region')==g.get('region') and wh_match('伯明翰23号仓',e.get('wh','')) for e in w_entries):
+        if (g.get('wh'),g.get('group')) not in seen:
+            seen.add((g.get('wh'),g.get('group')))
+            print("   wh=%r group=%r"%(g.get('wh'),g.get('group')))
