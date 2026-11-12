@@ -448,6 +448,9 @@ print("Excel 已生成:", OUT_XLSX)
 
 # 员工明细（考勤为基，日级）：每条 = 一名员工某天被补签通过的考勤人日（含补签日期/事由/备注）。
 # 供第四板块「点击组展开员工」与第五板块「Top10」使用（weight=1，天数=行数累加）；职位从花名册按工号匹配（pos_map）。
+# V24.7 瘦身：不再下发全部 allEmp 原始明细（9841 条×16 字段≈4.4MB），改为构建期预计算
+# empIndexM（按月，位置数组，匹配 FORMAL_EMP_HEADERS）、empCount（全期合计，用于"共N人"展示）、topEmpIndexM（按月 Top10）。
+# 前端 toggleEmp 原生支持位置数组渲染，钻取/Top10 行为与旧版完全一致。
 _att_emp = []
 def _clean(v):
     v = str(v).strip()
@@ -463,7 +466,44 @@ for _ym in ['2026-06', '2026-07', '2026-08', '2026-09']:
             '考勤日期': _e['date'], 'ym': _ym, 'ymd': _e['date'], 'weight': 1,
             '审批状态': '已完成', 'top_exclude': False,
         })
-allEmp = _att_emp
+
+EMP_DETAIL_CAP = 50
+_FORMAL_EMP_FIELDS = ['姓名', '工号', '职位', '补签日期', '补签事由', '备注', '审批状态']
+_emp_idx_m, _emp_count, _top_m = {}, {}, {}
+for _r in _att_emp:
+    _ym = _r['ym']
+    _k = f"{_r['major']}|{_r['region']}|{_r['wh']}|{_r['group']}"
+    _emp_count[_k] = _emp_count.get(_k, 0) + 1
+    _ei = _emp_idx_m.setdefault(_ym, {})
+    if len(_ei.get(_k, [])) < EMP_DETAIL_CAP:
+        _ei.setdefault(_k, []).append([_r.get(f, '') for f in _FORMAL_EMP_FIELDS])
+for _ym in _emp_idx_m:
+    for _k in _emp_idx_m[_ym]:
+        _emp_idx_m[_ym][_k].sort(key=lambda e: e[3], reverse=True)  # 按 补签日期 降序
+_top_cnt = defaultdict(lambda: defaultdict(dict))
+_PER = lambda: {'count': 0, 'done': 0, 'ing': 0, 'name': '', 'gong': '', 'zhiwei': '', 'wh': defaultdict(int), 'group': defaultdict(int)}
+for _r in _att_emp:
+    _ym = _r['ym']; _rk = f"{_r['major']}|{_r['region']}"; _gid = _r['工号'] or ('__name__' + _r['姓名'])
+    _o = _top_cnt[_ym][_rk].setdefault(_gid, _PER())
+    _o['count'] += 1; _o['done'] += 1
+    _o['name'] = _r['姓名']; _o['gong'] = _r['工号']; _o['zhiwei'] = _r['职位']
+    _o['wh'][_r['wh']] += 1; _o['group'][_r['group']] += 1
+def _pick_max(d):
+    _best = ''; _bc = -1
+    for _kk in d:
+        if d[_kk] > _bc or (d[_kk] == _bc and _kk < _best):
+            _best = _kk; _bc = d[_kk]
+    return _best or '部门直属'
+for _ym in _top_cnt:
+    _tm = {}
+    for _rk, _gmap in _top_cnt[_ym].items():
+        _lst = [{'count': _o['count'], 'done': _o['done'], 'ing': _o['ing'], 'name': _o['name'],
+                 'gong': _o['gong'], 'zhiwei': _o['zhiwei'], 'wh': _pick_max(_o['wh']), 'group': _pick_max(_o['group'])}
+                for _o in _gmap.values()]
+        _lst = [x for x in _lst if x['count'] > 3]
+        _lst.sort(key=lambda x: (-x['count'], (x['name'] or '')))
+        _tm[_rk] = _lst[:10]
+    _top_m[_ym] = _tm
 
 # 正式工 emp 明细表列定义（供前端 data-driven 渲染，考勤为基日级明细）
 FORMAL_EMP_KEYS = ['姓名', '工号', '职位', '补签日期', '补签事由', '备注', '审批状态']
@@ -1695,7 +1735,8 @@ print("[正式工] 考勤总数=%d 正常=%d 异常=%d 未及时确认=%d 准确
 
 # HTML with interactive day/month picker
 json_data = json.dumps({
-    'months': months, 'days': days, 'data': data, 'allEmp': allEmp,
+    'months': months, 'days': days, 'data': data,
+    'empIndexM': _emp_idx_m, 'empCount': _emp_count, 'topEmpIndex': {}, 'topEmpIndexM': _top_m,
     'empKeys': FORMAL_EMP_KEYS, 'empHeaders': FORMAL_EMP_HEADERS,
     'type': 'formal', 'subtitle': FORMAL_SUBTITLE,
 }, ensure_ascii=False, separators=(',', ':'))
@@ -2345,9 +2386,9 @@ function render() {{
     var capTop = document.getElementById('secTopCap');
     if (capTop && _ymTop) capTop.innerHTML = '五、各区补签 Top10 员工（按区域内员工已补签考勤天数排序，>3 天）　<small style="font-weight:400;color:#2563eb">统计月份：' + monthLabel(_ymTop) + '</small>　<small style="font-weight:400;color:#64748b">点击大区/区域可展开或收起 Top 员工</small>';
   }} else {{
-    buildEmpIndex();
-    buildTopEmp();
     var _ymTop2 = (mode === 'month') ? (selected || '') : ((mode === 'week') ? (weekSel || '').slice(0, 7) : (daySel || '').slice(0, 7));
+    empIndex = (payload.empIndexM && _ymTop2 && payload.empIndexM[_ymTop2]) ? payload.empIndexM[_ymTop2] : {{}};
+    topEmpIndex = (payload.topEmpIndexM && _ymTop2 && payload.topEmpIndexM[_ymTop2]) ? payload.topEmpIndexM[_ymTop2] : (payload.topEmpIndex || {{}});
     var capTop2 = document.getElementById('secTopCap');
     if (capTop2 && _ymTop2) capTop2.innerHTML = '五、各区补签 Top10 员工（按区域内员工已补签考勤天数排序）　<small style="font-weight:400;color:#2563eb">统计月份：' + monthLabel(_ymTop2) + '</small>　<small style="font-weight:400;color:#64748b">点击大区/区域可展开或收起 Top 员工</small>';
   }}
