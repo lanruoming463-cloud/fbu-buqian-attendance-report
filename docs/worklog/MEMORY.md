@@ -1,6 +1,7 @@
 
 ## 补签/考勤报表口径（2026-10-10）
 - **异常表每日机制（2026-10-28 固化）**：`_scrape_exception_table.py`（抓飞书 wiki P6ZAwuZweihDHDkBhONcLpLsnAb，正式工 sheet=002f25/劳务工 OSWWWl → att_exceptions.json；EXCLUDE=无故缺勤等【含繁体 無故缺勤/沒開門】/CONFIRM=未及时审批等）+ `_apply_exceptions.py`（幂等应用：以 empIndex (工号,日期) 行存在为判据；EXCLUDE 扣 total/abnormal/untimely 或 yqr/unconfirmed，CONFIRM untimely→timely 或 unconfirmed→sjqr；同步日块/月块/四级维度/top 索引/删 empIndex 行）。退出码 0=需部署 2=跳过。每日 09:30 自动化 id ca859c49 自动跑全链路。首次应用正式工 13+劳务工 2 条，release 7701551181788892399。
+- **异常表仓库级口径（V24.6 固化，2026-11-11）**：异常表中**无工号、仅仓库名+日期**的条目 → **整仓当天所有人**计及时/确认（用户澄清：非按工号匹配）。实现：新增加 `is_warehouse_level` 判据，命中走"整仓"分支——`wh_day_contrib` 从日块 warehouse 聚合条目取 `we`（真实无截断，因 empIndex 仅存异常个体且每键≤50行、不可作真值源），同一份 day 级贡献**同时施加 day 与 month 块**（月块只减当天贡献，非整月聚合）；empIndex 行仅用于删行+Top 减员；幂等以该仓当天对应指标是否归零判等。已应用 伯明翰23号仓 2026-10-30 与 2026-11-04（均 CONFIRM，各当日未及时 2 人→计及时）。release 7706846036500761856。
 - 正式工考勤确认及时率：捷克区特殊口径——首打卡与末打卡均为空的缺卡记录视为及时确认，不计入未及时（_build_formal_recs 白名单，FORMAL_NOTE 已注明）。**V24.4 修正(2026-11-10)**：原规则只判 `region=='捷克区'` 且查首/末打卡**字段**为空，导致 HRBP 捷克区 记录（`region='捷克区HRBP部'`，仅**异常备注**标明"缺少首打卡和末打卡"、字段非空）16条漏判。已改为 `if region in ('捷克区','捷克区HRBP部') and 异常备注.strip()=='缺少首打卡和末打卡': status='正常'; is_abn=False; untimely=False`，并外科手术式修正已发布 HTML（16条跨6/7/10/11月，月块 untimely 各 −对应数，total 不变）。release 7706501573551541506。
 - 主体报表数据范围 2026-06/07/10；8-9月仅在独立 T+1 日更看板（T1_DATA 不在 gen_buqian_stats.py）。
 - 部署链路：_deploy3.py（妙搭 app_17cg3t4mvjm + 自动 _github_sync.py 同步公开仓库 lanruoming463-cloud/fbu-buqian-attendance-report）。
