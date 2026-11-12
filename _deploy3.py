@@ -103,7 +103,7 @@ if p.returncode != 0:
 log('reset ok at', head[:9])
 
 # ---- 5. 覆盖 index.html + commit（commit 信息按需修改） ----
-COMMIT_MSG = 'V24.7 报表瘦身(2026-11-12):正式工补签率 formalPayload 不再下发全部 allEmp 原始明细(9841条x16字段~4.4MB),改为构建期预计算 empIndexM(按月,位置数组)+empCount+topEmpIndexM;前端 toggleEmp 原生支持位置数组渲染,钻取/Top10 行为与旧版一致.报表体积 13.89MB->11.55MB(raw),gzip 1.27MB.修复萨凡纳链接 504 网关超时(大文件回源超时,非点击逻辑问题).'
+COMMIT_MSG = 'V24.7.1 正式工考勤确认率「按(工号,日期)不计异常」(白名单口径):zt0023023/2026-11-03 已应用(欧洲区|法国区|巴黎6号仓|理货组,异常-1/未及时-1,总数不变);zt0022176/2026-11-02、zt0022348/2026-11-09、zt0022348/2026-11-10 三项在现有报表数据中无对应考勤异常记录(11-10甚至非报表日块,数据截至2026-11-09),已一并固化进 FORMAL_ATT_DATE_WHITELIST,待最新11月源数据注入后自动生效.报表体积保持 11.55MB.'
 shutil.copyfile(HTML, os.path.join(REPO, 'index.html'))
 run([GIT, 'add', '-A'], cwd=REPO)
 p = run([GIT, 'status', '--porcelain'], cwd=REPO)
