@@ -103,7 +103,7 @@ if p.returncode != 0:
 log('reset ok at', head[:9])
 
 # ---- 5. 覆盖 index.html + commit（commit 信息按需修改） ----
-COMMIT_MSG = 'V24.6 异常表仓库级口径修正(2026-11-11):_apply_exceptions.py 新增仓库级异常(无工号仅有仓库名+日期→整仓当天计及时/确认);修复月块整仓聚合(仅减当天贡献而非整月聚合)与group匹配误伤其他仓库两处bug.已应用伯明翰23号仓2026-10-30与2026-11-04两条CONFIRM(各当日未及时2人→计及时);月块/日块自洽,timely==total-untimely全块校验通过,无其他仓库误伤.HTML 13.89MB'
+COMMIT_MSG = 'V24.7 报表瘦身(2026-11-12):正式工补签率 formalPayload 不再下发全部 allEmp 原始明细(9841条x16字段~4.4MB),改为构建期预计算 empIndexM(按月,位置数组)+empCount+topEmpIndexM;前端 toggleEmp 原生支持位置数组渲染,钻取/Top10 行为与旧版一致.报表体积 13.89MB->11.55MB(raw),gzip 1.27MB.修复萨凡纳链接 504 网关超时(大文件回源超时,非点击逻辑问题).'
 shutil.copyfile(HTML, os.path.join(REPO, 'index.html'))
 run([GIT, 'add', '-A'], cwd=REPO)
 p = run([GIT, 'status', '--porcelain'], cwd=REPO)
