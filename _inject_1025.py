@@ -59,6 +59,10 @@ LABOR_ATT_EXCLUDE_DATES = {
     ('FR086719', '2026-10-14'), ('FR092791', '2026-10-14'),
     ('FR093742', '2026-10-20'), ('FR092978', '2026-10-21'),
 }
+# 劳务工考勤确认率「按(工号,日期)不计未确认异常」白名单（与正式工 FORMAL_ATT_DATE_WHITELIST 同语义）：
+# 保留考勤总数(yqr)、计为已确认(sjqr=yqr, unconfirmed=0)，不计入未确认/未及时名单。
+# SAV056776 / Grace Fnu / 萨凡纳5号仓 / 售后组 / 2026-11-10（迟到16分钟但未确认，按用户要求剔除异常）。
+LABOR_ATT_DATE_WHITELIST = {('SAV056776', '2026-11-10')}
 FORMAL_HRBP_EXCLUDE = {'国内HRBP组', '美洲支持HRBP组', '美洲支持bp组', '欧亚支持bp组', '欧亚支持HRBP组'}
 FORMAL_OTHER_MAJORS = {'海外销售部', '渠道管理部', 'LD 法务部', 'FBU技术部', '平台业务部', '品牌客户部'}
 REGION_TO_MAJOR = {
@@ -204,6 +208,8 @@ def read_labor_recs(path, exclude_la19=False, read_only=True):
         sjk = int(_nz(col(row, 20))) + int(_nz(col(row, 21)))
         sq = int(_nz(col(row, 31))) + int(_nz(col(row, 34)))
         qr = col(row, 35) if isinstance(col(row, 35), str) else ''
+        if (str(col(row, 3)).strip(), ds) in LABOR_ATT_DATE_WHITELIST:
+            qr = '已确认'   # 白名单：保留考勤总数、计为已确认（剔除未确认异常）
         recs.append({'date': ds, 'major': REGION_TO_MAJOR.get(reg, '其他'), 'region': reg,
                      'wh': wh, 'grp': grp, 'gong': col(row, 3), 'name': col(row, 2),
                      'zg': col(row, 4) if isinstance(col(row, 4), str) else '',

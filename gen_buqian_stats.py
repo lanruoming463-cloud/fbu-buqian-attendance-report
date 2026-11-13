@@ -938,6 +938,10 @@ LABOR_ATT_EXCLUDE_DATES = {
     ('FR086719', '2026-10-14'), ('FR092791', '2026-10-14'),
     ('FR093742', '2026-10-20'), ('FR092978', '2026-10-21'),
 }
+# 劳务工考勤确认率「按(工号,日期)不计未确认异常」白名单（与正式工 FORMAL_ATT_DATE_WHITELIST 同语义）：
+# 保留考勤总数、计为已确认(sjqr=yqr, unconfirmed=0)，不计入未确认/未及时名单。
+# SAV056776 / Grace Fnu / 萨凡纳5号仓 / 售后组 / 2026-11-10。
+LABOR_ATT_DATE_WHITELIST = {('SAV056776', '2026-11-10')}
 def _labor_att_excl(gong, date):
     g = str(gong).strip()
     if g == 'zt0021903' and str(date).startswith('2026-10'):   # 离职剔除（仅 10 月）
@@ -1218,7 +1222,11 @@ def build_attend_payload_v2():
         # 离职员工剔除（用户 2026-10-22）：西班牙区 ZHANG NAN / zt0021903 已于 2026-09 底离职，剔除其 2026-10 全部考勤确认率数据
         # 指定日期剔除（用户 2026-10-22）：法国区四位劳务工对应日期考勤数据剔除
         _recs = [x for x in _recs if not _labor_att_excl(x['gong'], x['date'])]
+        for x in _recs:
+            if (str(x['gong']).strip(), str(x['date'])[:10]) in LABOR_ATT_DATE_WHITELIST:
+                x['sjqr'] = x.get('yqr', x.get('sjqr', 0))   # 白名单：保留总数、计为已确认
         _uts = [u for u in _uts if not _labor_att_excl(u['row'][1], u['date'])]
+        _uts = [u for u in _uts if not (str(u['row'][1]).strip(), str(u['date'])[:10]) in LABOR_ATT_DATE_WHITELIST]
         all_recs.extend(_recs)
         untimely_details.extend(_uts)
     if _UNMAPPED_REGIONS:
