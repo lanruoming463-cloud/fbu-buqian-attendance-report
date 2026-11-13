@@ -103,7 +103,7 @@ if p.returncode != 0:
 log('reset ok at', head[:9])
 
 # ---- 5. 覆盖 index.html + commit（commit 信息按需修改） ----
-COMMIT_MSG = 'V25.1 劳务工考勤确认率「按(工号,日期)不计未确认异常」白名单(首条): SAV056776/Grace Fnu/萨凡纳5号仓/售后组/2026-11-10(迟到16分钟未确认) 剔除异常——保留考勤总数(yqr=8)、计为已确认(sjqr 7->8, unconfirmed 1->0)，萨凡纳区/萨凡纳5号仓/售后组 unconfirmed 均归零、及时确认率100%；从 empIndex 未确认名单移除该行。新增 LABOR_ATT_DATE_WHITELIST(源码 _inject_1025 + gen 同源一致)。6/7/8/9月61块及10月零改动，报表体积~11.6MB.'
+COMMIT_MSG = 'V25.2 T+1 增量注入(2026-11-13): 正式工新增 2026-11-11 日块(2011行/未及时109, 月块2026-11 total=21950/abnormal=3573/untimely=842/timely=21108, 较V25.1 +2011/+413/+109/+109); 劳务工洛杉矶19号仓(TT) 11.10 增量并入现有 2026-11-10 日块(412行全已确认 unconfirmed=0, ldk+3, yqr 7138->7550, 未确认保持932); 劳务工非LA19 2026-11-11 新增日块(7269行/未确认772/ldk15). 6/7/8/9月61块与10月各日块保留零改动. 报表体积~11.69MB.'
 shutil.copyfile(HTML, os.path.join(REPO, 'index.html'))
 run([GIT, 'add', '-A'], cwd=REPO)
 p = run([GIT, 'status', '--porcelain'], cwd=REPO)
