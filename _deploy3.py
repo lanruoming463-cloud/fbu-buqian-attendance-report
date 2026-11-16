@@ -103,7 +103,7 @@ if p.returncode != 0:
 log('reset ok at', head[:9])
 
 # ---- 5. 覆盖 index.html + commit（commit 信息按需修改） ----
-COMMIT_MSG = 'V25.3+V25.4 (2026-11-16): [V25.3] 正式工考勤确认率「按(工号,日期)不计异常」白名单新增2条: zt0020461/2026-11-05(ALIOU BADARA,意大利区米兰2号仓理货组,缺少首末打卡)、zt0020906/2026-11-10(Klimenko Daria,捷克区布拉格8号仓包装组,缺少末打卡), 各异常-1/未及时-1/正常+1,总数不变, 月块2026-11 untimely 839->837; [V25.4] T+1 增量注入: 正式工新增 2026-11-12 日块(2015行/未及时90, 月块2026-11 total=23963/abnormal=3947/untimely=927/timely=23036), 劳务工LA19 11.11 并入现有 11-11 日块(452行全已确认, ldk+1, yqr 7269->7721), 劳务工非LA19 2026-11-12 新增日块(7855行/未确认721/ldk10). 6/7/8/9月61块与10月各日块保留零改动. 报表体积~11.75MB.'
+COMMIT_MSG = 'V25.5 回退误剔除(2026-11-16): 用户澄清「缺少首打卡和末打卡→剔除」规则仅适用于捷克区, 其他区域不适用。回退 zt0020461/ALIOU BADARA/意大利区米兰2号仓理货组/2026-11-05 的误剔除(恢复 11-05 日块与月块各层级 abnormal/untimely +1/normal -1, empIndex 恢复原行, 月块2026-11 untimely 927->928); zt0020906/Klimenko Daria/捷克区(用户明确指定)保留剔除不动。zt0020461/2026-11-05 移出 FORMAL_ATT_DATE_WHITELIST(31条/6条), 源码捷克规则本就限定捷克区无需改.'
 shutil.copyfile(HTML, os.path.join(REPO, 'index.html'))
 run([GIT, 'add', '-A'], cwd=REPO)
 p = run([GIT, 'status', '--porcelain'], cwd=REPO)
