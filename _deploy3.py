@@ -103,7 +103,7 @@ if p.returncode != 0:
 log('reset ok at', head[:9])
 
 # ---- 5. 覆盖 index.html + commit（commit 信息按需修改） ----
-COMMIT_MSG = 'V25.6 T+1 增量注入(2026-11-17): 正式工新增 2026-11-13 日块(2017行/未及时63, 月块2026-11 total=25979/abnormal=4290/untimely=989/timely=24990); 劳务工洛杉矶19号仓(TT) 11.12 增量并入现有 2026-11-12 日块(477行/未确认2/ldk3, yqr 7855->8332, 未确认 721->723); 劳务工非LA19 2026-11-13 新增日块(9347行/未确认1092/ldk2). 白名单仅捷克区规则生效(zt0020906保留/zt0020461已回退). 6/7/8/9月61块与10月各日块保留零改动. 报表体积~11.79MB.'
+COMMIT_MSG = 'V25.7 正式工考勤确认率「按(工号,日期)整条剔除分母」(用户 2026-11-17, 新机制): zt0021853/Ullah Asad/意大利区米兰1号仓拣货组/2026-11-13(缺少首末打卡) 整条剔除——total/abnormal/untimely 各-1(日块11-13 total 2017->2016/untimely 63->62, 月块2026-11 total 25979->25978/untimely 989->988), normal不变, timely重算; empIndex删该行, Top untimely-1(仍>3保留). 新增 FORMAL_ATT_EXCLUDE_DATES 真源(_inject_1025+gen同源): 含 zt0021853/11-13 与 11-16(未注入,待注入自动生效). 区别于白名单(保留总数). 6/7/10月与劳务工零改动.'
 shutil.copyfile(HTML, os.path.join(REPO, 'index.html'))
 run([GIT, 'add', '-A'], cwd=REPO)
 p = run([GIT, 'status', '--porcelain'], cwd=REPO)

@@ -1495,6 +1495,10 @@ FORMAL_ATT_WHITELIST = {'zt0022905'}
 FORMAL_ATT_EXCLUDE_OCT = {'zt0021903'}
 # 正式工考勤确认「全期剔除」员工（用户 2026-10-27）：张剑卫（David）/ zt0022056 整体考勤数据剔除，不计入考勤确认及时率分母及未及时确认名单（6/7/10 月全期）
 FORMAL_ATT_EXCLUDE_EMPS = {'zt0022056'}
+# 正式工考勤确认「按(工号,日期)整条剔除」（用户 2026-11-17）：该员工该日整条考勤数据从分母剔除
+# （total/normal/abnormal/untimely 全不计，与 FORMAL_ATT_DATE_WHITELIST 的"保留总数计正常"口径不同）。
+# zt0021853 / Ullah Asad / 意大利区米兰1号仓拣货组：2026-11-13、2026-11-16。
+FORMAL_ATT_EXCLUDE_DATES = {('zt0021853', '2026-11-13'), ('zt0021853', '2026-11-16')}
 # 正式工考勤确认「指定日期白名单」（用户 2026-10-22）：特定员工特定日期考勤人工确认为及时（保留记录、计为正常/及时，不计未确认）。
 #   西班牙区 Chen Peng / zt0021580 于 2026-10-19 异常(缺少首打卡)经核实为及时确认。
 FORMAL_ATT_DATE_WHITELIST = {('zt0020906','2026-11-10'), ('zt0021580','2026-10-19'), ('zt0022176','2026-11-02'), ('zt0022348','2026-11-09'), ('zt0022348','2026-11-10'), ('zt0023023','2026-11-03')}
@@ -1542,6 +1546,10 @@ def _build_formal_recs():
             # 全期剔除员工（用户 2026-10-27）：张剑卫（David）/ zt0022056 整体考勤数据剔除，不计入考勤确认及时率分母及未及时确认名单
             if gong in FORMAL_ATT_EXCLUDE_EMPS:
                 excluded['全期剔除'] = excluded.get('全期剔除', 0) + 1
+                continue
+            # 按(工号,日期)整条剔除（用户 2026-11-17）：该员工该日整条数据从分母剔除
+            if (gong, d.strftime('%Y-%m-%d')) in FORMAL_ATT_EXCLUDE_DATES:
+                excluded['指定日期整条剔除'] = excluded.get('指定日期整条剔除', 0) + 1
                 continue
             # 离职员工剔除（用户 2026-10-22）：西班牙区 ZHANG NAN / zt0021903 已于 2026-09 底离职，剔除其 2026-10 全部考勤确认率数据
             if gong in FORMAL_ATT_EXCLUDE_OCT and d.strftime('%Y-%m') == '2026-10':
