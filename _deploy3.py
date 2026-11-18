@@ -103,7 +103,7 @@ if p.returncode != 0:
 log('reset ok at', head[:9])
 
 # ---- 5. 覆盖 index.html + commit（commit 信息按需修改） ----
-COMMIT_MSG = 'V25.7 正式工考勤确认率「按(工号,日期)整条剔除分母」(用户 2026-11-17, 新机制): zt0021853/Ullah Asad/意大利区米兰1号仓拣货组/2026-11-13(缺少首末打卡) 整条剔除——total/abnormal/untimely 各-1(日块11-13 total 2017->2016/untimely 63->62, 月块2026-11 total 25979->25978/untimely 989->988), normal不变, timely重算; empIndex删该行, Top untimely-1(仍>3保留). 新增 FORMAL_ATT_EXCLUDE_DATES 真源(_inject_1025+gen同源): 含 zt0021853/11-13 与 11-16(未注入,待注入自动生效). 区别于白名单(保留总数). 6/7/10月与劳务工零改动.'
+COMMIT_MSG = 'V25.9 T+1 增量注入(2026-11-18, 三天合一文件): 正式工新增 11-14/11-15/11-16 三日块(合计6046行/未及时166, 月块2026-11 total=32022/abnormal=4948/untimely=1151/timely=30871); 劳务工LA19 11.13 并入现有日块(542行全确认, yqr 9347->9889); 劳务工非LA19 11-14/15/16 新增三日块(合计19422行, 未确认 36/31/1018). 已验证两条固化规则自动生效: zt0023023/11-16 白名单计正常(保留总数)、zt0021853/11-16 整条剔除分母(recs=0). 6/7/8/9月61块与10月零改动. 报表体积~11.92MB.'
 shutil.copyfile(HTML, os.path.join(REPO, 'index.html'))
 run([GIT, 'add', '-A'], cwd=REPO)
 p = run([GIT, 'status', '--porcelain'], cwd=REPO)
