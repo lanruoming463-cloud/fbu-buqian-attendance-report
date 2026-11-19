@@ -941,7 +941,13 @@ LABOR_ATT_EXCLUDE_DATES = {
 # 劳务工考勤确认率「按(工号,日期)不计未确认异常」白名单（与正式工 FORMAL_ATT_DATE_WHITELIST 同语义）：
 # 保留考勤总数、计为已确认(sjqr=yqr, unconfirmed=0)，不计入未确认/未及时名单。
 # SAV056776 / Grace Fnu / 萨凡纳5号仓 / 售后组 / 2026-11-10。
-LABOR_ATT_DATE_WHITELIST = {('SAV056776', '2026-11-10')}
+LABOR_ATT_DATE_WHITELIST = {
+    ('SAV056776', '2026-11-10'),
+    # 德国区杜塞尔多夫20号仓 GOFO组 5人 2026-11-16 下班未打卡（用户逐条指定不算异常）
+    ('DE079640', '2026-11-16'), ('DE086340', '2026-11-16'),
+    ('DE079490', '2026-11-16'), ('DE079487', '2026-11-16'),
+    ('DE086939', '2026-11-16'),
+}
 def _labor_att_excl(gong, date):
     g = str(gong).strip()
     if g == 'zt0021903' and str(date).startswith('2026-10'):   # 离职剔除（仅 10 月）

@@ -103,7 +103,7 @@ if p.returncode != 0:
 log('reset ok at', head[:9])
 
 # ---- 5. 覆盖 index.html + commit（commit 信息按需修改） ----
-COMMIT_MSG = 'V25.12 T+1增量注入(2026-11-19, 数据至11.17): (A)正式工 11-17 新增日块2033行/未及时92 -> 月块2026-11 total 34051/untimely 1237; (B1)劳务工 LA19(洛杉矶19号仓) 11.14-11.16 三天专用晚班文件1384行增量并入现有日块(未确认1/ldk3, 11-16有1条真实未确认按实际处理); (B2)劳务工 非LA19 11-17 新增日块7595行/未确认825/ldk19. 外科手术式: 6/7/8/9月61日块保留、2026-10零改动、劳务工attendPayload仅前端聚合无月块. 校验全过(正式工timely自洽/月块=日块和, 劳务工yqr==sjqr+unconfirmed/历史零改动).'
+COMMIT_MSG = 'V25.13 劳务工考勤异常剔除(德国区 2026-11-19): 用户指定 5 位德国区杜塞尔多夫20号仓 GOFO组劳务工 11-16「下班未打卡」不算异常(DE079640/DE086340/DE079490/DE079487/DE086939). 白名单口径=保留yqr/计已确认: 5条 sjqr+1/unconfirmed-1, empIndex删5行、empCount-5、unc榜清理(ldk榜不动). 11-16 total sjqr 6985->6990/unconfirmed 1019->1014/yqr 8004不变. ⚠️仅改11-16, 11-17同类异常本次未动(截图只标11-16). 真源 LABOR_ATT_DATE_WHITELIST 加5对(_inject_1025+gen). 校验全过(全量yqr==sjqr+unconfirmed/6月-9月61块保留/2026-10零改动/11-17零改动/empIndex无残留).'
 shutil.copyfile(HTML, os.path.join(REPO, 'index.html'))
 run([GIT, 'add', '-A'], cwd=REPO)
 p = run([GIT, 'status', '--porcelain'], cwd=REPO)
