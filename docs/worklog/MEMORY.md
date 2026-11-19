@@ -1,40 +1,35 @@
+# 补签/考勤报表项目长期记忆（精简版 2026-11-19）
 
-## 补签/考勤报表口径（2026-10-10）
-- **异常表每日机制（2026-10-28 固化）**：`_scrape_exception_table.py`（抓飞书 wiki P6ZAwuZweihDHDkBhONcLpLsnAb，正式工 sheet=002f25/劳务工 OSWWWl → att_exceptions.json；EXCLUDE=无故缺勤等【含繁体 無故缺勤/沒開門】/CONFIRM=未及时审批等）+ `_apply_exceptions.py`（幂等应用：以 empIndex (工号,日期) 行存在为判据；EXCLUDE 扣 total/abnormal/untimely 或 yqr/unconfirmed，CONFIRM untimely→timely 或 unconfirmed→sjqr；同步日块/月块/四级维度/top 索引/删 empIndex 行）。退出码 0=需部署 2=跳过。每日 09:30 自动化 id ca859c49 自动跑全链路。首次应用正式工 13+劳务工 2 条，release 7701551181788892399。
-- **异常表仓库级口径（V24.6 固化，2026-11-11）**：异常表中**无工号、仅仓库名+日期**的条目 → **整仓当天所有人**计及时/确认（用户澄清：非按工号匹配）。实现：新增加 `is_warehouse_level` 判据，命中走"整仓"分支——`wh_day_contrib` 从日块 warehouse 聚合条目取 `we`（真实无截断，因 empIndex 仅存异常个体且每键≤50行、不可作真值源），同一份 day 级贡献**同时施加 day 与 month 块**（月块只减当天贡献，非整月聚合）；empIndex 行仅用于删行+Top 减员；幂等以该仓当天对应指标是否归零判等。已应用 伯明翰23号仓 2026-10-30 与 2026-11-04（均 CONFIRM，各当日未及时 2 人→计及时）。release 7706846036500761856。
-- 正式工考勤确认及时率：捷克区特殊口径——首打卡与末打卡均为空的缺卡记录视为及时确认，不计入未及时（_build_formal_recs 白名单，FORMAL_NOTE 已注明）。**V24.4 修正(2026-11-10)**：原规则只判 `region=='捷克区'` 且查首/末打卡**字段**为空，导致 HRBP 捷克区 记录（`region='捷克区HRBP部'`，仅**异常备注**标明"缺少首打卡和末打卡"、字段非空）16条漏判。已改为 `if region in ('捷克区','捷克区HRBP部') and 异常备注.strip()=='缺少首打卡和末打卡': status='正常'; is_abn=False; untimely=False`，并外科手术式修正已发布 HTML（16条跨6/7/10/11月，月块 untimely 各 −对应数，total 不变）。release 7706501573551541506。
-- 主体报表数据范围 2026-06/07/10；8-9月仅在独立 T+1 日更看板（T1_DATA 不在 gen_buqian_stats.py）。
-- 部署链路：_deploy3.py（妙搭 app_17cg3t4mvjm + 自动 _github_sync.py 同步公开仓库 lanruoming463-cloud/fbu-buqian-attendance-report）。
-- T+1 增量注入模式（10.15/10.16-10.18/10.19 实证）：_inject_*.py 只读桌面日更 xlsx，复刻口径合并进已发布 HTML——formalAttPayload 需 day 块 + merge_full_block 累加 2026-10 月块；attendPayload 仅 day 块（月视图前端聚合）。数据范围已扩至 10.1–10.19（release 7698942997014695153）。
-- 正式工补签率：西班牙区「补签事由=其他」1,673 条按客观原因整体剔除（gen_buqian_stats.py 已固化，总计 15,012→13,339）。
-- 正式工补签率板块（2026-10-21 起）改为**考勤为基**口径：分母=范围内考勤总记录数（人日）、分子=JOIN 补签流程已完成并剔除西班牙"其他"+客观原因；数据由 `_formal_attend_rate.json`（`_gen_formal_attend_rate.py` 产出，已校验）驱动，HTML 与 Excel 6 个补签率 sheet 同口径。KPI=考勤记录总数/已补签数/补签率；仅按月呈现（days=[]，按天/按周隐藏）；Top10 按补签天数>3 取 7 列；组下明细 5 列。教训：render 行模板中 ingCell/ydkCell/rateCell 已返回完整 <td>，外层不可再包 <td>；colspan C 已改为动态。release 7698990216392854805。
-- 图例规范（2026-10-21）：补签率两板块表头=「补签率图例」且图例条宽度=补签率（barW=rate，非占总体比）；及时率板块=「及时确认率图例」。法国区导出脚本 `_export_france.py`（未及时确认10月/补签Top10 9月，4 sheet）可复用。最新 release 7699025157558553848。
-- 劳务工补签率（2026-10-21 起）改为**考勤为基**口径，与正式工完全一致：分母=考勤记录总数（人日=全量考勤行），分子=首/末打卡补签时间非空 且 非客观因素（is_top_exclude 检查 修改原因/备注）；补签率两板块均移除占总体比列、移除应打卡合计/未完成列，表头统一 5 列=[大区,考勤记录总数,已补签数,补签率,补签率图例]；劳务工也仅按月（days_l=[]，隐藏日/周按钮）。核心函数 `agg_period_labor_att`（与 _att_block 同构）；Excel 新增 6 个「劳务工_*」补签率 sheet。aggRange JS 补签率=已完成/total。探针注意：renderAttend 未定义系时序误报（attend script 解析需 ~1s）。release 7699063854717799723。
-- **体积红线**：att_excel（Excel 专用全量明细）不得随 payload 序列化进 HTML——曾致 54MB 超妙搭发布上限；gen_buqian_stats.py 已在 Excel 追加后 pop('att_excel')，HTML 10.36MB。修复发布 release 7699065068139334920。
-- **日期组件规则（2026-10-21）**：考勤确认及时率（正式工 gen 视图/劳务工 attend 视图）=按天/按周/按月 全组件；仅补签率两板块（正式工/劳务工）仅按月隐藏日/周。关键点：showCell 切换视图时必须恢复 btnDay/btnWeek 的 display（showAtt/showGen 分支已固化）。release 7699069573207018790。
-- **T+1 注入回退教训（2026-10-22）**：全量重跑 gen_buqian_stats.py 会丢失已注入的 T+1 日块（源文件仅到注入时点）——重跑后必须重新注入其后所有 T+1 文件。`_inject_1020.py` 已支持多文件列表循环（FORMAL_FILES/LABOR_FILES），可直接复用为补齐脚本；数据范围现 10.1–10.20（release 7699310530578992373）。
-- **劳务工考勤确认率「指定日期剔除」机制（2026-10-26 固化）**：`LABOR_ATT_EXCLUDE_DATES`（工号,日期 集合），作用在劳务工 attend 视图——被剔除者该日考勤不计入考勤确认及时率分母、也不计入未及时确认名单。已累计 6 对，全部法国区劳务工：FR083014/10-19、FR091493/10-18、FR086719/10-14、FR092791/10-14、FR093742/10-20、FR092978/10-21。真源需同步改 4 文件：gen_buqian_stats.py / _inject_1020.py / _inject_1021.py / _export_france.py（A2 循环加 `if (g,d) in LABOR_ATT_EXCLUDE_DATES: continue`）。已发布 HTML 用 _patch_labor_fr_excl.py 外科手术式重建 affect 日块(attendPayload 仅 day 块)+清理 empIndex；月聚合前端实时算。release 7700787091309006078。
-- **正式工考勤确认率「全期剔除」机制（2026-10-27 固化）**：`FORMAL_ATT_EXCLUDE_EMPS`（工号集合，全期），作用在正式工 gen 视图——被剔除员工全部考勤不计入及时率分母及未及时确认名单（empIndex/topEmpIndex 同步清理）。首个成员 zt0022056（张剑卫/David，美洲区/萨凡纳区/卡派组），横跨 6/7/10 月。真源改 gen_buqian_stats.py（_build_formal_recs 加 `continue`）+ _inject_1021.py/_inject_1022.py（build_formal_recs 加 `continue`）。已发布 HTML 用 _patch_formal_excl_zt22056.py 减法式修正（源文件算每日各维度贡献扣减日块+月块+清理 empIndex/top）；注意源文件 `考勤日期` 为斜杠格式需 pd.to_datetime 归一化。release 7701170605073108256。区别于仅10月的 `FORMAL_ATT_EXCLUDE_OCT`（zt0021903 离职）。
-- **正式工「按仓排除不计异常」机制（2026-11-10 固化，V24.1）**：`FORMAL_ATT_WH_EXCL={'卡尔加里1号仓','温哥华2号仓','温哥华3号仓'}` + `FORMAL_ATT_WH_EXCL_REGION='加拿大区'` + `FROM/TO='2026-11-01'/'2026-11-08'`，作用在正式工 gen 视图 `build_formal_recs`——命中(region=加拿大区 & wh∈集合 & 日期在区间)的记录 status='正常'/is_abn=False/untimely=False，即**保留在考勤总数、计正常/及时、不计异常**（与白名单口径一致）。后续 T+1 注入(11.7/11.8)自动生效。已发布 HTML 用 `_fix_canada_wh.py` 外科手术式「delta 合并」修正：以 关闭排除/开启排除 双重建之差仅对加拿大区3仓施加，不动其他区域；⚠️当时 Nov source 相对线上在「英国区伯明翰2/8号仓」有源重导出漂移，故**不可整块用源替换**（会误注入英国区漂移），必须 delta 合并。月块 2026-11 abnormal 2150→2093(-57)/untimely 512→475(-37)/normal +57/total 11918 不变；empIndex 移除37行、Top[美洲区|加拿大区] 减37。release 7706372672993430767。
-- **正式工「按(工号,日期)不计异常」机制（2026-11-10 固化，V24.2/V24.3）**：复用 `FORMAL_ATT_DATE_WHITELIST`（白名单口径=status='正常'/保留总数/不计异常，与 V24.1 同语义），不要误用 `FORMAL_ATT_EXCLUDE_*`（continue 从分母剔除，口径不同）。累计条目：原1条(zt0021580/2026-10-19)+V24.2 法国区巴黎2号仓19条(11.04-11.09)+西班牙11.05正式工3条 +V24.3 意大利区米兰1号仓3条(zt0023226/2026-10-23、zt0023226/2026-10-22、zt0021018/2026-10-01)=**共26条**，后续 T+1 注入自动按白名单计正常。外科手术式修正脚本：`_fix_france_spain.py`(V24.2)、`_fix_italy_oct.py`(V24.3)。V24.2 月块2026-11 abnormal 2093→2073(-20)/untimely 475→455(-20)/total 11918 不变(release 7706479182470384912)；V24.3 月块2026-10 abnormal 10323→10320(-3)/untimely 2356→2353(-3)/total 60864 不变(release 7706485573468556590)。
-- **⚠️劳务工 attendPayload 含 6/7/8/9 月日块（致命坑）**：劳务工考勤确认率 attendPayload 实际有 **83 个日块(2026-06-01~2026-10-22)**，并非只有 T+1 的 10 月！任何「全量从源重建」劳务工日块的操作都会**误删 6/7/8/9 月数据**。必须外科手术式修正：保留 6/7/8/9 日块+empIndex/topEmpIndex 不动，仅替换受影响的月块（如 10.1-10.22）、增量注入新日（10.23-10.25）、对受影响区域 top 列表按 (工号,仓,组) 施加新旧差 delta（unc/ldk 分开算，ldk 新旧可能不同需按差而非置零）。写入前务必做「旧源文件原样重建 vs 线上逐日总量」保真校验。
-- **劳务工洛杉矶19号仓(TT) 夜班修正模式（2026-10-27）**：该仓属晚班，T+1 考勤确认状态系统性误判未确认。修正方式=用专用晚班文件《劳务工-考勤记录-10.01-10.22-及时性（仅洛杉矶19号仓）.xlsx》(7214行,全部已复核)整体替换原 10.1-10.22 LA19 记录：旧13日文件读时 `exclude_la19=True` 剔除 LA19，再叠加该专用文件。注意此专用文件 `read_only=True` 维度误读(仅1行)→须 `read_only=False`；其余文件 read_only=True 正常。仅改用户指定月范围(10.1-10.22)，6/7/8/9 月同名仓未确认不自动改（无对应修正源）。release 7701183777331727661。10.28/10.29 延续此模式：日块重建=非LA19文件+LA19修正文件（`_inject_1029.py`/`_inject_1030.py`，均复用 _inject_1025）。**V16 增 10.30–10.31**：`_inject_1104.py` 用《劳务工-考勤记录-10.30-10.31-及时性（仅洛杉矶19号仓）.xlsx》(722行,全 已复核/正常,unconfirmed=0→仅增总量) 重建 10.30/10.31 日块=非LA19(`_inject_1030` 的 NONLA19_1030 复用)+LA19，10.30 yqr 9076→9473、10.31 6019→6344；attendPayload 无月块(前端聚合)。
-- **数据范围进展（V12–V16，2026-11-04）**：正式工日块→91（至10.31，时效看板/V14），劳务工日块→92（至10.31，61 个 6/7/8/9 块保留）；时效看板月块 2026-10 total=60864/untimely=2369（V16，较 V14 的 2439 因上级休假豁免 −70，豁免含 已完成+审批中）。**补签率板块（考勤为基）V15 扩至 2026-06~10 五个月**：正式工 2026-10 den=60529/done=2247/rate=3.7%；劳务工 2026-10 den=243138/done=56142/rate=23.1%；劳务工全量 den=1057563/done=235166/rate=22.2%。V16 release **7704147007522917613**（GitHub 9dc5f3c，线上同一 page RgGYm9pJkdaDGKafK8lc5pS1ntf）。zt0023229 全 10 月剔除；异常表 V14 EXCLUDE 已生效未动。
-- **正式工「直接上级当天休假」考勤异常豁免规则（V16 新增）**：据《休假流程-截止10.31》+《花名册-截止11.4》，若正式工某日考勤异常(untimely)且其**直接上级工号**（花名册 `直接上级工号`，仅 `用工形式=正式员工` 映射）当日有**合格休假**（休假流程 `审批状态∈{已完成,审批中}` 且 `1h <= 时长 <= 24h`，休假日期取 `开始时间` 日期），则该异常不计。实现=`_inject_1104.py` 从 `formalAttPayload.empIndex` 移除命中行(工号+日期)，并同步扣减日块/月块 `untimely`、重算 `timely`、Top 列表(`untimely>3` 过滤)、`empIndex/empCount`。**仅正式工**（attendPayload 劳务工不应用）。当前数据：70 行豁免(3790→3720)、月块2026-10 untimely 2439→2369、日块累计 −70（含审批中后较仅已完成 +15 行）。**注意**：休假流程文件仅含 10 月请假(范围 10.01–10.31)，故豁免只作用于 10 月；时长 >24h 或 <1h 不处理。
-- **⚠️补签率注入铁律（V15 固化）**：考勤为基补签率两板块（formalPayload/laborPayload）严禁用 gen_buqian_stats.py 全量重跑（会抹掉 V14 时效日块）。正确做法= `_inject_buqian10.py`：重算 6-9+10 全部月份 → 注入前用 `_norm_block` 逐字段比对重算的 6-9 与线上 HTML 现有块，**一致才替换**（防回归）→ 右→左（reverse）替换两个 `const` 避免位置错位（曾因左→右 stale position 破坏 HTML，已修）→ 重写 13 个补签率 Excel sheet（保留 3 个考勤确认及时性 sheet）。正式工 6-9+10 重算可复用 `_gen_formal_attend_rate.py` 的 build_month；劳务工需把 `LABOR_SRCS` 扩到含 10 月文件、并把 `LABOR_BUQIAN_REC`（OTWS 跨月映射）扩为 {'2026-09':劳务工-补签记录-9月.xls,'2026-10':补签-劳务工-10月.xls}。
-- **劳务工补签剔除规则（2026-10-22 起，V15 扩至 10 月）**：新口径（OTWS 跨月映射）= 补签原因=入职当天(含初次报道/首次报道)全剔除；西班牙区+其他剔除；日本区+提前打卡剔除；其余按备注客观因素(is_top_exclude)剔除。匹配口径：(工号,打卡时间→考勤日期) 匹配考勤表 且该行首/末打卡补签时间非空；按(工号,考勤日期)去重=补签人日。2026-09 剔除=入职当天/报道3020+西班牙区-其他195+日本区-提前打卡17+备注客观因素87；2026-10 剔除=入职当天/报道3516+西班牙区-其他170+日本区-提前打卡22+备注客观因素67。6/7/8 月仍维持旧口径（仅按修改原因剔除客观因素，无 OTWS 文件）。
-- **源文件坑（V15）**：《补签-劳务工-10月.xls》实为 xlsx 格式（须 openpyxl 而非 xlrd）；《2.劳务工工时-20261102.xlsx》考勤 sheet 无 实际补签数/应打卡数/应补签数 列（注入时按缺失补 0）；《考勤记录 - 正式工-10月.xlsx》三级部门仅 欧洲区/美洲区/FBU HRBP Dept./亚太区（无 仓储运营部 等杂类，杂类来自 6-9 源，沿用旧口径未剔除）。
+## 基础
+- 主产物：单体 HTML `补签流程_补签统计.html`（约 11.7MB）。payload：`formalAttPayload`（正式工，有日块+月块）、`attendPayload`（劳务工，仅日块，前端聚合成月）、`formalPayload`/`laborPayload`（补签率）。
+- 部署：`_deploy3.py`（妙搭 app_17cg3t4mvjm；自动触发 `_github_sync.py` 同步公开仓库 lanruoming463-cloud/fbu-buqian-attendance-report）。每次改动须更新 `COMMIT_MSG`（当前 V25.11 待部署）。
+- 主体报表数据范围 2026-06/07/10；8-9月仅在独立 T+1 看板。T+1 日块已注入至 2026-11-16。
+- 体积红线：`att_excel` 不得进 HTML payload（曾致 54MB），gen 脚本已在追加 Excel 后 pop。
 
-## GitHub 同步机制（2026-10-10 修订）
-- _github_sync.py 同步范围：核心脚本(gen_buqian_stats/_deploy3/_github_sync)、README/.gitignore、无头探针(_probe*)、口径诊断脚本(_diag/_check/_explore)、发布说明(*发布说明*.md)、docs/ 递归、T+1看板核心脚本、报表产物(HTML/xlsx)、attend_acc_data.json。
-- 日志路径分离：.workbuddy/memory/*.md 存 docs/worklog/；docs/devlog/*.md 为真实开发日志，两者同名不可混放(曾因去重被记忆日志覆盖，已修)。
-- 仓库公开(lanruoming463-cloud/fbu-buqian-attendance-report)；PAT 存 .github_token(gitignored)；发布联动 + 每日22:30兜底。
+## 口径机制（ surgically 修改已发布 HTML，勿全量重跑 gen）
+### 正式工剔除/白名单（语义严格区分）
+1. `FORMAL_ATT_DATE_WHITELIST`：异常改正常/计及时，**保留 total**，abnormal−1/untimely−1/normal+1，empIndex 删行。当前含原1+法国19+西班牙3+意大利3+11月手动若干+zt0022754/11-13、zt0023345/11-16（gen 8 条/_inject_1025 33 条口径，持续累加）。
+2. `FORMAL_ATT_EXCLUDE_DATES`：整条从分母剔除（total/normal/abnormal/untimely 全减）。含 zt0021853/11-13、11-16。
+3. `FORMAL_ATT_LEAVE_FROM`：离职生效日起整条剔除，日期 `>=` 生效日。含 zt0023023→2026-11-16。
+4. `FORMAL_ATT_EXCLUDE_EMPS`（全期，zt0022056）/ `FORMAL_ATT_EXCLUDE_OCT`（zt0021903）/ `FORMAL_ATT_WH_EXCL`（加拿大区3仓 11-01~11-08 按仓白名单）。
+- 捷克自动豁免仅限 `region in ('捷克区','捷克区HRBP部')` 且异常备注=`缺少首打卡和末打卡`；**用户明确：其他区域不适用**。
+- 「上级当天休假豁免」仅10月，据休假流程+花名册映射，扣 untimely 不改 total。
 
-## 劳务工补签剔除规则（2026-10-22 更新）
-- 新规则（参考正式工+区域特例）：补签原因=入职当天(含初次报道/首次报道)全剔除；西班牙区+其他剔除；日本区+提前打卡剔除；其余按备注客观因素(is_top_exclude)剔除。补签原因只存在于《劳务工-补签记录-*.xls》(OTWS-打卡数据,实为xlsx)——考勤表异常原因/修改原因不含补签原因。
-- 现状：仅 2026-09 用新口径（gen_buqian_stats.py 内 9月覆盖块）；6/7/8月暂无补签记录文件维持旧口径，月度趋势有台阶（西班牙区 8月44.0%→9月1.6%）。补齐 6-8月文件后在 gen 里把 BUQIAN_REC_LABOR 扩为月度映射即可统一。
-- 匹配口径：(工号,打卡时间→考勤日期) 匹配考勤表 且该行首/末打卡补签时间非空；按(工号,考勤日期)去重=补签人日。全量重跑后须重跑 _inject_1020.py 并手动 cp _injected_1020.html 覆盖主 HTML（脚本不自动 cp）。release 7699377540092431604。
+### 劳务工
+- `LABOR_ATT_EXCLUDE_DATES`：整条剔除分母（6 对法国区，2026-10）。
+- `LABOR_ATT_DATE_WHITELIST`：保留 yqr、sjqr=yqr、unconfirmed=0、移出未确认名单。含 SAV056776/11-10。
+- ⚠️致命坑：`attendPayload` 含 6/7/8/9 月共 61 个历史日块，**任何全量重建都会误删**。只能外科手术式修正：保历史日块/empIndex 不动，仅替换受影响日块、增量注入新日、按 delta 调 Top。
+- LA19（洛杉矶19号仓）夜班：专用文件 `exclude_la19=False`，其他文件 `True`；并非全确认，按实际 yqr−sjqr 处理。专用文件须 `read_only=False`。
 
-## V25 机制与数据范围（2026-11-13）
-- **劳务工考勤确认率「白名单计及时」机制（V25.1）**：`LABOR_ATT_DATE_WHITELIST = {('SAV056776','2026-11-10')}`（Grace Fnu/萨凡纳5号仓/售后组，迟到16分钟）——与正式工白名单同语义：**保留 yqr、计为已确认（sjqr=yqr、unconfirmed=0）、从未确认/未及时名单移除**（区别于 `LABOR_ATT_EXCLUDE_DATES` 的整条剔除分母）。真源改 2 文件：`_inject_1025.read_labor_recs`（命中强制 qr='已确认'，所有 T+1 注入器复用此函数故自动生效）+ `gen_buqian_stats.py build_attend_payload_v2`（防御性）。已发布 HTML 用 `_fix_labor_sav1110.py` 外科手术式改 2026-11-10 日块+empIndex（total unconfirmed 933→932、sjqr 6205→6206），不动 6/7/8/9 月块。release 7707460916237061375，GitHub 3a3809d。
-- **V25.2 数据范围（T+1 至 11.11）**：`_inject_1113.py`（沿用 _inject_1112 模式）注入 3 个 11月源文件——①正式工-考勤记录-11.11：新日块 2011行/未及时109 → 月块 2026-11 total 21950/abnormal 3573/untimely 842；②劳务工-11.10 仅LA19：`merge_labor_block` 增量并入现有日块（412行 unconfirmed=0）→ yqr 7138→7550、ldk 28→31；③劳务工-11.11 非LA19：新日块 7269行/未确认772/ldk15。校验：两 payload 自洽、6/7/8/9 月块保留、2026-10 零改动均通过。体积 11,689,932 字节（+63KB）。release **7707479970645576966**，GitHub 27a505a。备份 `补签流程_补签统计_1113_bak.html`。
+## 补签率（考勤为基）
+- 分母=考勤记录数，分子=补签完成且非客观原因。仅按月（days=[]，隐藏日/周）；图例宽度=补签率。
+- 劳务工剔除：入职当天/初次报道、西班牙区+其他、日本区+提前打卡、备注客观因素。6/7/8 月旧口径（仅按修改原因）。
+- ⚠️补签率板块严禁 gen 全量重跑（会抹掉 T+1 日块）；用 `_inject_buqian10.py` 并 `_norm_block` 比对保护 6-9 月块，右→左 reverse 替换两个 const。
+
+## 异常表每日机制
+- `_scrape_exception_table.py` + `_apply_exceptions.py`（幂等，退出码 0=需部署/2=跳过），每日 09:30 自动化 id ca859c49。仓库级条目（无工号仅仓库+日期）=整仓当天所有人计及时，从日块 warehouse 取 `we`。
+
+## 关键教训
+- 全量重跑 gen 会丢 T+1 日块，重跑后必须补齐其后所有注入文件；全量重跑后须手动 cp `_injected_*.html` 覆盖主 HTML。
+- 修正脚本须校验：月块=日块和、`timely==total−untimely`、6/7/8/9/10 月零改动、empIndex 无残留。
+- 历史详细日志见 `docs/devlog/` 与各日 `*.md`。

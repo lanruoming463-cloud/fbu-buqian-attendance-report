@@ -103,7 +103,7 @@ if p.returncode != 0:
 log('reset ok at', head[:9])
 
 # ---- 5. 覆盖 index.html + commit（commit 信息按需修改） ----
-COMMIT_MSG = 'V25.10 正式工「离职后整条剔除」新机制(用户 2026-11-18): zt0023023/Sen YANG/法国区巴黎6号仓理货组 于 2026-11-16(含)及之后离职, 该日起整条考勤数据从分母剔除(分子分母都剔除)。11-16 原按白名单(保留总数)已改为整条剔除: 日块/月块 total与normal各-1(日块 2025->2024/月块 32022->32021; 11-16 abnormal/untimely 本就0不变), timely重算; 11-14/15 离职前正常计入不动。新增真源 FORMAL_ATT_LEAVE_FROM(工号->离职生效日,该日及之后整条剔除,_inject_1025+gen同源), 白名单移除 zt0023023/11-16. 校验全过(自洽/月块=日块和/其他日期零改动).'
+COMMIT_MSG = 'V25.11 正式工考勤异常「白名单剔除」(用户 2026-11-19): zt0022754/Zizi Liang(梁松子)/加拿大区渠道部/2026-11-13 缺少末打卡、zt0023345/Adam Lin(林靖凯)/加拿大区HRBP部/2026-11-16 缺少末打卡. 口径=保留总数, 异常改正常/计及时, 不进未及时明细: 各条 abnormal-1/untimely-1/normal+1/total不变, timely重算, empIndex各删1行(两人untimely未达Top阈值,Top无需调整). 日块11-13(59->58)/11-16(94->93) untimely, 月块2026-11 abnormal 4948->4946/untimely 1151->1149/normal 27073->27075/total 32021不变. 真源白名单 _inject_1025(33条)+gen(8条)已加. 校验全过(timely自洽/月块=日块和/2026-06/07/10零改动/empIndex无残留).'
 shutil.copyfile(HTML, os.path.join(REPO, 'index.html'))
 run([GIT, 'add', '-A'], cwd=REPO)
 p = run([GIT, 'status', '--porcelain'], cwd=REPO)
