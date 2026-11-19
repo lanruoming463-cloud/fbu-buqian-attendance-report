@@ -71,10 +71,11 @@ LABOR_ATT_EXCLUDE_DATES = {
 # SAV056776 / Grace Fnu / 萨凡纳5号仓 / 售后组 / 2026-11-10（迟到16分钟但未确认，按用户要求剔除异常）。
 LABOR_ATT_DATE_WHITELIST = {
     ('SAV056776', '2026-11-10'),
-    # 德国区杜塞尔多夫20号仓 GOFO组 5人 2026-11-16 下班未打卡（用户逐条指定不算异常）
-    ('DE079640', '2026-11-16'), ('DE086340', '2026-11-16'),
-    ('DE079490', '2026-11-16'), ('DE079487', '2026-11-16'),
-    ('DE086939', '2026-11-16'),
+}
+# 劳务工按(仓库,组,月份)整条剔除（分子分母全剔除，所有指标不计入）：用户 2026-11-19 指定
+# 德国区 杜塞尔多夫20号仓 GOFO组 2026-11 全月考勤数据剔除（原 11-16 白名单已作废，口径相反）。
+LABOR_ATT_WH_GROUP_EXCLUDE = {
+    ('杜塞尔多夫20号仓', 'GOFO组', '2026-11'),
 }
 FORMAL_HRBP_EXCLUDE = {'国内HRBP组', '美洲支持HRBP组', '美洲支持bp组', '欧亚支持bp组', '欧亚支持HRBP组'}
 FORMAL_OTHER_MAJORS = {'海外销售部', '渠道管理部', 'LD 法务部', 'FBU技术部', '平台业务部', '品牌客户部'}
@@ -223,6 +224,8 @@ def read_labor_recs(path, exclude_la19=False, read_only=True):
         if (str(col(row, 3)).strip(), ds) in LABOR_ATT_EXCLUDE_DATES: continue
         reg = col(row, 6) if isinstance(col(row, 6), str) else ''
         grp = col(row, 8) if isinstance(col(row, 8), str) and col(row, 8) else '部门直属'
+        if (wh, grp, ds[:7]) in LABOR_ATT_WH_GROUP_EXCLUDE:   # 按(仓,组,月)整条剔除（分子分母全减）
+            continue
         sjk = int(_nz(col(row, 20))) + int(_nz(col(row, 21)))
         sq = int(_nz(col(row, 31))) + int(_nz(col(row, 34)))
         qr = col(row, 35) if isinstance(col(row, 35), str) else ''

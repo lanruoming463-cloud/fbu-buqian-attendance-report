@@ -17,7 +17,7 @@
 
 ### 劳务工
 - `LABOR_ATT_EXCLUDE_DATES`：整条剔除分母（6 对法国区，2026-10）。
-- `LABOR_ATT_DATE_WHITELIST`：保留 yqr、sjqr=yqr、unconfirmed=0、移出未确认名单。含 SAV056776/11-10。
+- `LABOR_ATT_DATE_WHITELIST`：保留 yqr、sjqr=yqr、unconfirmed=0、移出未确认名单。含 SAV056776/11-10 + 德国区杜塞尔多夫20号仓GOFO组5人/11-16（DE079640/DE086340/DE079490/DE079487/DE086939，下班未打卡不算异常；这5人11-17也有同类异常，用户只标11-16故未动）。
 - ⚠️致命坑：`attendPayload` 含 6/7/8/9 月共 61 个历史日块，**任何全量重建都会误删**。只能外科手术式修正：保历史日块/empIndex 不动，仅替换受影响日块、增量注入新日、按 delta 调 Top。
 - LA19（洛杉矶19号仓）夜班：专用文件 `exclude_la19=False`，其他文件 `True`；并非全确认，按实际 yqr−sjqr 处理。专用文件须 `read_only=False`。
 

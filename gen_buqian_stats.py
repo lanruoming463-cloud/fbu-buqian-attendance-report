@@ -943,10 +943,11 @@ LABOR_ATT_EXCLUDE_DATES = {
 # SAV056776 / Grace Fnu / 萨凡纳5号仓 / 售后组 / 2026-11-10。
 LABOR_ATT_DATE_WHITELIST = {
     ('SAV056776', '2026-11-10'),
-    # 德国区杜塞尔多夫20号仓 GOFO组 5人 2026-11-16 下班未打卡（用户逐条指定不算异常）
-    ('DE079640', '2026-11-16'), ('DE086340', '2026-11-16'),
-    ('DE079490', '2026-11-16'), ('DE079487', '2026-11-16'),
-    ('DE086939', '2026-11-16'),
+}
+# 劳务工按(仓库,组,月份)整条剔除（分子分母全剔除）：用户 2026-11-19 指定
+# 德国区 杜塞尔多夫20号仓 GOFO组 2026-11 全月（原 11-16 白名单作废）。
+LABOR_ATT_WH_GROUP_EXCLUDE = {
+    ('杜塞尔多夫20号仓', 'GOFO组', '2026-11'),
 }
 def _labor_att_excl(gong, date):
     g = str(gong).strip()
@@ -1154,6 +1155,8 @@ def _read_attend_detail_gs(path):
         if reg and reg not in REGION_TO_MAJOR:
             _UNMAPPED_REGIONS[reg] = _UNMAPPED_REGIONS.get(reg, 0) + 1
         grp = row[8] if isinstance(row[8], str) and row[8] else '部门直属'
+        if (wh, grp, ds[:7]) in LABOR_ATT_WH_GROUP_EXCLUDE:   # 按(仓,组,月)整条剔除（分子分母全减）
+            continue
         sjk = int(_nz(row[20])) + int(_nz(row[21]))          # 首/末打卡时间
         sq = int(_nz(row[31])) + int(_nz(row[34]))           # 首/末打卡补签时间
         qr = row[35] if isinstance(row[35], str) else ''     # 确认状态
