@@ -103,7 +103,7 @@ if p.returncode != 0:
 log('reset ok at', head[:9])
 
 # ---- 5. 覆盖 index.html + commit（commit 信息按需修改） ----
-COMMIT_MSG = 'V25.11 正式工考勤异常「白名单剔除」(用户 2026-11-19): zt0022754/Zizi Liang(梁松子)/加拿大区渠道部/2026-11-13 缺少末打卡、zt0023345/Adam Lin(林靖凯)/加拿大区HRBP部/2026-11-16 缺少末打卡. 口径=保留总数, 异常改正常/计及时, 不进未及时明细: 各条 abnormal-1/untimely-1/normal+1/total不变, timely重算, empIndex各删1行(两人untimely未达Top阈值,Top无需调整). 日块11-13(59->58)/11-16(94->93) untimely, 月块2026-11 abnormal 4948->4946/untimely 1151->1149/normal 27073->27075/total 32021不变. 真源白名单 _inject_1025(33条)+gen(8条)已加. 校验全过(timely自洽/月块=日块和/2026-06/07/10零改动/empIndex无残留).'
+COMMIT_MSG = 'V25.12 T+1增量注入(2026-11-19, 数据至11.17): (A)正式工 11-17 新增日块2033行/未及时92 -> 月块2026-11 total 34051/untimely 1237; (B1)劳务工 LA19(洛杉矶19号仓) 11.14-11.16 三天专用晚班文件1384行增量并入现有日块(未确认1/ldk3, 11-16有1条真实未确认按实际处理); (B2)劳务工 非LA19 11-17 新增日块7595行/未确认825/ldk19. 外科手术式: 6/7/8/9月61日块保留、2026-10零改动、劳务工attendPayload仅前端聚合无月块. 校验全过(正式工timely自洽/月块=日块和, 劳务工yqr==sjqr+unconfirmed/历史零改动).'
 shutil.copyfile(HTML, os.path.join(REPO, 'index.html'))
 run([GIT, 'add', '-A'], cwd=REPO)
 p = run([GIT, 'status', '--porcelain'], cwd=REPO)
