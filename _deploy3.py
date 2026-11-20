@@ -103,7 +103,7 @@ if p.returncode != 0:
 log('reset ok at', head[:9])
 
 # ---- 5. 覆盖 index.html + commit（commit 信息按需修改） ----
-COMMIT_MSG = 'V25.14 劳务工考勤异常「整条剔除」(德国区杜塞尔多夫20号仓 GOFO组 2026-11全月): 用户明确分子分母都剔除、全部指标(ydk/sjk/ybq/sjq/yqr/sjqr/ldk)都剔除, 口径与V25.13白名单相反(白名单5对已作废). GOFO组11月仅11-16/11-17两日块: 各层减GOFO贡献11-16(ydk20/sjk15/yqr10/sjqr5/ldk5)/11-17(ydk20/sjk15/yqr10/sjqr0/ldk5), total yqr 8004->7994与7595->7585, group层GOFO条目删除; empIndex删GK下11月15行/empCount-15; Top全局榜按各人11月贡献扣减(DE079490 ldk 7->6,10月月榜6不动). 真源新增 LABOR_ATT_WH_GROUP_EXCLUDE={杜塞尔多夫20号仓|GOFO组|2026-11}(_inject_1025+gen读record处整条continue). 校验全过(全量yqr==sjqr+unconfirmed/6-9月61块/2026-10零改动/11月其他日零改动/Top10月榜零改动/empIndex无残留).'
+COMMIT_MSG = 'V25.15 T+1增量注入(2026-11-20, 数据至11.18): (A)正式工 11-18 新增日块2033行/未及时111 -> 月块2026-11 total 36082/untimely 1345; (B1)劳务工 LA19(洛杉矶19号仓) 11.17 专用晚班文件502行增量并入现有11-17日块(未确认1/ldk0, yqr->8087); (B2)劳务工 非LA19 11-18 新增日块7516行/未确认701/ldk11(GOFO组经真源 LABOR_ATT_WH_GROUP_EXCLUDE 整条剔除=0条, V25.14口径自动生效). 外科手术式: 6/7/8/9月61日块保留、2026-10零改动. 校验全过(正式工timely自洽/月块=日块和, 劳务工yqr==sjqr+unconfirmed/历史零改动).'
 shutil.copyfile(HTML, os.path.join(REPO, 'index.html'))
 run([GIT, 'add', '-A'], cwd=REPO)
 p = run([GIT, 'status', '--porcelain'], cwd=REPO)
