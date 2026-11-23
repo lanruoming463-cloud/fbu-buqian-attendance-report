@@ -103,7 +103,7 @@ if p.returncode != 0:
 log('reset ok at', head[:9])
 
 # ---- 5. 覆盖 index.html + commit（commit 信息按需修改） ----
-COMMIT_MSG = 'V25.16 异常表每日应用(2026-11-23): 正式工3条(11-18): EXCLUDE zt0018175/zt0018758 各扣total/yqr 1, CONFIRM zt0020024 untimely->timely. 11-18日块 total2033->2031/untimely111->108/timely1922->1923; 11月月块 total36082->36080/untimely1345->1342. 劳务工0条(11-09整仓级SKIP-APPLIED,其余超范围). 校验全过: 日/月块timely自洽、6/7/10月零改动、empIndex仅2组变化.'
+COMMIT_MSG = 'V25.17 T+1增量注入(2026-11-23, 数据至11.19, 基于当日V25.16异常表应用之后): (A)正式工 11-19 新增日块2034行/未及时89 -> 月块2026-11 total 36080+2034=38114/untimely 1342+89=1431(继承异常表应用结果); (B1)劳务工 LA19(洛杉矶19号仓) 11.18 专用晚班文件537行增量并入现有11-18日块(全确认/未确认0/ldk0, yqr 7516->8053, 补上上批缺口); (B2)劳务工 非LA19 11-19 新增日块8800行/未确认1525/ldk257(GOFO组经真源整条剔除=0条). 外科手术式: 6/7/8/9月61日块保留、2026-10零改动. 校验全过(正式工timely自洽/月块=日块和, 劳务工yqr==sjqr+unconfirmed/历史零改动).'
 shutil.copyfile(HTML, os.path.join(REPO, 'index.html'))
 run([GIT, 'add', '-A'], cwd=REPO)
 p = run([GIT, 'status', '--porcelain'], cwd=REPO)
