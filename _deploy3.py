@@ -103,7 +103,7 @@ if p.returncode != 0:
 log('reset ok at', head[:9])
 
 # ---- 5. 覆盖 index.html + commit（commit 信息按需修改） ----
-COMMIT_MSG = 'V25.18 T+1增量注入(2026-11-24, 数据至11.20): (A)正式工 11-20 新增日块2038行/未及时84 -> 月块2026-11 total 38113+2038=40151/untimely 1429+84=1513; zt0021853 11-20 经真源FORMAL_ATT_EXCLUDE_DATES整条剔除(读源即命中0行). (B1)劳务工 LA19(洛杉矶19号仓) 11.19 专用晚班文件571行增量并入现有11-19日块(未确认2/ldk1, unconfirmed 1525->1527/ldk 257->258); (B2)劳务工 非LA19 11-20 新增日块9321行/未确认249/ldk1(GOFO组经真源整条剔除=0条). 外科手术式: 6/7/8/9月61日块保留、2026-10零改动. 校验全过(正式工timely自洽/月块=日块和/6-7-10月零改动, 劳务工yqr==sjqr+unconfirmed/历史零改动).'
+COMMIT_MSG = 'V25.19 法国区+三员工考勤异常口径调整(用户2026-11-24): (A)正式工白名单11条(异常改正常/保留total) Ying HUANG zt15752 11月5条+Yixuan DU zt0023339 11月3条+法国区11-10其他3人(zt0022766/0022976/0021413); (B)正式工整条剔除法区行政部 Jie REN zt0022107 11月5条(11-04/05/06/09/10,分子分母全减); 月块2026-11 total 40151->40146/untimely 1513->1497. (C)劳务工白名单 法国区2026-11-10全天全部未确认计为已确认(sjqr 6618->6816/unconfirmed 932->734, 176条样本行删, Top unc 7人各扣1). 真源固化: FORMAL_ATT_DATE_WHITELIST/EXCLUDE_DATES(zt0022107)/LABOR_ATT_REGION_DATE_WHITELIST(法国区11-10) 于 _inject_1025+gen. 校验全过(正式工timely自洽/月块=日块和/6-7-10月零改动, 劳务工自洽/61日块保留/10月零改动).'
 shutil.copyfile(HTML, os.path.join(REPO, 'index.html'))
 run([GIT, 'add', '-A'], cwd=REPO)
 p = run([GIT, 'status', '--porcelain'], cwd=REPO)
