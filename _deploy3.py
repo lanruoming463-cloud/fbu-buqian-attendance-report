@@ -103,7 +103,7 @@ if p.returncode != 0:
 log('reset ok at', head[:9])
 
 # ---- 5. 覆盖 index.html + commit（commit 信息按需修改） ----
-COMMIT_MSG = 'V25.19 法国区+三员工考勤异常口径调整(用户2026-11-24): (A)正式工白名单11条(异常改正常/保留total) Ying HUANG zt15752 11月5条+Yixuan DU zt0023339 11月3条+法国区11-10其他3人(zt0022766/0022976/0021413); (B)正式工整条剔除法区行政部 Jie REN zt0022107 11月5条(11-04/05/06/09/10,分子分母全减); 月块2026-11 total 40151->40146/untimely 1513->1497. (C)劳务工白名单 法国区2026-11-10全天全部未确认计为已确认(sjqr 6618->6816/unconfirmed 932->734, 176条样本行删, Top unc 7人各扣1). 真源固化: FORMAL_ATT_DATE_WHITELIST/EXCLUDE_DATES(zt0022107)/LABOR_ATT_REGION_DATE_WHITELIST(法国区11-10) 于 _inject_1025+gen. 校验全过(正式工timely自洽/月块=日块和/6-7-10月零改动, 劳务工自洽/61日块保留/10月零改动).'
+COMMIT_MSG = 'V25.20 劳务工考勤异常白名单(用户2026-11-25): KANTE Aboubakari FR091592 / 欧洲区法国区巴黎7号仓交运组 / 2026-11-09(未确认,下班未打卡+迟到18分钟)按白名单剔除(保留总数,计为已确认,移出未确认名单), 仅11-09一天(11-04/05两条不动). 11-09日块 sjqr 7061->7062/unconfirmed 715->714, 交运组group节点归零后按真源压缩规则移除, empIndex删1行. 真源固化 LABOR_ATT_DATE_WHITELIST += FR091592/2026-11-09. 校验全过(自洽/61日块保留/10月零改动/其他11月日块零改动). | 上批V25.19: (A)正式工白名单11条(异常改正常/保留total) Ying HUANG zt15752 11月5条+Yixuan DU zt0023339 11月3条+法国区11-10其他3人(zt0022766/0022976/0021413); (B)正式工整条剔除法区行政部 Jie REN zt0022107 11月5条(11-04/05/06/09/10,分子分母全减); 月块2026-11 total 40151->40146/untimely 1513->1497. (C)劳务工白名单 法国区2026-11-10全天全部未确认计为已确认(sjqr 6618->6816/unconfirmed 932->734, 176条样本行删, Top unc 7人各扣1). 真源固化: FORMAL_ATT_DATE_WHITELIST/EXCLUDE_DATES(zt0022107)/LABOR_ATT_REGION_DATE_WHITELIST(法国区11-10) 于 _inject_1025+gen. 校验全过(正式工timely自洽/月块=日块和/6-7-10月零改动, 劳务工自洽/61日块保留/10月零改动).'
 shutil.copyfile(HTML, os.path.join(REPO, 'index.html'))
 run([GIT, 'add', '-A'], cwd=REPO)
 p = run([GIT, 'status', '--porcelain'], cwd=REPO)
