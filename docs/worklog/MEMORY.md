@@ -17,7 +17,7 @@
 
 ### 劳务工
 - `LABOR_ATT_EXCLUDE_DATES`：整条剔除分母（6 对法国区，2026-10）。
-- `LABOR_ATT_DATE_WHITELIST`：保留 yqr、sjqr=yqr、unconfirmed=0、移出未确认名单。含 SAV056776/11-10。
+- `LABOR_ATT_DATE_WHITELIST`：保留 yqr、sjqr=yqr、unconfirmed=0、移出未确认名单。含 SAV056776/11-10、FR091592/11-09（KANTE Aboubakari 法国区巴黎7号仓交运组）。
 - `LABOR_ATT_REGION_DATE_WHITELIST`（按(区域,日期)批量白名单，读源时 qr 强制=已确认）：含 ('法国区','2026-11-10')。用户 2026-11-24 要整区全天豁免，逐工号写不现实故用区域级。修正已发布 HTML 时须改**日块汇总 sjqr=yqr**（δ=该区 group 节点 unconfirmed 之和），detail(区域级)保留置零、warehouse/group 移除（真源只保留 unconfirmed>0）。
 - ⚠️empIndex 各组 cap=50、**empCount 是全期真计数**：样本明细行数≠真实未确认数（如法国区11-10 样本176 vs 汇总198）。白名单改 sjqr 按汇总 δ，empIndex 只删存在的样本行，**empCount 不动**。
 - `LABOR_ATT_WH_GROUP_EXCLUDE`（按(仓,组,月)整条剔除，分子分母+全部指标都减）：含 ('杜塞尔多夫20号仓','GOFO组','2026-11')。⚠️此口径与白名单相反：用户 2026-11-19 最终明确 GOFO 组 11 月全月"分子分母都剔除"，故 11-16 原5人白名单已作废改为整条剔除。Top 全局榜须按各人当月贡献扣减（DE079490 全局ldk 7→6，10月月榜6不动）。
