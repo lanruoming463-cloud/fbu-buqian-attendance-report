@@ -1515,6 +1515,8 @@ FORMAL_ATT_EXCLUDE_EMPS = {'zt0022056'}
 # （total/normal/abnormal/untimely 全不计，与 FORMAL_ATT_DATE_WHITELIST 的"保留总数计正常"口径不同）。
 # zt0021853 / Ullah Asad / 意大利区米兰1号仓拣货组：2026-11-13、2026-11-16。
 FORMAL_ATT_EXCLUDE_DATES = {('zt0021853', '2026-11-13'), ('zt0021853', '2026-11-16'), ('zt0021853', '2026-11-20'), ('zt0021853', '2026-11-23'), ('zt0022107', '2026-11-04'), ('zt0022107', '2026-11-05'), ('zt0022107', '2026-11-06'), ('zt0022107', '2026-11-09'), ('zt0022107', '2026-11-10')}
+# 正式工按(五级部门=仓库, 日期)整条剔除（分子分母全减）：用户 2026-11-26 指定 法国区 巴黎2号仓 11-24 全天正式工数据剔除。
+FORMAL_ATT_WH_DATE_EXCLUDE = {('巴黎2号仓', '2026-11-24')}
 # 正式工「离职后整条剔除」(用户 2026-11-18): 工号->离职生效日, 该日(含)及之后整条考勤数据从分母剔除。
 # zt0023023 / Sen YANG / 法国区巴黎6号仓理货组: 2026-11-16(含)及之后已离职。
 FORMAL_ATT_LEAVE_FROM = {'zt0023023': '2026-11-16'}
@@ -1573,6 +1575,9 @@ def _build_formal_recs():
             # 按(工号,日期)整条剔除（用户 2026-11-17）：该员工该日整条数据从分母剔除
             if (gong, d.strftime('%Y-%m-%d')) in FORMAL_ATT_EXCLUDE_DATES:
                 excluded['指定日期整条剔除'] = excluded.get('指定日期整条剔除', 0) + 1
+                continue
+            if (wh, d.strftime('%Y-%m-%d')) in FORMAL_ATT_WH_DATE_EXCLUDE:  # 按(仓,日期)整条剔除（用户 2026-11-26 巴黎2号仓11-24）
+                excluded['指定仓日期整条剔除'] = excluded.get('指定仓日期整条剔除', 0) + 1
                 continue
             # 离职后整条剔除（用户 2026-11-18）：该日(含)及之后不计入分母
             if gong in FORMAL_ATT_LEAVE_FROM and d.strftime('%Y-%m-%d') >= FORMAL_ATT_LEAVE_FROM[gong]:

@@ -2,8 +2,8 @@
 
 ## 基础
 - 主产物：单体 HTML `补签流程_补签统计.html`（约 11.7MB）。payload：`formalAttPayload`（正式工，有日块+月块）、`attendPayload`（劳务工，仅日块，前端聚合成月）、`formalPayload`/`laborPayload`（补签率）。
-- 部署：`_deploy3.py`（妙搭 app_17cg3t4mvjm；自动触发 `_github_sync.py` 同步公开仓库 lanruoming463-cloud/fbu-buqian-attendance-report）。每次改动须更新 `COMMIT_MSG`（当前 V25.11 待部署）。
-- 主体报表数据范围 2026-06/07/10；8-9月仅在独立 T+1 看板。T+1 日块已注入至 2026-11-16。
+- 部署：`_deploy3.py`（妙搭 app_17cg3t4mvjm；自动触发 `_github_sync.py` 同步公开仓库 lanruoming463-cloud/fbu-buqian-attendance-report）。每次改动须更新 `COMMIT_MSG`（当前 V25.21 已部署）。
+- 主体报表数据范围 2026-06/07/10；8-9月仅在独立 T+1 看板。T+1 日块已注入至 2026-11-23（正式工/劳务工日块末尾均 11-23；当前部署 V25.21）。
 - 体积红线：`att_excel` 不得进 HTML payload（曾致 54MB），gen 脚本已在追加 Excel 后 pop。
 
 ## 口径机制（ surgically 修改已发布 HTML，勿全量重跑 gen）
@@ -12,6 +12,7 @@
 2. `FORMAL_ATT_EXCLUDE_DATES`：整条从分母剔除（total/normal/abnormal/untimely 全减）。含 zt0021853/11-13、11-16、11-20、11-23；Jie REN zt0022107 11-04/05/06/09/10。
 3. `FORMAL_ATT_LEAVE_FROM`：离职生效日起整条剔除，日期 `>=` 生效日。含 zt0023023→2026-11-16。
 4. `FORMAL_ATT_EXCLUDE_EMPS`（全期，zt0022056）/ `FORMAL_ATT_EXCLUDE_OCT`（zt0021903）/ `FORMAL_ATT_WH_EXCL`（加拿大区3仓 11-01~11-08 按仓白名单）。
+5. `FORMAL_ATT_WH_DATE_EXCLUDE`（按(五级部门=仓,日期)整条剔除，分子分母全减）：含 ('巴黎2号仓','2026-11-24')。用户 2026-11-26 指定，仅当天。注入 11-24 时自动生效。
 - 捷克自动豁免仅限 `region in ('捷克区','捷克区HRBP部')` 且异常备注=`缺少首打卡和末打卡`；**用户明确：其他区域不适用**。
 - 「上级当天休假豁免」仅10月，据休假流程+花名册映射，扣 untimely 不改 total。
 
