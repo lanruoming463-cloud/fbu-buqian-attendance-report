@@ -2,8 +2,8 @@
 
 ## 基础
 - 主产物：单体 HTML `补签流程_补签统计.html`（约 11.7MB）。payload：`formalAttPayload`（正式工，有日块+月块）、`attendPayload`（劳务工，仅日块，前端聚合成月）、`formalPayload`/`laborPayload`（补签率）。
-- 部署：`_deploy3.py`（妙搭 app_17cg3t4mvjm；自动触发 `_github_sync.py` 同步公开仓库 lanruoming463-cloud/fbu-buqian-attendance-report）。每次改动须更新 `COMMIT_MSG`（当前 V25.21 已部署）。
-- 主体报表数据范围 2026-06/07/10；8-9月仅在独立 T+1 看板。T+1 日块已注入至 2026-11-23（正式工/劳务工日块末尾均 11-23；当前部署 V25.21）。
+- 部署：`_deploy3.py`（妙搭 app_17cg3t4mvjm；自动触发 `_github_sync.py` 同步公开仓库 lanruoming463-cloud/fbu-buqian-attendance-report）。每次改动须更新 `COMMIT_MSG`（当前 V25.22 已部署）。
+- 主体报表数据范围 2026-06/07/10；8-9月仅在独立 T+1 看板。T+1 日块已注入至 2026-11-24（正式工/劳务工日块末尾均 11-24；当前部署 V25.22）。
 - 体积红线：`att_excel` 不得进 HTML payload（曾致 54MB），gen 脚本已在追加 Excel 后 pop。
 
 ## 口径机制（ surgically 修改已发布 HTML，勿全量重跑 gen）
